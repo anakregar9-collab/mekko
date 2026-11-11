@@ -1,6 +1,6 @@
 # M1 — authentication, profiles, spaces, basic admin
 
-Status: **implemented on branch `m1-auth-spaces`, verified locally.** The cloud dev database is not migrated yet (see "Pending founder actions").
+Status: **implemented on branch `m1-auth-spaces`, verified locally.** Migration `20261111161707_m1_identity_spaces` was applied to the cloud dev project `mekko-dev` on 2026-11-11 (founder-confirmed). Verified there: 10 tables, all with RLS, 15 interests, 4 flags (all off), anon can't read consents, users can't write the audit log.
 
 ## What's built
 
@@ -42,7 +42,7 @@ Login codes arrive in the local mailbox at http://127.0.0.1:54324 (Mailpit).
 
 ## Pending founder actions (needed before Vercel previews work end-to-end)
 
-1. **Confirm the database migration** on the cloud `mekko-dev` project. The tool asked for confirmation and it timed out unanswered.
+1. ~~Confirm the database migration on `mekko-dev`~~ — done 2026-11-11.
 2. **Supabase Auth settings** (Dashboard → Authentication):
    - Email template "Magic Link": include `{{ .Token }}` (copy `supabase/templates/magic_link.html`).
    - URL configuration: Site URL and redirect URLs for the Vercel preview domain.
@@ -51,6 +51,8 @@ Login codes arrive in the local mailbox at http://127.0.0.1:54324 (Mailpit).
 5. **Support mailbox:** the restricted-account page shows `podpora@mekko.eu`. Create the mailbox or tell me a different address.
 
 ## Known limitations / TODO
+
+- **Supabase security advisor (2 warnings, accepted for M1):** `SECURITY DEFINER` functions can be called via `/rest/v1/rpc`. This is intentional for the action RPCs (create_space, invites, admin_*), which check the caller inside. The policy helpers (`is_active_user`, `has_platform_role`, `is_platform_staff`, `is_space_role`, `can_view_profile`) only answer about the caller or a known profile id, but **hardening TODO:** move them to a non-exposed `private` schema in a follow-up migration.
 
 - GDPR export and deletion are request intake only. Fulfilment is manual (admin marks done). An automated export job is planned for later.
 - Ownership transfer and space deletion are not built yet. A user who owns spaces must transfer them before deletion, which is handled manually for now.
