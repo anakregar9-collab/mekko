@@ -27,3 +27,12 @@
 - How free social posting quota applies to community posts vs published ideas/events.
 - What happens to external booking listings when platform commission model expands.
 - User approval of design system / logos / typography / colors.
+
+## 2026-11-11 — M0 engineering decisions (proposed by Claude Code, pending founder review)
+- Stack pinned: Next.js 16.4 (App Router, Cache Components), React 19.3, TypeScript 5.9, Tailwind 4.3, pnpm 10.28, Node ≥ 22, Vitest 5, Playwright 1.63 + axe-core.
+- shadcn/ui registry unreachable from build environment; M0 uses small hand-written primitives in the same style. Recommend adopting shadcn/Radix for forms/dialogs in M1.
+- Events, tickets, bookings and payouts always belong to a space; organizer mode auto-creates a `solo_creator` space (docs/M0_REVIEW.md #5).
+- Series bookings use `bookings.occurrence_id = NULL`; recurring events book per occurrence (docs/DOMAIN_MODEL.md).
+- Prototype screens live under `/prototip/*`, are `noindex` and always show a demo banner; unimplemented actions explain themselves instead of being dead buttons.
+- Proposed defaults for spec contradictions are listed in docs/M0_REVIEW.md §2; items marked APPROVAL are NOT confirmed.
+- First-pass branding (coral/cream palette, Bricolage Grotesque + Figtree) is a placeholder, not approved.

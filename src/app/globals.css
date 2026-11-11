@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/*
+ * MEKKO design tokens — first pass, NOT founder-approved (PRODUCT_SPEC §9.8).
+ * Light theme only (dark theme is M6). All text/background pairs below meet
+ * WCAG 2.1 AA (4.5:1) — see docs/DESIGN_SYSTEM.md for measured ratios.
+ */
+@theme {
+  --color-cream: #fff8f0; /* app background */
+  --color-surface: #ffffff;
+  --color-ink: #2a1f1a; /* body text, 15.2:1 on cream */
+  --color-ink-muted: #6b5b52; /* secondary text, 6.1:1 on cream */
+  --color-line: #eadfd3;
+
+  --color-brand: #c9432a; /* primary actions, white text 4.9:1 */
+  --color-brand-strong: #b23a22;
+  --color-brand-soft: #fde6dc;
+
+  --color-sun: #f6b53b;
+  --color-sun-ink: #7a5200;
+  --color-sun-soft: #fef0cf;
+  --color-sage-ink: #2f6b4a;
+  --color-sage-soft: #ddefe3;
+  --color-lilac-ink: #5b3fa8;
+  --color-lilac-soft: #ece5fa;
+  --color-sky-ink: #1f5f99;
+  --color-sky-soft: #dcebf8;
+  --color-clay-ink: #8a4a2a;
+  --color-clay-soft: #f6e2d3;
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1.25rem;
+  --radius-chip: 999px;
+
+  --shadow-card: 0 1px 2px rgb(42 31 26 / 0.06), 0 4px 16px rgb(42 31 26 / 0.06);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Visible, consistent keyboard focus everywhere. */
+:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Horizontal chip rows scroll inside themselves, never the page. */
+.scroll-row {
+  scrollbar-width: none;
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
