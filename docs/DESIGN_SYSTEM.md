@@ -1,6 +1,6 @@
 # Design system — first pass
 
-Status: **placeholder, not founder-approved** (PRODUCT_SPEC §9.8). Tokens live in `src/app/globals.css` (`@theme`). Components live in `src/components/ui`.
+Status: **visual direction approved by founder 2026-11-11**; logo redraw pending confirmation (PRODUCT_SPEC §9.8). Tokens live in `src/app/globals.css` (`@theme`). Components live in `src/components/ui`.
 
 ## Direction
 
@@ -54,6 +54,10 @@ Playful creative and warm, but uncluttered. Light theme only (dark is M6). Mobil
 - Toggles use `aria-pressed`, the current tab uses `aria-current="page"`, and stepper steps use `aria-current="step"`.
 - Every E2E run executes **axe** (WCAG 2.1 A/AA) and fails on serious or critical violations, at 320/375/390/430 px and 1280 px.
 
+## Logo
+
+`LogoMark` in `src/components/logo.tsx`: a hand-drawn "m" in brand coral whose tail curls like a loose thread, with a sun-yellow sparkle. It replaced the first draft (two overlapping circles), which looked too much like Mastercard. Pending founder confirmation.
+
 ## Open for approval
 
-Logo / wordmark, final palette, font pairing, illustration style, photo guidelines, and the tone of microcopy (informal "ti" is used throughout).
+Final logo, illustration style, photo guidelines, and the tone of microcopy (informal "ti" is used throughout).

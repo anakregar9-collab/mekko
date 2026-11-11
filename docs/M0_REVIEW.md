@@ -1,6 +1,6 @@
 # M0 review — state, contradictions and decisions for the founder
 
-Status: **awaiting founder review**. Nothing here is confirmed until the founder approves it and it is logged in `DECISIONS.md`.
+Status: **reviewed 2026-11-11.** The founder accepted all recommended defaults (items 1, 2, 3, 4, 6, 7, 9, 10), approved the Supabase dev project, Vercel previews, email-first auth and Resend (domain `mekko.eu`). Confirmed text: `DECISIONS.md`.
 
 ## 1. Repository and environment state (2026-11-11)
 
@@ -55,7 +55,7 @@ Each item lists a **default resolution** that the prototype and model already fo
 
 Also noted: branding, palette and fonts in the prototype are **first-pass placeholders** (spec §9.8). The `Bricolage Grotesque` / `Figtree` fonts and the coral/cream palette need your approval.
 
-## 3. What I need from you
+## 3. What I needed from you (answered 2026-11-11, see DECISIONS.md)
 
 1. Approve or change the defaults for items **1, 2, 3, 4, 6, 7, 9, 10** above.
 2. Give feedback on the clickable prototype (look and feel, density, tone of copy, the four tabs).
