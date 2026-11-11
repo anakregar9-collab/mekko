@@ -13,14 +13,24 @@
     "test:e2e": "playwright test --trace off",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm typecheck && pnpm lint && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "db:start": "supabase start -x storage-api,imgproxy,vector,logflare,realtime,edge-runtime,supavisor",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript > src/lib/db/types.ts && prettier --write src/lib/db/types.ts",
+    "db:env": "./scripts/local-env.sh"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.72.0",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
@@ -35,6 +45,7 @@
     "eslint-config-next": "16.4.6",
     "jsdom": "^31.0.0",
     "prettier": "^3.10.0",
+    "supabase": "3.1.0",
     "tailwindcss": "4.3.3",
     "typescript": "^5",
     "vitest": "5.1.0"

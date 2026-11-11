@@ -1,14 +1,18 @@
 # MEKKO
 
-Slovenia-first discovery platform for creative and lifestyle activities. Current stage: **M0, foundation and clickable prototype** (demo data only, nothing is persisted).
+Slovenia-first discovery platform for creative and lifestyle activities. Current stage: **M1, accounts, profiles, organizer spaces and basic admin**, on Supabase. The M0 clickable prototype (demo data) is still under `/prototip`.
 
 ## Quick start
 
 ```bash
 corepack enable
 pnpm install
-pnpm dev          # http://localhost:3000 → review hub with links to all prototype screens
+pnpm db:start     # local Supabase in Docker
+pnpm db:env       # writes .env.local with LOCAL keys (never real secrets)
+pnpm dev          # http://localhost:3000 → review hub
 ```
+
+Login codes for local accounts arrive at http://127.0.0.1:54324 (Mailpit). See `docs/M1_NOTES.md`.
 
 ## Scripts
 
@@ -20,6 +24,9 @@ pnpm dev          # http://localhost:3000 → review hub with links to all proto
 | `pnpm test` | Vitest unit tests |
 | `pnpm test:e2e` | Playwright + axe (run `pnpm build` first; first time also `pnpm exec playwright install chromium`) |
 | `pnpm check` | typecheck + lint + unit |
+| `pnpm db:start` / `db:stop` / `db:reset` | local Supabase stack |
+| `pnpm db:test` | pgTAP RLS/authorization tests |
+| `pnpm db:types` | regenerate `src/lib/db/types.ts` |
 
 ## Documents
 
@@ -30,6 +37,7 @@ pnpm dev          # http://localhost:3000 → review hub with links to all proto
 - `docs/ROUTES_AND_AUTHZ.md`: route map and authorization matrix
 - `docs/DESIGN_SYSTEM.md`: tokens and components
 - `docs/M0_PLAN.md`: M0 checklist, test/CI/migration/rollback conventions
+- `docs/M1_NOTES.md`: what M1 contains, security model, tests, pending founder actions
 
 ## Layout
 

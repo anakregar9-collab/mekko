@@ -56,3 +56,13 @@ Infrastructure (approved):
 Design:
 - Overall visual direction approved (cream background, coral actions, rounded cards, Bricolage Grotesque + Figtree).
 - Old logo (two overlapping circles) rejected: looked like the Mastercard logo. Replaced with a creative hand-drawn "m" mark with a curled thread tail and a sun sparkle (`src/components/logo.tsx`), pending founder confirmation.
+
+## 2026-11-11 — M1 engineering decisions (Claude Code; inside confirmed scope)
+- Login = email one-time 6-digit code (Supabase OTP) instead of magic links: works across devices/in-app browsers and needs no redirect allow-list. Google sign-in added when OAuth credentials exist (flag `google_auth_enabled`).
+- Profile visibility default = "members" (signed-in users only). Email, purchases and bookings are never part of a profile. Approximate city is stored only with an explicit `approx_location` consent; consents are an append-only log. Marketing email is opt-in, off by default.
+- Team membership requires the invitee to accept (no one is added to a space without consent). Owner invites admins; admins invite staff; only the owner changes roles. Exactly one active owner per space (DB-enforced).
+- Anti-abuse guard: max 20 owned spaces per user (changeable; spaces remain free and otherwise unrestricted as decided).
+- Non-staff see 404 for /admin and for spaces they don't belong to (existence is not revealed).
+- Suspended accounts are redirected to /racun-omejen and lose all write/organizer powers via RLS (`is_active_user()`), existing records stay intact (consistent with founder decision #9).
+- GDPR export/deletion: request intake + admin workflow with audit in M1; fulfilment manual until an export job is built.
+- Cloud dev project `mekko-dev` (Supabase, eu-central-1) created on founder approval. Vercel previews pending until the dev DB is migrated and auth email is configured.
