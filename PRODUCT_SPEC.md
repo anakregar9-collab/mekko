@@ -70,6 +70,7 @@ Mekko is a Slovenia-first discovery platform for creative and lifestyle activiti
 - Founder admin initially, later scoped additional admins. Audit all sensitive admin actions; do not expose financial/private fields to ordinary users.
 
 ## 9. Open decisions — DO NOT silently assume these are confirmed
+(2026-11-11: items 3 and parts of 1, 2, 5, 6 and 9 were resolved by the founder, see DECISIONS.md "Founder decisions on M0 review". Still open: exact commission %, processor fee allocation, subscriptions, map/geo provider, push provider, video hosting, PWA vs native confirmation, KYC/tax details.)
 1. Exact commission, processor fee allocation, subscriptions, free post limits and whether affiliate/off-platform sales affect monetization.
 2. MVP selection from broad confirmed vision: especially recorded courses, pass/card system, messages, comments, waitlists and refunds.
 3. Community membership pricing on public page even though dues postponed: display free membership or remove pricing until activated.

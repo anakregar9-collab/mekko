@@ -1,0 +1,72 @@
+import Link from "next/link";
+import { Bell, MessageCircle } from "lucide-react";
+import { Logo } from "@/components/logo";
+import { conversations, notifications } from "@/lib/demo/data";
+
+/** Visitor header: logo (phones only — desktop rail shows it) + TWO separate icons (PRODUCT_SPEC §2, §7). */
+export function AppHeader() {
+  const unreadMessages = conversations.reduce((n, c) => n + c.unread, 0);
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
+
+  return (
+    <header className="sticky top-0 z-20 border-b border-line/70 bg-cream/90 backdrop-blur">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-8">
+        <div className="md:invisible">
+          <Logo />
+        </div>
+        <div className="flex items-center gap-1">
+          <HeaderIcon
+            href="/prototip/sporocila"
+            label="Sporočila"
+            count={unreadMessages}
+            testId="header-messages"
+          >
+            <MessageCircle aria-hidden="true" className="size-6" />
+          </HeaderIcon>
+          <HeaderIcon
+            href="/prototip/obvestila"
+            label="Obvestila"
+            count={unreadNotifications}
+            testId="header-notifications"
+          >
+            <Bell aria-hidden="true" className="size-6" />
+          </HeaderIcon>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function HeaderIcon({
+  href,
+  label,
+  count,
+  testId,
+  children,
+}: {
+  href: string;
+  label: string;
+  count: number;
+  testId: string;
+  children: React.ReactNode;
+}) {
+  const accessible = count > 0 ? `${label}, ${count} neprebranih` : label;
+  return (
+    <Link
+      href={href}
+      aria-label={accessible}
+      data-testid={testId}
+      className="relative flex size-11 items-center justify-center rounded-full text-ink hover:bg-brand-soft"
+    >
+      {children}
+      {count > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute top-1.5 right-1.5 flex min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[0.65rem] leading-5 font-bold text-white"
+        >
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+}

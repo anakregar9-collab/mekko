@@ -27,3 +27,32 @@
 - How free social posting quota applies to community posts vs published ideas/events.
 - What happens to external booking listings when platform commission model expands.
 - User approval of design system / logos / typography / colors.
+
+## 2026-11-11 — M0 engineering decisions (proposed by Claude Code, pending founder review)
+- Stack pinned: Next.js 16.4 (App Router, Cache Components), React 19.3, TypeScript 5.9, Tailwind 4.3, pnpm 10.28, Node ≥ 22, Vitest 5, Playwright 1.63 + axe-core.
+- shadcn/ui registry unreachable from build environment; M0 uses small hand-written primitives in the same style. Recommend adopting shadcn/Radix for forms/dialogs in M1.
+- Events, tickets, bookings and payouts always belong to a space; organizer mode auto-creates a `solo_creator` space (docs/M0_REVIEW.md #5).
+- Series bookings use `bookings.occurrence_id = NULL`; recurring events book per occurrence (docs/DOMAIN_MODEL.md).
+- Prototype screens live under `/prototip/*`, are `noindex` and always show a demo banner; unimplemented actions explain themselves instead of being dead buttons.
+- Proposed defaults for spec contradictions are listed in docs/M0_REVIEW.md §2; items marked APPROVAL are NOT confirmed.
+- First-pass branding (coral/cream palette, Bricolage Grotesque + Figtree) is a placeholder, not approved.
+
+## 2026-11-11 — Founder decisions on M0 review (docs/M0_REVIEW.md §2) — CONFIRMED
+1. Event previews: public, indexable preview (title, cover, date/time, city, organizer, price range, category, availability). Exact address, online link, full description, materials, organizer contact and booking require login.
+2. Posting quota: counts published events + published ideas (not community posts, not drafts), per account and per space; initially unlimited, admin-configurable later; never charged/unpublished retroactively.
+3. External registration: allowed, clearly labelled "Zunanja prijava" with leaving-Mekko notice; counts toward quota; no hidden ranking penalty; outbound clicks tracked.
+4. Manual/off-platform payment: booking `pending_payment` until organizer confirms; Mekko never shows "plačano"; no commission on manual payments in MVP.
+6. DMs (M3): progressive — first contact only to organizers or people sharing a booking/membership, open to all after account age/verification; with rate limits, report and block.
+7. Community membership: no pricing section until paid dues exist; only "Pridruži se" / "Zaprosi za članstvo".
+9. Blocked/suspended users: existing bookings stay valid; block disables DMs/comments between the pair; organizer safety removal = full refund; suspended users cannot book; existing bookings flagged for admin review.
+10. Sales (paid tickets, paid ideas): only after legal review (KYC, invoicing, VAT, consumer rights); until then free events/ideas and manual-payment events only; afterwards verified sellers only.
+
+Infrastructure (approved):
+- Create Supabase dev project in EU (Frankfurt), development only, no real data.
+- Connect Vercel for preview deployments only; no production.
+- Auth M1: email first; Google OAuth added when founder provides client credentials.
+- Email provider: Resend. Domain: mekko.eu (registered at Domenca).
+
+Design:
+- Overall visual direction approved (cream background, coral actions, rounded cards, Bricolage Grotesque + Figtree).
+- Old logo (two overlapping circles) rejected: looked like the Mastercard logo. Replaced with a creative hand-drawn "m" mark with a curled thread tail and a sun sparkle (`src/components/logo.tsx`), pending founder confirmation.
