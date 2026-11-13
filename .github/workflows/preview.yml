@@ -62,5 +62,10 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          npx --yes vercel@latest alias set "${{ steps.deploy.outputs.url }}" mekko-dev-movella.vercel.app --token "$VERCEL_TOKEN" --scope movella
+          host="${{ steps.deploy.outputs.url }}"; host="${host#https://}"
+          api="https://api.vercel.com"; auth="Authorization: Bearer $VERCEL_TOKEN"
+          id=$(curl -sf -H "$auth" "$api/v13/deployments/$host?teamId=$VERCEL_ORG_ID" | jq -r .id)
+          curl -sf -X POST -H "$auth" -H "Content-Type: application/json" \
+            "$api/v2/deployments/$id/aliases?teamId=$VERCEL_ORG_ID" \
+            -d '{"alias":"mekko-dev-movella.vercel.app"}' > /dev/null
           echo "Stable: https://mekko-dev-movella.vercel.app" >> "$GITHUB_STEP_SUMMARY"
