@@ -1,0 +1,28 @@
+name: Vercel production (manual)
+
+# Manual only: publishes the selected branch to https://mekko-movella.vercel.app
+# (project "mekko", team movella). Never runs automatically.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_VE2jzOxivEuG3RDXJxcE8N2X
+  VERCEL_PROJECT_ID: prj_nlQRXrli79g8QYKuxgD5XWXQkhSO
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN")
+          echo "Production: https://mekko-movella.vercel.app ($url)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Production: $url"
