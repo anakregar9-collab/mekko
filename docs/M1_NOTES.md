@@ -44,8 +44,8 @@ Login codes arrive in the local mailbox at http://127.0.0.1:54324 (Mailpit).
 
 - Project **`mekko`** (`prj_nlQRXrli79g8QYKuxgD5XWXQkhSO`) in team movella, separate from Movella. It is not linked to Git, because the repo owner and the Vercel login are different GitHub accounts.
 - Previews are deployed by `.github/workflows/preview.yml` (Vercel CLI, secret `VERCEL_TOKEN`) on every push to a non-`main` branch. The preview URL is in the run summary.
-- Protection: Vercel Authentication on everything except custom domains. Functions run in `fra1` (next to the Supabase EU database). Supabase env vars are set for Preview + Development only.
-- Production holds only a protected "Mekko – kmalu" placeholder. Vercel forces a project's first deploy to production; this was founder-approved on 2026-11-13. There are no production env vars. Disabling production deploys entirely needs the Pro plan.
+- **Stable public test URL: https://mekko-dev-movella.vercel.app** (founder decision 2026-11-13: anyone with the link). It is re-pointed to the latest `m1-auth-spaces` preview on each push. Vercel Authentication is off. Every page sends `X-Robots-Tag: noindex, nofollow`. Functions run in `fra1` (next to the Supabase EU database). Supabase env vars are set for Preview + Development only.
+- Production holds only a "Mekko – kmalu" placeholder (now public as well). Vercel forces a project's first deploy to production; this was founder-approved on 2026-11-13. There are no production env vars. Disabling production deploys entirely needs the Pro plan.
 
 ## Pending founder actions (needed before Vercel previews work end-to-end)
 
