@@ -1,0 +1,54 @@
+name: Vercel preview
+
+# Deploys a PREVIEW (never production) to Vercel project "mekko" in team "movella"
+# using the Vercel CLI, so no Vercel<->GitHub app link is needed.
+# Requires repository secret VERCEL_TOKEN. Skips cleanly if it is missing.
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Public client values of the Supabase DEV project (publishable key is designed to be public; RLS protects data).
+  NEXT_PUBLIC_SUPABASE_URL: https://ahiojayknfjvorokscfh.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_FXiRARx2mRc9u61NC0sNnw_5lVjCdBL
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check token
+        id: token
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN secret is not set; skipping preview deploy." >> "$GITHUB_STEP_SUMMARY"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.ok == 'true'
+      - name: Deploy preview
+        if: steps.token.outputs.ok == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(npx --yes vercel@latest deploy --yes \
+            --token "$VERCEL_TOKEN" --scope movella --target preview \
+            --build-env NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
+            --build-env NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" \
+            --env NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
+            --env NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preview: $url"
