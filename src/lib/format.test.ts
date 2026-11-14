@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { formatPrice, formatPriceRange, formatSlot, localDateKey, pluralSl, spotsLeftLabel } from "./format";
+import {
+  formatPrice,
+  formatPriceRange,
+  formatSlot,
+  ljubljanaToISO,
+  localDateKey,
+  pluralSl,
+  spotsLeftLabel,
+} from "./format";
 
 const nbsp = (s: string) => s.replace(/ /g, " ");
 
@@ -55,5 +63,15 @@ describe("Slovene plurals", () => {
     expect(spotsLeftLabel(null, 3)).toBe("Brez omejitve mest");
     expect(spotsLeftLabel(8, 8)).toBe("Razprodano");
     expect(spotsLeftLabel(8, 6)).toBe("Še 2 prosti mesti");
+  });
+});
+
+describe("ljubljanaToISO", () => {
+  it("handles winter (CET, UTC+1) and summer (CEST, UTC+2) time", () => {
+    expect(ljubljanaToISO("2026-12-05", "17:30")).toBe("2026-12-05T16:30:00.000Z");
+    expect(ljubljanaToISO("2026-07-01", "09:00")).toBe("2026-07-01T07:00:00.000Z");
+  });
+  it("rejects malformed input", () => {
+    expect(() => ljubljanaToISO("5.12.2026", "17:30")).toThrow(RangeError);
   });
 });

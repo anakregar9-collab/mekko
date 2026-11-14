@@ -1,5 +1,6 @@
 import { AppHeader } from "@/components/visitor/app-header";
-import { VisitorNav } from "@/components/visitor/visitor-nav";
+import { Suspense } from "react";
+import { VisitorNav, VisitorNavView } from "@/components/visitor/visitor-nav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +9,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main id="vsebina" className="mx-auto max-w-5xl px-4 pt-4 pb-28 md:px-8 md:pb-12">
         {children}
       </main>
-      <VisitorNav base="" />
+      <Suspense fallback={<VisitorNavView base="" active={null} />}>
+        <VisitorNav base="" />
+      </Suspense>
     </div>
   );
 }

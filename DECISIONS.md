@@ -71,3 +71,8 @@ Design:
 - Founder asked for no e-mail codes ("kot mora biti"). Login/registration now use e-mail + password (min 8 chars) via Supabase; the 6-digit e-mail code flow is removed.
 - E-mail confirmation is OFF for now (requires founder toggle in Supabase: Authentication → Providers → Email → "Confirm email" off). Trade-off accepted: addresses are not verified until an e-mail provider (Resend + mekko.eu DNS) is set up; then confirmation and "forgot password" will be added.
 - Production (https://mekko-movella.vercel.app) now runs the real app on the dev database `mekko-dev`, public, noindex. A separate production database is required before a real public launch.
+
+## 2026-11-14 — M2 (founder: "naj gre zares", with test data)
+- App opens on Odkrivanje; prototype archived at /prototip (unlinked, noindex).
+- Free bookings only; organizer can message attendees and cancel events; in-app notifications instead of e-mail until Resend exists.
+- Test content (4 spaces, 8 events) is seeded into mekko-dev and labelled "Testni dogodek/prostor" in the UI (CLAUDE.md: label demo data clearly).

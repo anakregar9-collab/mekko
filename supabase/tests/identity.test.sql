@@ -46,7 +46,7 @@ select is((select display_name from public.profiles where id = (select id from i
 
 -- visibility --------------------------------------------------------------------
 select pg_temp.act_anon();
-select is((select array_agg(handle order by handle) from public.profiles), array['alice'], 'anon sees only public profiles');
+select is((select array_agg(handle order by handle) from public.profiles where handle in ('alice', 'bob', 'carol', 'dave')), array['alice'], 'anon sees only public profiles');
 select throws_ok($$ select bio from public.profiles where handle = 'alice' and onboarded_at is null $$, '42501', null,
   'anon cannot read non-public columns');
 select throws_ok($$ select count(*) from public.user_consents $$, '42501', null, 'anon cannot read consents');

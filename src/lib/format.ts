@@ -77,3 +77,24 @@ export function spotsLeftLabel(capacity: number | null, taken: number): string {
   if (left === 0) return "Razprodano";
   return `Še ${left} ${pluralSl(left, ["prosto mesto", "prosti mesti", "prosta mesta", "prostih mest"])}`;
 }
+
+/**
+ * Convert a wall-clock date + time in Europe/Ljubljana (e.g. "2026-12-05", "17:30")
+ * to an ISO timestamp with the correct UTC offset (handles CET/CEST).
+ */
+export function ljubljanaToISO(date: string, time: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time))
+    throw new RangeError("Invalid date/time");
+  const naiveUtc = Date.parse(`${date}T${time}:00Z`);
+  const offsetMin = (instant: number) => {
+    const part = new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, timeZoneName: "shortOffset" })
+      .formatToParts(new Date(instant))
+      .find((p) => p.type === "timeZoneName")?.value; // e.g. "GMT+1"
+    const m = part?.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+    return m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3] ?? 0)) : 0;
+  };
+  // Two passes settle the offset around DST changes.
+  let guess = naiveUtc - offsetMin(naiveUtc) * 60_000;
+  guess = naiveUtc - offsetMin(guess) * 60_000;
+  return new Date(guess).toISOString();
+}

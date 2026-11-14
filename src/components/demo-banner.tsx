@@ -10,8 +10,8 @@ export function DemoBanner() {
       className="relative z-40 bg-ink px-4 py-1.5 text-center text-xs leading-4 font-medium text-cream"
     >
       PROTOTIP · demo podatki, nič se ne shrani ·{" "}
-      <Link href="/" className="underline underline-offset-2">
-        pregled M0
+      <Link href="/prototip" className="underline underline-offset-2">
+        pregled prototipa
       </Link>
     </div>
   );

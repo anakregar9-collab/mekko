@@ -34,7 +34,16 @@ const monthNames = [
 ];
 const weekdays = ["Po", "To", "Sr", "Če", "Pe", "So", "Ne"];
 
-export function MyActivities({ items, today }: { items: AgendaItem[]; today: string }) {
+export function MyActivities({
+  items,
+  today,
+  base = "/prototip",
+}: {
+  items: AgendaItem[];
+  today: string;
+  /** "" for the real app, "/prototip" for the demo. */
+  base?: "" | "/prototip";
+}) {
   const [view, setView] = useState<"seznam" | "koledar">("seznam");
   const [when, setWhen] = useState<"prihajajoce" | "pretekle">("prihajajoce");
   const todayKey = localDateKey(today);
@@ -77,7 +86,7 @@ export function MyActivities({ items, today }: { items: AgendaItem[]; today: str
               {when === "pretekle" ? "Še ni preteklih aktivnosti" : "Nimaš prihajajočih aktivnosti"}
             </p>
             <Link
-              href="/prototip/odkrivanje"
+              href={`${base}/odkrivanje`}
               className="mt-3 inline-block font-semibold text-brand-strong underline"
             >
               Odkrij dogodke
@@ -88,7 +97,7 @@ export function MyActivities({ items, today }: { items: AgendaItem[]; today: str
             {list.map((it) => (
               <li key={`${it.bookingId}-${it.occurrenceId}`}>
                 <Link
-                  href={`/prototip/dogodki/${it.event.slug}`}
+                  href={`${base}/dogodki/${it.event.slug}`}
                   className="flex gap-3 rounded-[var(--radius-card)] bg-surface p-3 shadow-[var(--shadow-card)]"
                 >
                   <Cover tone={it.event.cover} className="size-16 shrink-0 rounded-2xl" />

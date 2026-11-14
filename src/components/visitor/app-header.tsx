@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Bell, MessageCircle } from "lucide-react";
+import { Suspense } from "react";
 import { Logo } from "@/components/logo";
+import { UnreadNotificationsBadge } from "@/components/visitor/unread-badge";
 import { conversations, notifications } from "@/lib/demo/data";
 
 /** Visitor header: logo (phones only — desktop rail shows it) + TWO separate icons (PRODUCT_SPEC §2, §7). */
@@ -30,6 +32,13 @@ export function AppHeader({ base = "/prototip" }: { base?: "" | "/prototip" }) {
             label="Obvestila"
             count={unreadNotifications}
             testId="header-notifications"
+            live={
+              isDemo ? undefined : (
+                <Suspense fallback={null}>
+                  <UnreadNotificationsBadge />
+                </Suspense>
+              )
+            }
           >
             <Bell aria-hidden="true" className="size-6" />
           </HeaderIcon>
@@ -44,23 +53,28 @@ function HeaderIcon({
   label,
   count,
   testId,
+  live,
   children,
 }: {
   href: string;
   label: string;
   count: number;
   testId: string;
+  /** Live (request-time) badge; when set, the label is visually hidden text so the badge is announced too. */
+  live?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const accessible = count > 0 ? `${label}, ${count} neprebranih` : label;
   return (
     <Link
       href={href}
-      aria-label={accessible}
+      aria-label={live ? undefined : accessible}
       data-testid={testId}
       className="relative flex size-11 items-center justify-center rounded-full text-ink hover:bg-brand-soft"
     >
       {children}
+      {live && <span className="sr-only">{label}</span>}
+      {live}
       {count > 0 && (
         <span
           aria-hidden="true"

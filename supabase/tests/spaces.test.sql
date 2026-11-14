@@ -35,12 +35,12 @@ insert into ids values
 
 -- create ------------------------------------------------------------------------
 select pg_temp.act_as((select id from ids where name = 'owner'));
-select lives_ok($$ insert into ids values ('glina', public.create_space('studio', 'Glinena hiša', 'glinena-hisa', 'Ljubljana')) $$,
+select lives_ok($$ insert into ids values ('glina', public.create_space('studio', 'Glinena hiša', 'glina-pgtap', 'Ljubljana')) $$,
   'user creates a studio space');
 select is((select role::text || '/' || status::text from public.space_members where space_id = (select id from ids where name = 'glina')),
   'owner/active', 'creator becomes the active owner');
 select throws_ok($$ select public.create_space('community', 'Slaba', 'Slab Slug!') $$, '23514', null, 'slug format enforced');
-select throws_ok($$ select public.create_space('community', 'Podvojena', 'glinena-hisa') $$, '23505', null, 'slugs are unique');
+select throws_ok($$ select public.create_space('community', 'Podvojena', 'glina-pgtap') $$, '23505', null, 'slugs are unique');
 select throws_ok($$ insert into public.spaces (kind, name, slug, created_by) values ('studio', 'Mimo', 'mimo', auth.uid()) $$,
   '42501', null, 'spaces cannot be inserted directly');
 insert into ids values ('krozek', public.create_space('community', 'Krožek', 'krozek'));
@@ -69,16 +69,16 @@ select throws_ok($$ select public.set_space_member_role((select id from ids wher
   '42501', null, 'admin cannot change roles');
 
 -- edits -------------------------------------------------------------------------
-select is(pg_temp.affected($q$ update public.spaces set tagline = 'Glina za vse' where slug = 'glinena-hisa' $q$),
+select is(pg_temp.affected($q$ update public.spaces set tagline = 'Glina za vse' where slug = 'glina-pgtap' $q$),
   1, 'admin edits space');
-select throws_ok($$ update public.spaces set verification_status = 'verified' where slug = 'glinena-hisa' $$, '42501', null,
+select throws_ok($$ update public.spaces set verification_status = 'verified' where slug = 'glina-pgtap' $$, '42501', null,
   'admin cannot self-verify');
-select throws_ok($$ update public.spaces set slug = 'nova' where slug = 'glinena-hisa' $$, '42501', null,
+select throws_ok($$ update public.spaces set slug = 'nova' where slug = 'glina-pgtap' $$, '42501', null,
   'slug is not editable via API');
 
 -- cross-tenant ------------------------------------------------------------------
 select pg_temp.act_as((select id from ids where name = 'outsider'));
-select is(pg_temp.affected($q$ update public.spaces set name = 'Ugrabljeno' where slug = 'glinena-hisa' $q$),
+select is(pg_temp.affected($q$ update public.spaces set name = 'Ugrabljeno' where slug = 'glina-pgtap' $q$),
   0, 'outsider cannot edit space');
 select is((select count(*)::int from public.space_members where space_id = (select id from ids where name = 'glina')),
   0, 'outsider cannot list team');
@@ -88,7 +88,7 @@ select throws_ok($$ select public.invite_space_member((select id from ids where 
 select pg_temp.act_as((select id from ids where name = 'other'));
 select lives_ok($$ insert into ids values ('tuje', public.create_space('association', 'Društvo', 'drustvo')) $$,
   'other user creates own space');
-select is(pg_temp.affected($q$ update public.spaces set name = 'X' where slug = 'glinena-hisa' $q$),
+select is(pg_temp.affected($q$ update public.spaces set name = 'X' where slug = 'glina-pgtap' $q$),
   0, 'owner of another space cannot edit this one');
 
 select pg_temp.act_as((select id from ids where name = 'owner'));
@@ -109,7 +109,7 @@ select throws_ok($$ insert into public.space_members (space_id, profile_id, role
 -- suspension revokes organizer powers --------------------------------------------
 update public.profiles set status = 'suspended' where handle = 'owner';
 select pg_temp.act_as((select id from ids where name = 'owner'));
-select is(pg_temp.affected($q$ update public.spaces set name = 'Y' where slug = 'glinena-hisa' $q$),
+select is(pg_temp.affected($q$ update public.spaces set name = 'Y' where slug = 'glina-pgtap' $q$),
   0, 'suspended owner cannot edit');
 
 -- anon --------------------------------------------------------------------------

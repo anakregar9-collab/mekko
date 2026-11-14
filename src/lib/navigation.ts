@@ -53,9 +53,7 @@ export interface WorkspaceLink {
 /** Real organizer menu for one space (M1). */
 export const liveSpaceLinks: readonly WorkspaceLink[] = [
   { label: "Pregled", href: "/organizator/:space" },
-  { label: "Dogodki", href: null, milestone: "M2" },
-  { label: "Koledar", href: null, milestone: "M2" },
-  { label: "Udeleženci", href: null, milestone: "M2" },
+  { label: "Dogodki", href: "/organizator/:space/dogodki" },
   { label: "Ekipa", href: "/organizator/:space/ekipa" },
   { label: "Nastavitve prostora", href: "/organizator/:space/nastavitve" },
   { label: "Finance", href: null, milestone: "M3" },

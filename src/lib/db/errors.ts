@@ -13,6 +13,10 @@ const messages: Record<string, string> = {
   reason_required: "Vpiši razlog.",
   request_not_found: "Zahteva ni bila najdena.",
   too_many_interests: "Izberi največ 20 zanimanj.",
+  needs_occurrence: "Dogodek potrebuje vsaj en termin.",
+  not_draft: "Dogodek je že objavljen.",
+  already_cancelled: "Dogodek je že odpovedan.",
+  invalid_message: "Sporočilo naj ima od 3 do 1000 znakov.",
 };
 
 export interface DbErrorLike {

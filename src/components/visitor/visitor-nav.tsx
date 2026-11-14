@@ -20,7 +20,11 @@ const icons: Record<VisitorTabKey, LucideIcon> = {
  */
 export function VisitorNav({ base = PROTO }: { base?: NavBase }) {
   const pathname = usePathname();
-  const active = activeVisitorTab(pathname, base);
+  return <VisitorNavView base={base} active={activeVisitorTab(pathname, base)} />;
+}
+
+/** Hook-free render, also used as the Suspense fallback on dynamic routes. */
+export function VisitorNavView({ base = PROTO, active }: { base?: NavBase; active: VisitorTabKey | null }) {
   const tabs = makeVisitorTabs(base);
 
   return (

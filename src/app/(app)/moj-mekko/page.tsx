@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { ChevronRight, Download, Eye, LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
+import { Bookmark, ChevronRight, Download, Eye, LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
 import { getMyPlatformRoles, getMySpaces, requireUser } from "@/lib/auth/dal";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,12 @@ async function Content() {
       </Link>
 
       <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]">
+        <Row
+          href="/moj-mekko/shranjeno"
+          icon={<Bookmark aria-hidden="true" className="size-6" />}
+          title="Shranjeno"
+          desc="Dogodki, ki si jih shranil/-a"
+        />
         <Row
           href="/moj-mekko/profil"
           icon={<Eye aria-hidden="true" className="size-6" />}

@@ -3,7 +3,7 @@ import { localDateKey } from "@/lib/format";
 
 export interface AgendaItem {
   bookingId: string;
-  event: MekkoEvent;
+  event: Pick<MekkoEvent, "title" | "slug" | "cover">;
   occurrenceId: string;
   startsAt: string;
   endsAt: string;

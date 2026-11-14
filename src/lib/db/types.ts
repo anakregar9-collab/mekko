@@ -68,6 +68,65 @@ export type Database = {
           },
         ];
       };
+      bookings: {
+        Row: {
+          booker_id: string;
+          cancelled_at: string | null;
+          created_at: string;
+          event_id: string;
+          id: string;
+          note: string | null;
+          occurrence_id: string | null;
+          quantity: number;
+          status: Database["public"]["Enums"]["booking_status"];
+        };
+        ComputedFields: never;
+        Insert: {
+          booker_id: string;
+          cancelled_at?: string | null;
+          created_at?: string;
+          event_id: string;
+          id?: string;
+          note?: string | null;
+          occurrence_id?: string | null;
+          quantity?: number;
+          status?: Database["public"]["Enums"]["booking_status"];
+        };
+        Update: {
+          booker_id?: string;
+          cancelled_at?: string | null;
+          created_at?: string;
+          event_id?: string;
+          id?: string;
+          note?: string | null;
+          occurrence_id?: string | null;
+          quantity?: number;
+          status?: Database["public"]["Enums"]["booking_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "bookings_booker_id_fkey";
+            columns: ["booker_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookings_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookings_occurrence_id_fkey";
+            columns: ["occurrence_id"];
+            isOneToOne: false;
+            referencedRelation: "event_occurrences";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       data_requests: {
         Row: {
           created_at: string;
@@ -113,6 +172,158 @@ export type Database = {
             columns: ["resolved_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      event_occurrences: {
+        Row: {
+          created_at: string;
+          ends_at: string;
+          event_id: string;
+          id: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["occurrence_status"];
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          ends_at: string;
+          event_id: string;
+          id?: string;
+          starts_at: string;
+          status?: Database["public"]["Enums"]["occurrence_status"];
+        };
+        Update: {
+          created_at?: string;
+          ends_at?: string;
+          event_id?: string;
+          id?: string;
+          starts_at?: string;
+          status?: Database["public"]["Enums"]["occurrence_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_occurrences_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      events: {
+        Row: {
+          address: string | null;
+          booking_scope: Database["public"]["Enums"]["booking_scope"];
+          cancel_reason: string | null;
+          cancellation_policy: Database["public"]["Enums"]["cancellation_policy"];
+          capacity: number | null;
+          city: string | null;
+          cover: string;
+          created_at: string;
+          created_by: string;
+          description: string | null;
+          external_url: string | null;
+          id: string;
+          interest_id: number | null;
+          is_demo: boolean;
+          is_online: boolean;
+          materials: string | null;
+          max_per_booking: number;
+          online_url: string | null;
+          published_at: string | null;
+          registration_mode: Database["public"]["Enums"]["registration_mode"];
+          schedule: Database["public"]["Enums"]["event_schedule"];
+          slug: string;
+          space_id: string;
+          status: Database["public"]["Enums"]["event_status"];
+          summary: string | null;
+          title: string;
+          updated_at: string;
+          visibility: Database["public"]["Enums"]["event_visibility"];
+        };
+        ComputedFields: never;
+        Insert: {
+          address?: string | null;
+          booking_scope?: Database["public"]["Enums"]["booking_scope"];
+          cancel_reason?: string | null;
+          cancellation_policy?: Database["public"]["Enums"]["cancellation_policy"];
+          capacity?: number | null;
+          city?: string | null;
+          cover?: string;
+          created_at?: string;
+          created_by: string;
+          description?: string | null;
+          external_url?: string | null;
+          id?: string;
+          interest_id?: number | null;
+          is_demo?: boolean;
+          is_online?: boolean;
+          materials?: string | null;
+          max_per_booking?: number;
+          online_url?: string | null;
+          published_at?: string | null;
+          registration_mode?: Database["public"]["Enums"]["registration_mode"];
+          schedule?: Database["public"]["Enums"]["event_schedule"];
+          slug: string;
+          space_id: string;
+          status?: Database["public"]["Enums"]["event_status"];
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+          visibility?: Database["public"]["Enums"]["event_visibility"];
+        };
+        Update: {
+          address?: string | null;
+          booking_scope?: Database["public"]["Enums"]["booking_scope"];
+          cancel_reason?: string | null;
+          cancellation_policy?: Database["public"]["Enums"]["cancellation_policy"];
+          capacity?: number | null;
+          city?: string | null;
+          cover?: string;
+          created_at?: string;
+          created_by?: string;
+          description?: string | null;
+          external_url?: string | null;
+          id?: string;
+          interest_id?: number | null;
+          is_demo?: boolean;
+          is_online?: boolean;
+          materials?: string | null;
+          max_per_booking?: number;
+          online_url?: string | null;
+          published_at?: string | null;
+          registration_mode?: Database["public"]["Enums"]["registration_mode"];
+          schedule?: Database["public"]["Enums"]["event_schedule"];
+          slug?: string;
+          space_id?: string;
+          status?: Database["public"]["Enums"]["event_status"];
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+          visibility?: Database["public"]["Enums"]["event_visibility"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "events_interest_id_fkey";
+            columns: ["interest_id"];
+            isOneToOne: false;
+            referencedRelation: "interests";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "events_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
             referencedColumns: ["id"];
           },
         ];
@@ -163,6 +374,48 @@ export type Database = {
           sort?: number;
         };
         Relationships: [];
+      };
+      notifications: {
+        Row: {
+          body: string | null;
+          created_at: string;
+          id: number;
+          kind: string;
+          link: string | null;
+          read_at: string | null;
+          recipient_id: string;
+          title: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body?: string | null;
+          created_at?: string;
+          id?: never;
+          kind: string;
+          link?: string | null;
+          read_at?: string | null;
+          recipient_id: string;
+          title: string;
+        };
+        Update: {
+          body?: string | null;
+          created_at?: string;
+          id?: never;
+          kind?: string;
+          link?: string | null;
+          read_at?: string | null;
+          recipient_id?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey";
+            columns: ["recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       platform_roles: {
         Row: {
@@ -277,6 +530,40 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["profile_visibility"];
         };
         Relationships: [];
+      };
+      saved_events: {
+        Row: {
+          created_at: string;
+          event_id: string;
+          profile_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          event_id: string;
+          profile_id: string;
+        };
+        Update: {
+          created_at?: string;
+          event_id?: string;
+          profile_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "saved_events_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_events_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       space_members: {
         Row: {
@@ -454,7 +741,13 @@ export type Database = {
         };
         Returns: undefined;
       };
+      book_event: {
+        Args: { p_event: string; p_note?: string; p_occurrence: string; p_quantity: number };
+        Returns: string;
+      };
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
+      cancel_booking: { Args: { p_booking: string }; Returns: undefined };
+      cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
       create_space: {
         Args: {
           p_city?: string;
@@ -465,6 +758,8 @@ export type Database = {
         };
         Returns: string;
       };
+      event_online_url: { Args: { p_event: string }; Returns: string };
+      event_space: { Args: { p_event: string }; Returns: string };
       has_platform_role: {
         Args: { roles: Database["public"]["Enums"]["platform_role"][] };
         Returns: boolean;
@@ -479,8 +774,16 @@ export type Database = {
         Args: { min_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: boolean;
       };
+      mark_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
+      notify: {
+        Args: { p_body: string; p_kind: string; p_link: string; p_recipient: string; p_title: string };
+        Returns: undefined;
+      };
+      notify_attendees: { Args: { p_event: string; p_message: string }; Returns: number };
+      publish_event: { Args: { p_event: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
       respond_space_invite: { Args: { p_accept: boolean; p_space: string }; Returns: undefined };
+      seats_taken: { Args: { p_event: string; p_occurrence: string }; Returns: number };
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };
       set_space_member_role: {
         Args: { p_profile: string; p_role: Database["public"]["Enums"]["space_role"]; p_space: string };
@@ -501,13 +804,21 @@ export type Database = {
     };
     Enums: {
       account_status: "active" | "suspended" | "deleted";
+      booking_scope: "series" | "occurrence";
+      booking_status: "confirmed" | "cancelled_by_user" | "cancelled_by_organizer";
+      cancellation_policy: "flexible" | "moderate" | "strict";
       consent_kind: "marketing_email" | "push" | "approx_location";
       data_request_kind: "export" | "deletion";
       data_request_status: "open" | "in_progress" | "done" | "rejected";
+      event_schedule: "one_off" | "multi_session" | "recurring";
+      event_status: "draft" | "published" | "cancelled";
+      event_visibility: "public" | "unlisted";
       membership_mode: "none" | "open" | "approval";
       membership_status: "pending" | "active" | "removed";
+      occurrence_status: "scheduled" | "cancelled";
       platform_role: "super_admin" | "admin" | "moderator" | "finance" | "support";
       profile_visibility: "public" | "members" | "private";
+      registration_mode: "native" | "external";
       space_kind: "solo_creator" | "community" | "studio" | "association";
       space_role: "owner" | "admin" | "staff" | "member";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
@@ -625,13 +936,21 @@ export const Constants = {
   public: {
     Enums: {
       account_status: ["active", "suspended", "deleted"],
+      booking_scope: ["series", "occurrence"],
+      booking_status: ["confirmed", "cancelled_by_user", "cancelled_by_organizer"],
+      cancellation_policy: ["flexible", "moderate", "strict"],
       consent_kind: ["marketing_email", "push", "approx_location"],
       data_request_kind: ["export", "deletion"],
       data_request_status: ["open", "in_progress", "done", "rejected"],
+      event_schedule: ["one_off", "multi_session", "recurring"],
+      event_status: ["draft", "published", "cancelled"],
+      event_visibility: ["public", "unlisted"],
       membership_mode: ["none", "open", "approval"],
       membership_status: ["pending", "active", "removed"],
+      occurrence_status: ["scheduled", "cancelled"],
       platform_role: ["super_admin", "admin", "moderator", "finance", "support"],
       profile_visibility: ["public", "members", "private"],
+      registration_mode: ["native", "external"],
       space_kind: ["solo_creator", "community", "studio", "association"],
       space_role: ["owner", "admin", "staff", "member"],
       verification_status: ["unverified", "pending", "verified", "rejected"],
