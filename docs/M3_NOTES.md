@@ -1,6 +1,6 @@
 # M3a — Messages, blocking, reports, organizer verification
 
-Migration: `supabase/migrations/20261114151919_m3_messaging_moderation.sql`
+Migration: `supabase/migrations/20261114153517_m3_messaging_moderation.sql`
 DB tests: `supabase/tests/messaging.test.sql` (44 tests). E2E: `e2e/m3/messaging.spec.ts`.
 
 ## Data
