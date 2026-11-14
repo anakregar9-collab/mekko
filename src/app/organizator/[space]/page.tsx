@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { CalendarPlus, Settings, Users } from "lucide-react";
+import { BadgeCheck, CalendarPlus, Settings, Users } from "lucide-react";
 import { hasSpaceRole, requireSpaceRole } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Panel, StatTile } from "@/components/workspace/stat-tile";
 import { Badge } from "@/components/ui/badge";
 import { roleLabel, spaceKindLabel } from "@/lib/spaces";
+import { RequestVerificationForm } from "./verification-form";
 
 export const metadata: Metadata = { title: "Pregled prostora" };
 
@@ -23,11 +24,26 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]">["
   const { space: slug } = await params;
   const { space, role } = await requireSpaceRole(slug, "staff");
   const supabase = await createClient();
-  const { count: teamCount } = await supabase
-    .from("space_members")
-    .select("profile_id", { count: "exact", head: true })
-    .eq("space_id", space.id)
-    .eq("status", "active");
+  const [{ count: teamCount }, { data: events }] = await Promise.all([
+    supabase
+      .from("space_members")
+      .select("profile_id", { count: "exact", head: true })
+      .eq("space_id", space.id)
+      .eq("status", "active"),
+    supabase.from("events").select("id, status").eq("space_id", space.id),
+  ]);
+  const published = (events ?? []).filter((e) => e.status === "published");
+  const { data: bookings } = published.length
+    ? await supabase
+        .from("bookings")
+        .select("quantity")
+        .in(
+          "event_id",
+          published.map((e) => e.id),
+        )
+        .eq("status", "confirmed")
+    : { data: [] as { quantity: number }[] };
+  const people = (bookings ?? []).reduce((n, b) => n + b.quantity, 0);
 
   const missing = [
     !space.tagline && "kratek opis",
@@ -49,8 +65,12 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]">["
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Ekipa" value={String(teamCount ?? 1)} />
-        <StatTile label="Dogodki" value="0" hint="Objava dogodkov: M2" />
-        <StatTile label="Prijave" value="0" hint="M2" />
+        <StatTile
+          label="Objavljeni dogodki"
+          value={String(published.length)}
+          hint={`${(events ?? []).length - published.length} drugih (osnutki, odpovedani)`}
+        />
+        <StatTile label="Prijavljene osebe" value={String(people)} hint="Na objavljenih dogodkih" />
         <StatTile label="Prihodki" value="—" hint="Plačila: po pravnem pregledu" />
       </div>
 
@@ -78,10 +98,42 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]">["
                 </Link>
               </li>
             )}
-            <li className="flex items-center gap-3 text-ink-muted">
-              <CalendarPlus aria-hidden="true" className="size-5" /> Objava prvega dogodka – na voljo v M2
-            </li>
+            {hasSpaceRole(role, "admin") && (
+              <li>
+                <Link
+                  href={`/organizator/${slug}/dogodki/nov`}
+                  className="flex items-center gap-3 font-semibold hover:underline"
+                >
+                  <CalendarPlus aria-hidden="true" className="size-5 text-ink-muted" />
+                  {published.length === 0 ? "Objavi prvi dogodek" : "Objavi nov dogodek"}
+                </Link>
+              </li>
+            )}
           </ul>
+        </Panel>
+        <Panel title="Preverjen organizator">
+          <div className="space-y-2 text-sm" data-testid="verification">
+            {space.verification_status === "verified" ? (
+              <p className="flex items-center gap-2 font-semibold text-sky-ink">
+                <BadgeCheck aria-hidden="true" className="size-5" /> Prostor je preverjen.
+              </p>
+            ) : space.verification_status === "pending" ? (
+              <p>Zahteva za preverjanje je oddana. Ekipa Mekko te bo kontaktirala.</p>
+            ) : (
+              <>
+                <p>
+                  Preverjeni organizatorji dobijo znak ob imenu, kar obiskovalcem pove, da je Mekko preveril
+                  njihovo identiteto.
+                  {space.verification_status === "rejected" && " Prejšnja zahteva ni bila odobrena."}
+                </p>
+                {role === "owner" ? (
+                  <RequestVerificationForm spaceId={space.id} slug={slug} />
+                ) : (
+                  <p className="text-ink-muted">Za preverjanje lahko zaprosi lastnik prostora.</p>
+                )}
+              </>
+            )}
+          </div>
         </Panel>
         <Panel title="O prostoru">
           <dl className="grid grid-cols-[7rem_1fr] gap-2 text-sm">

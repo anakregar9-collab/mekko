@@ -76,3 +76,14 @@ Design:
 - App opens on Odkrivanje; prototype archived at /prototip (unlinked, noindex).
 - Free bookings only; organizer can message attendees and cancel events; in-app notifications instead of e-mail until Resend exists.
 - Test content (4 spaces, 8 events) is seeded into mekko-dev and labelled "Testni dogodek/prostor" in the UI (CLAUDE.md: label demo data clearly).
+
+## 2026-11-14 — M3a: messages, blocking, reports, organizer verification (founder: "pojdi naprej")
+Built inside confirmed decisions #6 (progressive DMs) and #9 (blocking). Paid tickets / Stripe remain blocked by decision #10 (legal review first).
+- 1:1 conversations only (no group chats). Header has a separate messages icon with an unread-conversation count (PRODUCT_SPEC §2).
+- First contact allowed: to anyone who organizes (owner/admin/staff of a space); organizer → people who booked their events; between members of the same space; and from accounts older than **7 days** to anyone whose profile they can see. **PROVISIONAL — founder to confirm the 7-day threshold** (`public.dm_open_after()`). Replies in an existing conversation are always allowed unless blocked or suspended.
+- "Piši organizatorju" goes to the space owner. Test (demo) spaces cannot be messaged.
+- Rate limits: 30 messages / 10 min, 10 new conversations / 24 h, 20 reports / 24 h per account.
+- Blocking stops messages in both directions; the blocked person is not told who blocked them; bookings stay valid.
+- Reports on people, messages, events and spaces go to a moderator queue (/admin/prijave). Moderators can read a private message only after it has been reported. Removing a message deletes its text (the original is kept only in the audit log as evidence). All moderation is audited.
+- Organizer verification: the owner requests it, an admin (not a moderator) approves or rejects with a mandatory note; the owner gets a notification. Verified spaces show a badge.
+- Not in M3a: e-mail notifications for new messages (needs Resend), real-time updates (page refresh only), attachments, support ticket intake (next slice).

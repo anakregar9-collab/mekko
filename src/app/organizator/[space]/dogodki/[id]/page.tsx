@@ -29,6 +29,7 @@ interface AttendeeRow {
   note: string | null;
   status: string;
   created_at: string;
+  booker_id: string;
   booker: { display_name: string; handle: string } | null;
 }
 
@@ -53,7 +54,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
     supabase
       .from("bookings")
       .select(
-        "id, occurrence_id, quantity, note, status, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
+        "id, booker_id, occurrence_id, quantity, note, status, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
       )
       .eq("event_id", id)
       .order("created_at"),
@@ -138,7 +139,19 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
                                 {b.booker?.display_name ?? "Uporabnik"}{" "}
                                 <span className="text-sm text-ink-muted">@{b.booker?.handle}</span>
                               </span>
-                              <span className="tabular-nums">× {b.quantity}</span>
+                              <span className="flex shrink-0 items-center gap-3">
+                                <Link
+                                  href={`/sporocila/nov?komu=${b.booker_id}`}
+                                  className="text-sm font-semibold text-brand-strong underline"
+                                >
+                                  Piši
+                                  <span className="sr-only">
+                                    {" "}
+                                    osebi {b.booker?.display_name ?? "Uporabnik"}
+                                  </span>
+                                </Link>
+                                <span className="tabular-nums">× {b.quantity}</span>
+                              </span>
                             </p>
                             {b.note && <p className="text-sm text-ink-muted">„{b.note}“</p>}
                           </li>

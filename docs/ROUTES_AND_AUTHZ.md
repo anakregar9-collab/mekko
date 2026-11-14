@@ -25,7 +25,8 @@ Status: **proposed** (M0). URLs are Slovene first. Localized aliases can come la
 | `/ustvari/ideja` | user | M4 |
 | `/moj-mekko` | user | profile, saved, library, settings, organizer switch |
 | `/moj-mekko/shranjeno`, `/knjiznica`, `/nastavitve`, `/zasebnost`, `/obvestila`, `/podatki` | user | `/podatki` = GDPR export / delete request |
-| `/sporocila`, `/sporocila/[id]` | participant | M3 |
+| `/sporocila`, `/sporocila/[id]`, `/sporocila/nov?komu=` | user; conversation = its two participants only (404 otherwise); first contact per `can_message()` | M3a (built) |
+| `/moj-mekko/blokirani` | user | M3a (built) |
 | `/obvestila` | user | service notifications |
 | `/prijava`, `/registracija`, `/onboarding`, `/auth/callback` | guest | email + Google; onboarding = interests and approximate location |
 
@@ -50,8 +51,8 @@ Status: **proposed** (M0). URLs are Slovene first. Localized aliases can come la
 |---|---|
 | `/admin` | any platform role |
 | `/admin/uporabniki`, `/[id]` | admin, support (read), super_admin (suspend/delete/roles) |
-| `/admin/prostori`, `/admin/dogodki` | admin, moderator |
-| `/admin/moderacija` | moderator, admin |
+| `/admin/prostori`, `/admin/dogodki` | admin, moderator (view); verification approve/reject = admin, super_admin |
+| `/admin/prijave` (moderation queue, built M3a) | moderator, admin, super_admin |
 | `/admin/transakcije`, `/admin/izplacila`, exports | finance, super_admin |
 | `/admin/podpora` | support, admin |
 | `/admin/konfiguracija` (fees, quotas, categories, flags, promo) | super_admin (fees/flags), admin (categories) |

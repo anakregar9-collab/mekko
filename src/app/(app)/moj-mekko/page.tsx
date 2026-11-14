@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Bookmark, ChevronRight, Download, Eye, LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  Ban,
+  Bookmark,
+  ChevronRight,
+  Download,
+  Eye,
+  LayoutDashboard,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { getMyPlatformRoles, getMySpaces, requireUser } from "@/lib/auth/dal";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +102,12 @@ async function Content() {
           icon={<Download aria-hidden="true" className="size-6" />}
           title="Moji podatki"
           desc="Izvoz podatkov in izbris računa"
+        />
+        <Row
+          href="/moj-mekko/blokirani"
+          icon={<Ban aria-hidden="true" className="size-6" />}
+          title="Blokirane osebe"
+          desc="Kdo ti ne more pisati"
         />
         {roles.length > 0 && (
           <Row

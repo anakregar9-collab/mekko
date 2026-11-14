@@ -68,6 +68,7 @@ export const liveAdminLinks: readonly WorkspaceLink[] = [
   { label: "Pregled", href: "/admin" },
   { label: "Uporabniki", href: "/admin/uporabniki" },
   { label: "Prostori", href: "/admin/prostori" },
+  { label: "Prijave vsebin", href: "/admin/prijave" },
   { label: "Zahteve GDPR", href: "/admin/zahteve" },
   { label: "Revizijska sled", href: "/admin/revizija" },
   { label: "Moderacija", href: null, milestone: "M3" },

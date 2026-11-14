@@ -45,7 +45,10 @@ export function serviceClient() {
 }
 
 /** Test setup only: grant a platform role directly with the LOCAL service key. */
-export async function grantPlatformRole(handle: string, role: "super_admin" | "admin" | "support") {
+export async function grantPlatformRole(
+  handle: string,
+  role: "super_admin" | "admin" | "moderator" | "support",
+) {
   const sb = serviceClient();
   const { data: profile, error } = await sb.from("profiles").select("id").eq("handle", handle).single();
   if (error) throw error;

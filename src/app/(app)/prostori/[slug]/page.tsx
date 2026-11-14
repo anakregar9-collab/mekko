@@ -8,6 +8,8 @@ import { LiveEventCard } from "@/components/events/event-card";
 import { BackLink } from "@/components/back-link";
 import { EmptyState, PageSkeleton } from "@/components/page-skeleton";
 import { Badge } from "@/components/ui/badge";
+import { getAuthUserId } from "@/lib/auth/dal";
+import { ReportForm, StartConversationForm } from "@/components/messages/forms";
 import { spaceKindLabel } from "@/lib/spaces";
 
 export const metadata: Metadata = { title: "Prostor" };
@@ -33,7 +35,7 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
     .is("deleted_at", null)
     .maybeSingle();
   if (!space) notFound();
-  const events = await listUpcomingEvents({ spaceId: space.id });
+  const [events, me] = await Promise.all([listUpcomingEvents({ spaceId: space.id }), getAuthUserId()]);
 
   return (
     <div className="space-y-6">
@@ -67,6 +69,18 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
           </ul>
         )}
       </section>
+
+      {me && (
+        <section className="space-y-3 rounded-[var(--radius-card)] bg-surface p-5 shadow-[var(--shadow-card)]">
+          <h2 className="font-display text-xl font-bold">Kontakt</h2>
+          {space.is_demo ? (
+            <p className="text-sm text-ink-muted">To je testni prostor, zato mu ni mogoče pisati.</p>
+          ) : (
+            <StartConversationForm target={{ kind: "space", spaceId: space.id }} label="Piši organizatorju" />
+          )}
+          <ReportForm targetType="space" targetId={space.id} label="Prijavi prostor" />
+        </section>
+      )}
     </div>
   );
 }

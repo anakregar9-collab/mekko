@@ -127,6 +127,72 @@ export type Database = {
           },
         ];
       };
+      conversations: {
+        Row: {
+          a_read_at: string | null;
+          b_read_at: string | null;
+          created_at: string;
+          created_by: string;
+          id: string;
+          last_message_at: string;
+          last_sender_id: string | null;
+          user_a: string;
+          user_b: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          a_read_at?: string | null;
+          b_read_at?: string | null;
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          last_message_at?: string;
+          last_sender_id?: string | null;
+          user_a: string;
+          user_b: string;
+        };
+        Update: {
+          a_read_at?: string | null;
+          b_read_at?: string | null;
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          last_message_at?: string;
+          last_sender_id?: string | null;
+          user_a?: string;
+          user_b?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_last_sender_id_fkey";
+            columns: ["last_sender_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_user_a_fkey";
+            columns: ["user_a"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_user_b_fkey";
+            columns: ["user_b"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       data_requests: {
         Row: {
           created_at: string;
@@ -375,6 +441,59 @@ export type Database = {
         };
         Relationships: [];
       };
+      messages: {
+        Row: {
+          body: string;
+          conversation_id: string;
+          created_at: string;
+          id: number;
+          removed_at: string | null;
+          removed_by: string | null;
+          sender_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          conversation_id: string;
+          created_at?: string;
+          id?: never;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          sender_id: string;
+        };
+        Update: {
+          body?: string;
+          conversation_id?: string;
+          created_at?: string;
+          id?: never;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          sender_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "messages_removed_by_fkey";
+            columns: ["removed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey";
+            columns: ["sender_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notifications: {
         Row: {
           body: string | null;
@@ -531,6 +650,64 @@ export type Database = {
         };
         Relationships: [];
       };
+      reports: {
+        Row: {
+          created_at: string;
+          details: string | null;
+          id: string;
+          reason: Database["public"]["Enums"]["report_reason"];
+          reporter_id: string;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: Database["public"]["Enums"]["report_status"];
+          target_id: string;
+          target_type: Database["public"]["Enums"]["report_target"];
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          details?: string | null;
+          id?: string;
+          reason: Database["public"]["Enums"]["report_reason"];
+          reporter_id: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: Database["public"]["Enums"]["report_status"];
+          target_id: string;
+          target_type: Database["public"]["Enums"]["report_target"];
+        };
+        Update: {
+          created_at?: string;
+          details?: string | null;
+          id?: string;
+          reason?: Database["public"]["Enums"]["report_reason"];
+          reporter_id?: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: Database["public"]["Enums"]["report_status"];
+          target_id?: string;
+          target_type?: Database["public"]["Enums"]["report_target"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey";
+            columns: ["reporter_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       saved_events: {
         Row: {
           created_at: string;
@@ -684,6 +861,40 @@ export type Database = {
           },
         ];
       };
+      user_blocks: {
+        Row: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at?: string;
+        };
+        Update: {
+          blocked_id?: string;
+          blocker_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_blocks_blocked_id_fkey";
+            columns: ["blocked_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_blocks_blocker_id_fkey";
+            columns: ["blocker_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user_consents: {
         Row: {
           created_at: string;
@@ -725,12 +936,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      admin_remove_message: { Args: { p_message: number; p_reason: string }; Returns: undefined };
       admin_resolve_data_request: {
         Args: {
           p_reason: string;
           p_request: string;
           p_status: Database["public"]["Enums"]["data_request_status"];
         };
+        Returns: undefined;
+      };
+      admin_resolve_report: {
+        Args: { p_note: string; p_report: string; p_status: Database["public"]["Enums"]["report_status"] };
         Returns: undefined;
       };
       admin_set_profile_status: {
@@ -741,13 +957,25 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_set_space_verification: {
+        Args: {
+          p_reason: string;
+          p_space: string;
+          p_status: Database["public"]["Enums"]["verification_status"];
+        };
+        Returns: undefined;
+      };
+      assert_message_rate: { Args: Record<PropertyKey, never>; Returns: undefined };
+      block_user: { Args: { p_profile: string }; Returns: undefined };
       book_event: {
         Args: { p_event: string; p_note?: string; p_occurrence: string; p_quantity: number };
         Returns: string;
       };
+      can_message: { Args: { p_to: string }; Returns: boolean };
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
+      contact_space: { Args: { p_body: string; p_space: string }; Returns: string };
       create_space: {
         Args: {
           p_city?: string;
@@ -758,22 +986,28 @@ export type Database = {
         };
         Returns: string;
       };
+      dm_open_after: { Args: Record<PropertyKey, never>; Returns: string };
       event_online_url: { Args: { p_event: string }; Returns: string };
       event_space: { Args: { p_event: string }; Returns: string };
       has_platform_role: {
         Args: { roles: Database["public"]["Enums"]["platform_role"][] };
         Returns: boolean;
       };
+      insert_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       invite_space_member: {
         Args: { p_handle: string; p_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: undefined;
       };
       is_active_user: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_blocked_between: { Args: { p_a: string; p_b: string }; Returns: boolean };
+      is_conversation_member: { Args: { p_conversation: string }; Returns: boolean };
+      is_moderator: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_platform_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_space_role: {
         Args: { min_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: boolean;
       };
+      mark_conversation_read: { Args: { p_conversation: string }; Returns: undefined };
       mark_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
       notify: {
         Args: { p_body: string; p_kind: string; p_link: string; p_recipient: string; p_title: string };
@@ -782,14 +1016,28 @@ export type Database = {
       notify_attendees: { Args: { p_event: string; p_message: string }; Returns: number };
       publish_event: { Args: { p_event: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
+      report_content: {
+        Args: {
+          p_details?: string;
+          p_reason: Database["public"]["Enums"]["report_reason"];
+          p_target: string;
+          p_type: Database["public"]["Enums"]["report_target"];
+        };
+        Returns: string;
+      };
+      request_space_verification: { Args: { p_space: string }; Returns: undefined };
       respond_space_invite: { Args: { p_accept: boolean; p_space: string }; Returns: undefined };
       seats_taken: { Args: { p_event: string; p_occurrence: string }; Returns: number };
+      send_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };
       set_space_member_role: {
         Args: { p_profile: string; p_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: undefined;
       };
       space_role_rank: { Args: { r: Database["public"]["Enums"]["space_role"] }; Returns: number };
+      start_conversation: { Args: { p_body: string; p_to: string }; Returns: string };
+      unblock_user: { Args: { p_profile: string }; Returns: undefined };
+      unread_conversations: { Args: Record<PropertyKey, never>; Returns: number };
       write_audit: {
         Args: {
           p_action: string;
@@ -819,6 +1067,9 @@ export type Database = {
       platform_role: "super_admin" | "admin" | "moderator" | "finance" | "support";
       profile_visibility: "public" | "members" | "private";
       registration_mode: "native" | "external";
+      report_reason: "spam" | "harassment" | "inappropriate" | "scam" | "copyright" | "other";
+      report_status: "open" | "actioned" | "dismissed";
+      report_target: "profile" | "message" | "event" | "space";
       space_kind: "solo_creator" | "community" | "studio" | "association";
       space_role: "owner" | "admin" | "staff" | "member";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
@@ -951,6 +1202,9 @@ export const Constants = {
       platform_role: ["super_admin", "admin", "moderator", "finance", "support"],
       profile_visibility: ["public", "members", "private"],
       registration_mode: ["native", "external"],
+      report_reason: ["spam", "harassment", "inappropriate", "scam", "copyright", "other"],
+      report_status: ["open", "actioned", "dismissed"],
+      report_target: ["profile", "message", "event", "space"],
       space_kind: ["solo_creator", "community", "studio", "association"],
       space_role: ["owner", "admin", "staff", "member"],
       verification_status: ["unverified", "pending", "verified", "rejected"],

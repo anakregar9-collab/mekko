@@ -15,7 +15,7 @@ const PORT = Number(process.env.E2E_PORT ?? 3210);
 const phones = [320, 375, 390, 430].map((width) => ({
   name: `phone-${width}`,
   // Authenticated journeys (e2e/m1) run on the narrowest, a typical phone and desktop.
-  testIgnore: width === 375 || width === 430 ? /m[12]\// : undefined,
+  testIgnore: width === 375 || width === 430 ? /m[123]\// : undefined,
   use: {
     ...devices["Desktop Chrome"],
     viewport: { width, height: 800 },

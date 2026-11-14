@@ -27,6 +27,7 @@ import { formatSlot, pluralSl } from "@/lib/format";
 import { nowMs } from "@/lib/time";
 import { spaceKindLabel } from "@/lib/spaces";
 import { BookingForm, CancelBookingForm } from "./booking-forms";
+import { ReportForm, StartConversationForm } from "@/components/messages/forms";
 
 export const metadata: Metadata = { title: "Dogodek" };
 
@@ -97,7 +98,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   const [{ data: space }, { data: occ }, { data: interest }] = await Promise.all([
     supabase
       .from("spaces")
-      .select("name, slug, kind, city, verification_status")
+      .select("id, name, slug, kind, city, verification_status, is_demo")
       .eq("id", event.space_id)
       .maybeSingle(),
     supabase
@@ -397,6 +398,22 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
             </button>
           </form>
         )}
+
+        {profile && space && (
+          <div className="space-y-3 rounded-[var(--radius-card)] bg-surface p-5 shadow-[var(--shadow-card)]">
+            <h2 className="font-display text-lg font-bold">Vprašanje za organizatorja</h2>
+            {space.is_demo ? (
+              <p className="text-sm text-ink-muted">To je testni organizator, zato mu ni mogoče pisati.</p>
+            ) : (
+              <StartConversationForm
+                target={{ kind: "space", spaceId: space.id }}
+                label="Piši organizatorju"
+                placeholder="Npr. ali je dogodek primeren za začetnike?"
+              />
+            )}
+          </div>
+        )}
+        {profile && <ReportForm targetType="event" targetId={event.id} label="Prijavi dogodek" />}
       </aside>
     </div>
   );

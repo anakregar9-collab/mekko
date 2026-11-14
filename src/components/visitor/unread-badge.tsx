@@ -22,3 +22,21 @@ export async function UnreadNotificationsBadge() {
     </span>
   );
 }
+
+/** Live unread-conversation count for the header messages icon. */
+export async function UnreadMessagesBadge() {
+  const id = await getAuthUserId();
+  if (!id) return null;
+  const supabase = await createClient();
+  const { data: count } = await supabase.rpc("unread_conversations");
+  if (!count) return null;
+  return (
+    <span
+      data-testid="unread-messages"
+      className="absolute top-1.5 right-1.5 flex min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[0.65rem] leading-5 font-bold text-white"
+    >
+      <span className="sr-only">neprebrano: </span>
+      {count}
+    </span>
+  );
+}

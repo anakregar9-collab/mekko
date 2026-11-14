@@ -2,12 +2,12 @@ import Link from "next/link";
 import { Bell, MessageCircle } from "lucide-react";
 import { Suspense } from "react";
 import { Logo } from "@/components/logo";
-import { UnreadNotificationsBadge } from "@/components/visitor/unread-badge";
+import { UnreadMessagesBadge, UnreadNotificationsBadge } from "@/components/visitor/unread-badge";
 import { conversations, notifications } from "@/lib/demo/data";
 
 /** Visitor header: logo (phones only — desktop rail shows it) + TWO separate icons (PRODUCT_SPEC §2, §7). */
 export function AppHeader({ base = "/prototip" }: { base?: "" | "/prototip" }) {
-  // Real unread counts arrive with messaging/notifications (M2/M3); the prototype shows demo counts.
+  // Live routes render request-time badges; the prototype shows demo counts.
   const isDemo = base === "/prototip";
   const unreadMessages = isDemo ? conversations.reduce((n, c) => n + c.unread, 0) : 0;
   const unreadNotifications = isDemo ? notifications.filter((n) => !n.read).length : 0;
@@ -24,6 +24,13 @@ export function AppHeader({ base = "/prototip" }: { base?: "" | "/prototip" }) {
             label="Sporočila"
             count={unreadMessages}
             testId="header-messages"
+            live={
+              isDemo ? undefined : (
+                <Suspense fallback={null}>
+                  <UnreadMessagesBadge />
+                </Suspense>
+              )
+            }
           >
             <MessageCircle aria-hidden="true" className="size-6" />
           </HeaderIcon>
