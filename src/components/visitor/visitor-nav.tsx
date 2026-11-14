@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarCheck, Compass, Plus, Smile, type LucideIcon } from "lucide-react";
-import { activeVisitorTab, visitorTabs, type VisitorTabKey } from "@/lib/navigation";
+import { activeVisitorTab, makeVisitorTabs, PROTO, type NavBase, type VisitorTabKey } from "@/lib/navigation";
 import { cn } from "@/lib/cn";
 import { Logo } from "@/components/logo";
 
@@ -18,9 +18,10 @@ const icons: Record<VisitorTabKey, LucideIcon> = {
  * The ONE visitor navigation element. Bottom tab bar on phones, left rail
  * from md up — the same DOM node, so there is never duplicated navigation.
  */
-export function VisitorNav() {
+export function VisitorNav({ base = PROTO }: { base?: NavBase }) {
   const pathname = usePathname();
-  const active = activeVisitorTab(pathname);
+  const active = activeVisitorTab(pathname, base);
+  const tabs = makeVisitorTabs(base);
 
   return (
     <nav
@@ -29,10 +30,10 @@ export function VisitorNav() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:top-0 md:bottom-0 md:right-auto md:left-0 md:w-60 md:border-t-0 md:border-r md:pb-0"
     >
       <div className="hidden px-6 pt-12 pb-8 md:block">
-        <Logo />
+        <Logo href={`${base}/odkrivanje`} />
       </div>
       <ul className="mx-auto grid max-w-lg grid-cols-4 md:mx-0 md:flex md:max-w-none md:flex-col md:gap-1 md:px-3">
-        {visitorTabs.map((tab) => {
+        {tabs.map((tab) => {
           const Icon = icons[tab.key];
           const isActive = active === tab.key;
           const isCreate = tab.key === "ustvari";

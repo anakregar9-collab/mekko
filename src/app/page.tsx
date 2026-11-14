@@ -8,6 +8,15 @@ import { Logo } from "@/components/logo";
  */
 const screens = [
   {
+    group: "Prava aplikacija (M1, z bazo)",
+    items: [
+      { href: "/prijava", label: "Prijava / registracija", note: "koda po e-pošti" },
+      { href: "/moj-mekko", label: "Moj Mekko", note: "profil, zasebnost, zanimanja, GDPR" },
+      { href: "/organizator", label: "Način organizatorja", note: "prostori in ekipa" },
+      { href: "/odkrivanje", label: "Odkrivanje", note: "dogodki pridejo v M2" },
+    ],
+  },
+  {
     group: "Obiskovalec (mobilno)",
     items: [
       { href: "/prototip/odkrivanje", label: "Odkrivanje", note: "feed, iskanje, kategorije" },
@@ -48,7 +57,7 @@ export default function ReviewHub() {
     <main className="mx-auto max-w-3xl space-y-8 px-4 py-8">
       <div className="space-y-2">
         <Logo href="/" />
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">M0 · pregled prototipa</h1>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Mekko · pregled razvoja</h1>
         <p className="text-ink-muted">
           Klikljivi žičnati modeli z <strong>demo podatki</strong>. Nič ni povezano z bazo, prijavo ali
           plačili. Najbolje si jih ogledaš na telefonu ali v ozkem oknu.

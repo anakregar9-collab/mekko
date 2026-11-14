@@ -4,19 +4,21 @@ import { Logo } from "@/components/logo";
 import { conversations, notifications } from "@/lib/demo/data";
 
 /** Visitor header: logo (phones only — desktop rail shows it) + TWO separate icons (PRODUCT_SPEC §2, §7). */
-export function AppHeader() {
-  const unreadMessages = conversations.reduce((n, c) => n + c.unread, 0);
-  const unreadNotifications = notifications.filter((n) => !n.read).length;
+export function AppHeader({ base = "/prototip" }: { base?: "" | "/prototip" }) {
+  // Real unread counts arrive with messaging/notifications (M2/M3); the prototype shows demo counts.
+  const isDemo = base === "/prototip";
+  const unreadMessages = isDemo ? conversations.reduce((n, c) => n + c.unread, 0) : 0;
+  const unreadNotifications = isDemo ? notifications.filter((n) => !n.read).length : 0;
 
   return (
     <header className="sticky top-0 z-20 border-b border-line/70 bg-cream/90 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-8">
         <div className="md:invisible">
-          <Logo />
+          <Logo href={`${base}/odkrivanje`} />
         </div>
         <div className="flex items-center gap-1">
           <HeaderIcon
-            href="/prototip/sporocila"
+            href={`${base}/sporocila`}
             label="Sporočila"
             count={unreadMessages}
             testId="header-messages"
@@ -24,7 +26,7 @@ export function AppHeader() {
             <MessageCircle aria-hidden="true" className="size-6" />
           </HeaderIcon>
           <HeaderIcon
-            href="/prototip/obvestila"
+            href={`${base}/obvestila`}
             label="Obvestila"
             count={unreadNotifications}
             testId="header-notifications"

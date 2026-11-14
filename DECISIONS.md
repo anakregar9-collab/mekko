@@ -56,3 +56,18 @@ Infrastructure (approved):
 Design:
 - Overall visual direction approved (cream background, coral actions, rounded cards, Bricolage Grotesque + Figtree).
 - Old logo (two overlapping circles) rejected: looked like the Mastercard logo. Replaced with a creative hand-drawn "m" mark with a curled thread tail and a sun sparkle (`src/components/logo.tsx`), pending founder confirmation.
+
+## 2026-11-11 — M1 engineering decisions (Claude Code; inside confirmed scope)
+- Login = email one-time 6-digit code (Supabase OTP) instead of magic links: works across devices/in-app browsers and needs no redirect allow-list. Google sign-in added when OAuth credentials exist (flag `google_auth_enabled`).
+- Profile visibility default = "members" (signed-in users only). Email, purchases and bookings are never part of a profile. Approximate city is stored only with an explicit `approx_location` consent; consents are an append-only log. Marketing email is opt-in, off by default.
+- Team membership requires the invitee to accept (no one is added to a space without consent). Owner invites admins; admins invite staff; only the owner changes roles. Exactly one active owner per space (DB-enforced).
+- Anti-abuse guard: max 20 owned spaces per user (changeable; spaces remain free and otherwise unrestricted as decided).
+- Non-staff see 404 for /admin and for spaces they don't belong to (existence is not revealed).
+- Suspended accounts are redirected to /racun-omejen and lose all write/organizer powers via RLS (`is_active_user()`), existing records stay intact (consistent with founder decision #9).
+- GDPR export/deletion: request intake + admin workflow with audit in M1; fulfilment manual until an export job is built.
+- Cloud dev project `mekko-dev` (Supabase, eu-central-1) created on founder approval. Vercel previews pending until the dev DB is migrated and auth email is configured.
+
+## 2026-11-14 — Login with e-mail + password (founder request)
+- Founder asked for no e-mail codes ("kot mora biti"). Login/registration now use e-mail + password (min 8 chars) via Supabase; the 6-digit e-mail code flow is removed.
+- E-mail confirmation is OFF for now (requires founder toggle in Supabase: Authentication → Providers → Email → "Confirm email" off). Trade-off accepted: addresses are not verified until an e-mail provider (Resend + mekko.eu DNS) is set up; then confirmation and "forgot password" will be added.
+- Production (https://mekko-movella.vercel.app) now runs the real app on the dev database `mekko-dev`, public, noindex. A separate production database is required before a real public launch.
