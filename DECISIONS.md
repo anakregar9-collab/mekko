@@ -66,3 +66,8 @@ Design:
 - Suspended accounts are redirected to /racun-omejen and lose all write/organizer powers via RLS (`is_active_user()`), existing records stay intact (consistent with founder decision #9).
 - GDPR export/deletion: request intake + admin workflow with audit in M1; fulfilment manual until an export job is built.
 - Cloud dev project `mekko-dev` (Supabase, eu-central-1) created on founder approval. Vercel previews pending until the dev DB is migrated and auth email is configured.
+
+## 2026-11-14 — Login with e-mail + password (founder request)
+- Founder asked for no e-mail codes ("kot mora biti"). Login/registration now use e-mail + password (min 8 chars) via Supabase; the 6-digit e-mail code flow is removed.
+- E-mail confirmation is OFF for now (requires founder toggle in Supabase: Authentication → Providers → Email → "Confirm email" off). Trade-off accepted: addresses are not verified until an e-mail provider (Resend + mekko.eu DNS) is set up; then confirmation and "forgot password" will be added.
+- Production (https://mekko-movella.vercel.app) now runs the real app on the dev database `mekko-dev`, public, noindex. A separate production database is required before a real public launch.

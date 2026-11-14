@@ -2,46 +2,33 @@ import { expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createClient } from "@supabase/supabase-js";
 
-const MAILPIT = process.env.MAILPIT_URL ?? "http://127.0.0.1:54324";
+export const TEST_PASSWORD = "Mekko-test-2026";
 
 export function uid(prefix: string): string {
   return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 
-/** Poll the local Mailpit inbox for the newest 6-digit login code sent to `email`. */
-export async function latestCode(email: string, after: number): Promise<string> {
-  for (let i = 0; i < 40; i++) {
-    const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}&limit=5`);
-    const data = (await res.json()) as { messages: { ID: string; Created: string }[] };
-    const msg = data.messages.find((m) => Date.parse(m.Created) >= after - 2000);
-    if (msg) {
-      const full = (await (await fetch(`${MAILPIT}/api/v1/message/${msg.ID}`)).json()) as {
-        Text: string;
-        HTML: string;
-      };
-      const code = (full.Text || full.HTML).match(/\b(\d{6})\b/)?.[1];
-      if (code) return code;
-    }
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  throw new Error(`No login code for ${email}`);
+/** Create a new account with e-mail + password (confirmation is off). */
+export async function register(page: Page, email: string, path = "/prijava") {
+  await page.goto(path);
+  await page.getByRole("button", { name: "Nov račun" }).click();
+  await page.getByLabel("E-pošta").fill(email);
+  await page.getByLabel("Geslo").fill(TEST_PASSWORD);
+  await page.getByRole("button", { name: "Ustvari račun" }).click();
 }
 
-export async function login(page: Page, email: string, path = "/prijava") {
+export async function login(page: Page, email: string, password = TEST_PASSWORD, path = "/prijava") {
   await page.goto(path);
   await page.getByLabel("E-pošta").fill(email);
-  const sentAt = Date.now();
-  await page.getByRole("button", { name: "Pošlji kodo" }).click();
-  await expect(page.getByLabel("Koda iz e-pošte")).toBeVisible();
-  await page.getByLabel("Koda iz e-pošte").fill(await latestCode(email, sentAt));
-  await page.getByRole("button", { name: "Prijava" }).click();
+  await page.getByLabel("Geslo").fill(password);
+  await page.getByRole("button", { name: "Prijavi se" }).click();
 }
 
 /** Sign up a brand-new user and complete onboarding. Returns the handle. */
 export async function signUp(page: Page, name: string): Promise<{ email: string; handle: string }> {
   const handle = uid("t").toLowerCase();
   const email = `${handle}@example.test`;
-  await login(page, email);
+  await register(page, email);
   await expect(page).toHaveURL(/\/onboarding/);
   await page.getByLabel("Ime, ki ga vidijo drugi").fill(name);
   await page.getByRole("textbox", { name: "Uporabniško ime" }).fill(handle);

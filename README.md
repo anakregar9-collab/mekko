@@ -12,7 +12,7 @@ pnpm db:env       # writes .env.local with LOCAL keys (never real secrets)
 pnpm dev          # http://localhost:3000 → review hub
 ```
 
-Login codes for local accounts arrive at http://127.0.0.1:54324 (Mailpit). See `docs/M1_NOTES.md`.
+Create a local account on /prijava → "Nov račun" (e-mail + password). See `docs/M1_NOTES.md`.
 
 ## Scripts
 

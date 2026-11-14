@@ -6,7 +6,7 @@ Status: **implemented on branch `m1-auth-spaces`, verified locally.** Migration 
 
 | Area | Routes | Notes |
 |---|---|---|
-| Login / sign-up | `/prijava` | Email → 6-digit code (Supabase email OTP). Works across devices and needs no redirect URL. `?naprej=` is restricted to same-site paths (open-redirect guard). Google sign-in is hidden until OAuth credentials exist (`google_auth_enabled` flag). |
+| Login / sign-up | `/prijava` | E-mail + password (min 8), tabs "Prijava" / "Nov račun". E-mail confirmation off until an e-mail provider exists (DECISIONS 2026-11-14). `?naprej=` is restricted to same-site paths (open-redirect guard). Google sign-in is hidden until OAuth credentials exist (`google_auth_enabled` flag). |
 | Onboarding | `/onboarding` | Name, @handle, interests, approximate city **only with explicit location consent**, profile visibility, optional marketing opt-in (off by default). |
 | Visitor shell | `/odkrivanje`, `/moje-aktivnosti`, `/ustvari`, `/moj-mekko`, `/sporocila`, `/obvestila` | Same 4 tabs + 2 header icons as the prototype. Pages without M1 content show honest empty states. |
 | Moj Mekko | `/moj-mekko`, `/profil`, `/zanimanja`, `/podatki` | Profile and privacy (public / signed-in only / private), interests, GDPR export and deletion requests, sign-out. |
@@ -38,7 +38,7 @@ pnpm db:env        # writes .env.local with LOCAL keys
 pnpm dev           # http://localhost:3000
 ```
 
-Login codes arrive in the local mailbox at http://127.0.0.1:54324 (Mailpit).
+Local sign-up needs no e-mail: create an account on /prijava → "Nov račun".
 
 ## Vercel previews
 

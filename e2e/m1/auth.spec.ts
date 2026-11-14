@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { checkPage, latestCode, login, signUp, uid } from "../helpers";
+import { checkPage, login, register, signUp, uid } from "../helpers";
 
 test.describe("guest", () => {
   test("protected pages redirect to login and keep the destination", async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe("guest", () => {
 
   test("open redirects via ?naprej are ignored", async ({ page }) => {
     const email = `${uid("r")}@example.test`;
-    await login(page, email, "/prijava?naprej=//evil.example");
+    await register(page, email, "/prijava?naprej=//evil.example");
     await expect(page).toHaveURL(/\/onboarding\?naprej=%2Fmoj-mekko/);
   });
 });
@@ -40,19 +40,14 @@ test("sign-up, onboarding, profile privacy and data request", async ({ page }) =
 
   await page.goto("/prijava");
   await checkPage(page);
+  await page.getByRole("button", { name: "Nov račun" }).click();
   await page.getByLabel("E-pošta").fill("ni-email");
-  await page.getByRole("button", { name: "Pošlji kodo" }).click();
+  await page.getByLabel("Geslo").fill("kratko");
+  await page.getByRole("button", { name: "Ustvari račun" }).click();
   await expect(page.getByText("Vpiši veljaven e-poštni naslov.")).toBeVisible();
+  await expect(page.getByText("Geslo naj ima vsaj 8 znakov.")).toBeVisible();
 
-  await page.getByLabel("E-pošta").fill(email);
-  const sentAt = Date.now();
-  await page.getByRole("button", { name: "Pošlji kodo" }).click();
-  await page.getByLabel("Koda iz e-pošte").fill("000000");
-  await page.getByRole("button", { name: "Prijava" }).click();
-  await expect(page.getByText("Koda ni pravilna ali je potekla.")).toBeVisible();
-  await page.getByLabel("Koda iz e-pošte").fill(await latestCode(email, sentAt));
-  await page.getByRole("button", { name: "Prijava" }).click();
-
+  await register(page, email);
   await expect(page).toHaveURL(/\/onboarding/);
   await checkPage(page);
   await page.getByLabel("Ime, ki ga vidijo drugi").fill("Nina Test");
@@ -101,13 +96,24 @@ test("sign-up, onboarding, profile privacy and data request", async ({ page }) =
   await expect(page).toHaveURL(/\/prijava\?odjava=1/);
   await page.goto("/moj-mekko");
   await expect(page).toHaveURL(/\/prijava/);
+
+  // Wrong password is rejected; the right one signs back in to Moj Mekko.
+  await login(page, email, "napacno-geslo");
+  await expect(page.getByText("E-pošta ali geslo ni pravilno.")).toBeVisible();
+  await login(page, email);
+  await expect(page).toHaveURL(/\/moj-mekko$/);
+
+  // Registering the same address again is refused.
+  await page.getByRole("button", { name: "Odjava" }).click();
+  await register(page, email);
+  await expect(page.getByText(/že obstaja/)).toBeVisible();
 });
 
 test("handles are unique across users", async ({ browser }) => {
   const a = await (await browser.newContext()).newPage();
   const { handle } = await signUp(a, "Prva Oseba");
   const b = await (await browser.newContext()).newPage();
-  await login(b, `${uid("d")}@example.test`);
+  await register(b, `${uid("d")}@example.test`);
   await b.getByLabel("Ime, ki ga vidijo drugi").fill("Druga Oseba");
   await b.getByRole("textbox", { name: "Uporabniško ime" }).fill(handle);
   await b.getByRole("button", { name: "Nadaljuj" }).click();

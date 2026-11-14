@@ -5,12 +5,9 @@ export const emailSchema = z.object({
   email: z.string().trim().toLowerCase().email("Vpiši veljaven e-poštni naslov.").max(254),
 });
 
-export const codeSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
-  code: z
-    .string()
-    .trim()
-    .regex(/^\d{6}$/, "Koda ima 6 števk."),
+export const credentialsSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Vpiši veljaven e-poštni naslov.").max(254),
+  password: z.string().min(8, "Geslo naj ima vsaj 8 znakov.").max(72, "Geslo je predolgo."),
 });
 
 export const visibilitySchema = z.enum(["public", "members", "private"]);
