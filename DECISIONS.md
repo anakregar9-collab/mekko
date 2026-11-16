@@ -98,3 +98,7 @@ Built inside confirmed decisions #4 (manual payment, organizer confirms, no comm
 - Organizer overview shows the total of payments they confirmed and the total still awaited, labelled as manual payments (real data only, no processing by Mekko).
 - **Open for founder / legal:** no automatic deadline that releases unpaid seats (organizer releases manually); invoices, VAT and refunds are the organizer's responsibility and are stated as such in the UI.
 - Bug fixed on the way: the event form lost session dates and radio/checkbox choices after a failed submit (a paid event could silently be saved as free). Choices are now submitted from component state.
+
+## 2026-11-16 — Payment deadline option (founder: "ročno zaenkrat, a naj ima možnost tudi avtomatično")
+- Default stays manual release. Organizer may optionally choose a payment deadline: 1, 2, 3 or 7 days after booking (never later than the start of the booked session). Overdue unpaid reservations are released automatically (pg_cron every 10 min, and immediately when someone else tries to book that event); the visitor is notified.
+- The deadline is shown on the event page, in the booking confirmation and in the organizer's attendee list, and is locked after publishing together with price and instructions.

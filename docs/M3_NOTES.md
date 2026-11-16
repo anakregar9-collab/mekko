@@ -35,3 +35,7 @@ Migration: `supabase/migrations/20261116083609_m3b_manual_payments.sql`; DB test
 - RPCs: `confirm_booking_payment(booking)`, `release_unpaid_booking(booking, reason)` — staff+ of the event's space; both notify the booker.
 - UI: price on cards and event page, "Plačilo" section with instructions, "Čaka plačilo" in Moje aktivnosti, organizer attendee actions, overview totals.
 - Test content: "Tkanje na statvah" (25 €, instructions say TESTNI PODATKI – ne nakazuj denarja).
+
+# M3c — Optional payment deadline
+Migration `20261116085406_m3c_payment_deadline.sql`, tests `supabase/tests/payment_deadline.test.sql` (9).
+`events.payment_deadline_hours` (null | 24 | 48 | 72 | 168), `bookings.payment_due_at` (snapshot), internal `release_overdue_reservations(event?)` called from `book_event` and pg_cron job `mekko-release-overdue-reservations` (*/10). Needs the `pg_cron` extension (enabled by the migration).

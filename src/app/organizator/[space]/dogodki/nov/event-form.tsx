@@ -372,6 +372,26 @@ export function EventForm({
                     {...describedBy("payment_instructions", e.payment_instructions, true)}
                   />
                 </Field>
+                <Field
+                  label="Rok za plačilo"
+                  htmlFor="payment_deadline_hours"
+                  hint="Če udeleženec ne plača do roka, se mesto samodejno sprosti."
+                  className="sm:col-span-2"
+                >
+                  <select
+                    id="payment_deadline_hours"
+                    name="payment_deadline_hours"
+                    defaultValue={v.payment_deadline_hours ?? ""}
+                    className={inputCls}
+                    {...describedBy("payment_deadline_hours", undefined, true)}
+                  >
+                    <option value="">Brez roka – neplačana mesta sprostim ročno</option>
+                    <option value="24">1 dan po prijavi</option>
+                    <option value="48">2 dni po prijavi</option>
+                    <option value="72">3 dni po prijavi</option>
+                    <option value="168">7 dni po prijavi</option>
+                  </select>
+                </Field>
                 <p className="text-xs text-ink-muted sm:col-span-2">
                   Mekko plačil ne obdeluje in ne zaračuna provizije. Ceno in navodila po objavi ni več mogoče
                   spremeniti. Za račune in vračila skrbiš sam/-a.

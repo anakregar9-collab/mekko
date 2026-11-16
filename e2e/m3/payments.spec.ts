@@ -33,6 +33,7 @@ test("manual payment: reserve, organizer confirms receipt or releases the seat",
   await expect(org.getByText("Napiši, kako naj udeleženci plačajo.")).toBeVisible();
   await org.getByLabel("Cena na osebo (€)").fill("25");
   await org.getByLabel("Navodila za plačilo").fill("Gotovina na kraju ali nakazilo na SI56 TEST");
+  await org.getByLabel("Rok za plačilo").selectOption("72");
   await checkPage(org);
   await org.getByRole("button", { name: "Objavi dogodek" }).click();
   await expect(org.getByText("Objavljeno")).toBeVisible();
@@ -44,9 +45,11 @@ test("manual payment: reserve, organizer confirms receipt or releases the seat",
   await ana.getByRole("link", { name: new RegExp(title) }).click();
   await expect(ana.getByTestId("price")).toContainText("Plačaš neposredno organizatorju");
   await expect(ana.getByTestId("payment-instructions")).toContainText("SI56 TEST");
+  await expect(ana.getByTestId("payment-deadline")).toContainText("3 dnevi po prijavi");
   await ana.getByLabel("Število oseb").selectOption("2");
   await ana.getByRole("button", { name: "Prijavi se", exact: true }).click();
   await expect(ana.getByTestId("payment-awaiting")).toContainText(nbsp("50,00 €"));
+  await expect(ana.getByTestId("payment-awaiting")).toContainText("Plačaj do");
   await expect(ana.getByTestId("payment-confirmed")).toHaveCount(0);
   await checkPage(ana);
   await ana.goto("/moje-aktivnosti");

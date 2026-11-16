@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { BackLink } from "@/components/back-link";
 import { PageSkeleton } from "@/components/page-skeleton";
-import { formatPrice, formatSlot, pluralSl } from "@/lib/format";
+import { deadlineLabel, formatDate, formatPrice, formatSlot, formatTime, pluralSl } from "@/lib/format";
 import { nowMs } from "@/lib/time";
 import { spaceKindLabel } from "@/lib/spaces";
 import { BookingForm, CancelBookingForm } from "./booking-forms";
@@ -97,6 +97,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     payment_mode: "free" | "manual";
     price_cents: number | null;
     payment_instructions?: string | null;
+    payment_deadline_hours: number | null;
     space_id: string;
     interest_id: number | null;
   };
@@ -137,7 +138,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     ? await Promise.all([
         supabase
           .from("bookings")
-          .select("id, occurrence_id, quantity, payment_state, amount_cents")
+          .select("id, occurrence_id, quantity, payment_state, amount_cents, payment_due_at")
           .eq("event_id", event.id)
           .eq("booker_id", profile.id)
           .eq("status", "confirmed"),
@@ -289,6 +290,12 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
               <Section title="Plačilo" icon={<Wallet aria-hidden="true" className="size-5 text-ink-muted" />}>
                 <div className="space-y-1" data-testid="payment-instructions">
                   <p className="whitespace-pre-line">{event.payment_instructions}</p>
+                  {event.payment_deadline_hours && (
+                    <p className="font-semibold" data-testid="payment-deadline">
+                      Rok za plačilo: {deadlineLabel(event.payment_deadline_hours)} po prijavi. Neplačana
+                      mesta se nato samodejno sprostijo.
+                    </p>
+                  )}
                   <p className="text-sm text-ink-muted">
                     Plačilo poteka neposredno med tabo in organizatorjem. Za račun in morebitno vračilo se
                     dogovoriš z organizatorjem.
@@ -353,6 +360,12 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
                 <p className="rounded-xl bg-sun-soft p-2 text-sm text-sun-ink" data-testid="payment-awaiting">
                   Mesto je rezervirano. Organizator bo prijavo potrdil, ko prejme plačilo (
                   {formatPrice(booked.find((b) => b.payment_state === "awaiting")?.amount_cents ?? 0)}).
+                  {(() => {
+                    const due = booked.find((b) => b.payment_state === "awaiting")?.payment_due_at;
+                    return due
+                      ? ` Plačaj do ${formatDate(due)} ob ${formatTime(due)}, sicer se mesto sprosti.`
+                      : "";
+                  })()}
                 </p>
               )}
               {booked.some((b) => b.payment_state === "organizer_confirmed") && (

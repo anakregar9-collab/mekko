@@ -9,7 +9,7 @@ import { BackLink } from "@/components/back-link";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Panel } from "@/components/workspace/stat-tile";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, formatSlot, pluralSl } from "@/lib/format";
+import { formatDate, formatPrice, formatSlot, formatTime, pluralSl } from "@/lib/format";
 import {
   CancelEventForm,
   DeleteDraftButton,
@@ -38,6 +38,7 @@ interface AttendeeRow {
   booker_id: string;
   payment_state: "none" | "awaiting" | "organizer_confirmed";
   amount_cents: number | null;
+  payment_due_at: string | null;
   booker: { display_name: string; handle: string } | null;
 }
 
@@ -62,7 +63,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
     supabase
       .from("bookings")
       .select(
-        "id, booker_id, occurrence_id, quantity, note, status, payment_state, amount_cents, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
+        "id, booker_id, occurrence_id, quantity, note, status, payment_state, amount_cents, payment_due_at, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
       )
       .eq("event_id", id)
       .order("created_at"),
@@ -167,6 +168,12 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
                                 <p className="mt-1 text-sm">
                                   <Badge tone="sun">Čaka plačilo</Badge>{" "}
                                   <span className="tabular-nums">{formatPrice(b.amount_cents ?? 0)}</span>
+                                  {b.payment_due_at && (
+                                    <span className="text-ink-muted">
+                                      {" "}
+                                      · rok {formatDate(b.payment_due_at)} {formatTime(b.payment_due_at)}
+                                    </span>
+                                  )}
                                 </p>
                                 {event.status === "published" && (
                                   <PaymentActions

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  deadlineLabel,
   formatPrice,
   priceToCents,
   formatPriceRange,
@@ -90,5 +91,14 @@ describe("priceToCents", () => {
     expect(priceToCents("abc")).toBeNull();
     expect(priceToCents("1,234")).toBeNull();
     expect(priceToCents("99999")).toBeNull();
+  });
+});
+
+describe("deadlineLabel", () => {
+  it("uses Slovene dual/plural forms", () => {
+    expect(deadlineLabel(24)).toBe("1 dan");
+    expect(deadlineLabel(48)).toBe("2 dneva");
+    expect(deadlineLabel(72)).toBe("3 dnevi");
+    expect(deadlineLabel(168)).toBe("7 dni");
   });
 });

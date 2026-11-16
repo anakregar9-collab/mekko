@@ -110,3 +110,9 @@ export function priceToCents(input: string): number | null {
 export function formatAmount(cents: number): string {
   return priceFormatter.format(cents / 100);
 }
+
+/** 24 → "1 dan", 48 → "2 dni", 72 → "3 dni", 168 → "7 dni". */
+export function deadlineLabel(hours: number): string {
+  const days = Math.round(hours / 24);
+  return `${days} ${pluralSl(days, ["dan", "dneva", "dnevi", "dni"])}`;
+}

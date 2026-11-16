@@ -34,6 +34,7 @@ const eventSchema = z
     payment_mode: z.enum(["free", "manual"]),
     price: z.string().trim().optional().default(""),
     payment_instructions: z.string().trim().max(1000, "Največ 1000 znakov.").optional().default(""),
+    payment_deadline_hours: z.enum(["", "24", "48", "72", "168"]).optional().default(""),
   })
   .superRefine((d, ctx) => {
     if (d.registration_mode === "external" && !/^https:\/\/\S+$/.test(d.external_url))
@@ -82,6 +83,7 @@ function readEvent(fd: FormData) {
     payment_mode: str(fd, "payment_mode") || "free",
     price: str(fd, "price"),
     payment_instructions: str(fd, "payment_instructions"),
+    payment_deadline_hours: str(fd, "payment_deadline_hours"),
   };
 }
 
@@ -161,8 +163,14 @@ export async function createEvent(
             payment_mode: "manual",
             price_cents: priceToCents(d.price),
             payment_instructions: d.payment_instructions,
+            payment_deadline_hours: d.payment_deadline_hours ? Number(d.payment_deadline_hours) : null,
           }
-        : { payment_mode: "free", price_cents: null, payment_instructions: null }),
+        : {
+            payment_mode: "free",
+            price_cents: null,
+            payment_instructions: null,
+            payment_deadline_hours: null,
+          }),
     })
     .select("id")
     .single();

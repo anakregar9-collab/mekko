@@ -80,6 +80,7 @@ export type Database = {
           occurrence_id: string | null;
           payment_confirmed_at: string | null;
           payment_confirmed_by: string | null;
+          payment_due_at: string | null;
           payment_state: string;
           quantity: number;
           status: Database["public"]["Enums"]["booking_status"];
@@ -96,6 +97,7 @@ export type Database = {
           occurrence_id?: string | null;
           payment_confirmed_at?: string | null;
           payment_confirmed_by?: string | null;
+          payment_due_at?: string | null;
           payment_state?: string;
           quantity?: number;
           status?: Database["public"]["Enums"]["booking_status"];
@@ -111,6 +113,7 @@ export type Database = {
           occurrence_id?: string | null;
           payment_confirmed_at?: string | null;
           payment_confirmed_by?: string | null;
+          payment_due_at?: string | null;
           payment_state?: string;
           quantity?: number;
           status?: Database["public"]["Enums"]["booking_status"];
@@ -317,6 +320,7 @@ export type Database = {
           materials: string | null;
           max_per_booking: number;
           online_url: string | null;
+          payment_deadline_hours: number | null;
           payment_instructions: string | null;
           payment_mode: string;
           price_cents: number | null;
@@ -351,6 +355,7 @@ export type Database = {
           materials?: string | null;
           max_per_booking?: number;
           online_url?: string | null;
+          payment_deadline_hours?: number | null;
           payment_instructions?: string | null;
           payment_mode?: string;
           price_cents?: number | null;
@@ -384,6 +389,7 @@ export type Database = {
           materials?: string | null;
           max_per_booking?: number;
           online_url?: string | null;
+          payment_deadline_hours?: number | null;
           payment_instructions?: string | null;
           payment_mode?: string;
           price_cents?: number | null;
@@ -1044,6 +1050,7 @@ export type Database = {
       };
       notify_attendees: { Args: { p_event: string; p_message: string }; Returns: number };
       publish_event: { Args: { p_event: string }; Returns: undefined };
+      release_overdue_reservations: { Args: { p_event?: string }; Returns: number };
       release_unpaid_booking: { Args: { p_booking: string; p_reason: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
       report_content: {
