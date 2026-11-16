@@ -39,3 +39,7 @@ Migration: `supabase/migrations/20261116083609_m3b_manual_payments.sql`; DB test
 # M3c — Optional payment deadline
 Migration `20261116085406_m3c_payment_deadline.sql`, tests `supabase/tests/payment_deadline.test.sql` (9).
 `events.payment_deadline_hours` (null | 24 | 48 | 72 | 168), `bookings.payment_due_at` (snapshot), internal `release_overdue_reservations(event?)` called from `book_event` and pg_cron job `mekko-release-overdue-reservations` (*/10). Needs the `pg_cron` extension (enabled by the migration).
+
+# M3d — Organizer legal status
+Migration `20261116090426_m3d_organizer_legal_info.sql`, tests `supabase/tests/legal_info.test.sql` (11).
+`spaces.legal_form` (public) + `space_legal_info` (signed-in read, RPC write `set_space_legal_info`, admin+). `publish_event` refuses paid events without legal form (`legal_info_required`). UI: settings form, `ProviderInfo` box on event and space pages, overview next step, admin spaces badge. Demo spaces carry clearly marked TEST details.

@@ -26,7 +26,12 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
     <>
       <BackLink href={`/organizator/${slug}/dogodki`}>Dogodki</BackLink>
       <h1 className="font-display text-3xl font-extrabold tracking-tight">Nov dogodek</h1>
-      <EventForm spaceSlug={slug} defaultCity={space.city ?? ""} interests={interests} />
+      <EventForm
+        spaceSlug={slug}
+        defaultCity={space.city ?? ""}
+        interests={interests}
+        hasLegalForm={!!space.legal_form}
+      />
     </>
   );
 }

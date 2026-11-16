@@ -20,10 +20,12 @@ export function EventForm({
   spaceSlug,
   defaultCity,
   interests,
+  hasLegalForm,
 }: {
   spaceSlug: string;
   defaultCity: string;
   interests: { id: number; label_sl: string }[];
+  hasLegalForm: boolean;
 }) {
   const [state, action] = useActionState<FormState, FormData>(createEvent.bind(null, spaceSlug), {});
   const v = state.values ?? {};
@@ -343,6 +345,15 @@ export function EventForm({
                 />
               </div>
             </fieldset>
+            {pay === "manual" && !hasLegalForm && (
+              <p className="rounded-2xl bg-sun-soft p-3 text-sm text-sun-ink" data-testid="legal-needed">
+                Za plačljiv dogodek najprej navedi pravni status organizatorja v{" "}
+                <a href={`/organizator/${spaceSlug}/nastavitve`} className="font-semibold underline">
+                  Nastavitvah prostora
+                </a>
+                .
+              </p>
+            )}
             {pay === "manual" && (
               <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
                 <Field label="Cena na osebo (€)" htmlFor="price" error={e.price}>

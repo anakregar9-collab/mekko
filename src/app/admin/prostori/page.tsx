@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
-import { spaceKindLabel } from "@/lib/spaces";
+import { legalFormLabel, spaceKindLabel, type LegalForm } from "@/lib/spaces";
 import { VerifyForm } from "./verify-form";
 
 export const metadata: Metadata = { title: "Prostori" };
@@ -34,7 +34,7 @@ async function Content() {
   const supabase = await createClient();
   const { data: spaces } = await supabase
     .from("spaces")
-    .select("id, slug, name, kind, city, verification_status, created_at")
+    .select("id, slug, name, kind, city, verification_status, legal_form, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
   // Verification requests first.
@@ -55,6 +55,7 @@ async function Content() {
             </p>
           </div>
           <Badge tone="lilac">{spaceKindLabel[s.kind]}</Badge>
+          <Badge>{s.legal_form ? legalFormLabel[s.legal_form as LegalForm] : "Brez statusa"}</Badge>
           <Badge
             tone={
               s.verification_status === "verified"

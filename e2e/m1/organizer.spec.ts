@@ -32,7 +32,7 @@ test("owner creates a space, invites an admin, demotes to staff; outsiders are l
   // Settings.
   await owner.getByRole("link", { name: "Nastavitve prostora" }).click();
   await owner.getByLabel("Kratek opis", { exact: true }).fill("Keramika za vse");
-  await owner.getByRole("button", { name: "Shrani" }).click();
+  await owner.getByRole("button", { name: "Shrani", exact: true }).click();
   await expect(owner.getByText("Nastavitve so shranjene.")).toBeVisible();
   await checkPage(owner);
 

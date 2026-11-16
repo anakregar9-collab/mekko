@@ -29,6 +29,7 @@ import { nowMs } from "@/lib/time";
 import { spaceKindLabel } from "@/lib/spaces";
 import { BookingForm, CancelBookingForm } from "./booking-forms";
 import { ReportForm, StartConversationForm } from "@/components/messages/forms";
+import { ProviderInfo } from "@/components/spaces/provider-info";
 
 export const metadata: Metadata = { title: "Dogodek" };
 
@@ -105,7 +106,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   const [{ data: space }, { data: occ }, { data: interest }] = await Promise.all([
     supabase
       .from("spaces")
-      .select("id, name, slug, kind, city, verification_status, is_demo")
+      .select("id, name, slug, kind, city, verification_status, is_demo, legal_form")
       .eq("id", event.space_id)
       .maybeSingle(),
     supabase
@@ -206,6 +207,8 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
             </span>
           </Link>
         )}
+
+        {space && <ProviderInfo spaceId={space.id} legalForm={space.legal_form} signedIn={!!profile} />}
 
         <Section title="Termini" icon={<CalendarDays aria-hidden="true" className="size-5 text-ink-muted" />}>
           {series && (

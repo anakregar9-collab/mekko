@@ -153,3 +153,19 @@ select 'c9000000-0000-4000-8000-000000000000',
   ((current_date + d)::text || ' 19:00')::timestamp at time zone 'Europe/Ljubljana'
 from (values (8), (22)) v(d)
 where not exists (select 1 from public.event_occurrences x where x.event_id = 'c9000000-0000-4000-8000-000000000000');
+
+-- M3d: TEST legal status of demo organizers (fictional details, clearly marked).
+update public.spaces set legal_form = case id
+    when 'b1000000-0000-4000-8000-000000000000' then 'sole_trader'
+    when 'b2000000-0000-4000-8000-000000000000' then 'association'
+    when 'b3000000-0000-4000-8000-000000000000' then 'odd'
+    else 'association' end
+where is_demo and legal_form is null;
+
+insert into public.space_legal_info (space_id, legal_name, address, registration_number, contact_email)
+values
+  ('b1000000-0000-4000-8000-000000000000', 'Glinena hiša, TESTNI s.p.', 'Trubarjeva cesta 12, 1000 Ljubljana (testni naslov)', '0000000 (test)', 'glinena.hisa@demo.mekko.invalid'),
+  ('b2000000-0000-4000-8000-000000000000', 'Krožek Nitka, TESTNO društvo', 'Muzejski trg 1a, 3000 Celje (testni naslov)', null, 'krozek.nitka@demo.mekko.invalid'),
+  ('b3000000-0000-4000-8000-000000000000', 'Ana Riše (TESTNI ODD)', 'Poštna ulica 3, 2000 Maribor (testni naslov)', null, 'ana.rise@demo.mekko.invalid'),
+  ('b4000000-0000-4000-8000-000000000000', 'Društvo Ustvarjalni Kras (TESTNO)', 'Partizanska cesta 1, 6210 Sežana (testni naslov)', null, 'ustvarjalni.kras@demo.mekko.invalid')
+on conflict (space_id) do nothing;

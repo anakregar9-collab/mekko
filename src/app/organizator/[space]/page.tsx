@@ -86,6 +86,17 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]">["
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel title="Naslednji koraki">
           <ul className="space-y-3">
+            {!space.legal_form && hasSpaceRole(role, "admin") && (
+              <li>
+                <Link
+                  href={`/organizator/${slug}/nastavitve`}
+                  className="flex items-center gap-3 font-semibold hover:underline"
+                >
+                  <Settings aria-hidden="true" className="size-5 text-ink-muted" /> Navedi pravni status
+                  organizatorja (potrebno za plačljive dogodke)
+                </Link>
+              </li>
+            )}
             {missing.length > 0 && hasSpaceRole(role, "admin") && (
               <li>
                 <Link

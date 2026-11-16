@@ -133,6 +133,14 @@ export async function createEvent(
     return { errors: errs, values: echo, message: "Preveri označena polja." };
   }
   const d = parsed.data;
+  // Paid events need the organizer's legal status (checked again in publish_event); fail before creating a draft.
+  if (d.registration_mode === "native" && d.payment_mode === "manual" && !space.legal_form) {
+    return {
+      values: echo,
+      message:
+        "Za plačljiv dogodek najprej v Nastavitvah prostora izpolni pravni status organizatorja (podjetje, s.p., društvo, ODD ali zasebnik).",
+    };
+  }
   const slug = `${slugify(d.title).slice(0, 60) || "dogodek"}-${Math.random().toString(36).slice(2, 6)}`;
   const supabase = await createClient();
   const { data: created, error } = await supabase

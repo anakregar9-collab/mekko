@@ -17,6 +17,11 @@ const messages: Record<string, string> = {
   not_draft: "Dogodek je že objavljen.",
   already_cancelled: "Dogodek je že odpovedan.",
   invalid_message: "Sporočilo naj ima od 3 do 1000 znakov.",
+  legal_info_required:
+    "Za plačljiv dogodek najprej v Nastavitvah prostora izpolni pravni status organizatorja. Dogodek je shranjen kot osnutek.",
+  registration_required: "Vpiši matično ali davčno številko.",
+  invalid_legal_form: "Izberi pravni status.",
+  payment_terms_locked: "Cene in pogojev plačila po objavi ni mogoče spremeniti.",
 };
 
 export interface DbErrorLike {

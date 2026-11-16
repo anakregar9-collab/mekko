@@ -37,6 +37,7 @@ insert into ids values
 
 select pg_temp.act_as('org');
 insert into ids values ('space', public.create_space('studio', 'Statve', 'statve-pgtap')::text);
+select public.set_space_legal_info(pg_temp.id('space'), 'private');
 
 select throws_ok($$
   insert into public.events (space_id, created_by, slug, title, payment_mode, price_cents)

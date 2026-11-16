@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSpaceRole, requireUser } from "@/lib/auth/dal";
@@ -127,4 +128,63 @@ export async function leaveSpace(slug: string): Promise<void> {
   if (error) return;
   revalidatePath("/organizator", "layout");
   redirect("/organizator");
+}
+
+const legalSchema = z
+  .object({
+    legal_form: z.enum(["company", "sole_trader", "association", "odd", "private"], {
+      error: "Izberi status.",
+    }),
+    legal_name: z.string().trim().max(120, "Največ 120 znakov.").optional().default(""),
+    address: z.string().trim().max(200, "Največ 200 znakov.").optional().default(""),
+    registration_number: z.string().trim().max(30, "Največ 30 znakov.").optional().default(""),
+    contact_email: z.string().trim().max(120).optional().default(""),
+  })
+  .superRefine((d, ctx) => {
+    if (d.legal_form === "private") return;
+    if (d.legal_name.length < 2)
+      ctx.addIssue({ code: "custom", path: ["legal_name"], message: "Vpiši ime ali naziv." });
+    if (d.address.length < 5) ctx.addIssue({ code: "custom", path: ["address"], message: "Vpiši naslov." });
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.contact_email))
+      ctx.addIssue({ code: "custom", path: ["contact_email"], message: "Vpiši veljaven e-poštni naslov." });
+    if ((d.legal_form === "company" || d.legal_form === "sole_trader") && !d.registration_number)
+      ctx.addIssue({
+        code: "custom",
+        path: ["registration_number"],
+        message: "Vpiši matično ali davčno številko.",
+      });
+  });
+
+export async function updateLegalInfo(
+  slug: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { space } = await requireSpaceRole(slug, "admin");
+  const raw = {
+    legal_form: str(formData, "legal_form"),
+    legal_name: str(formData, "legal_name"),
+    address: str(formData, "address"),
+    registration_number: str(formData, "registration_number"),
+    contact_email: str(formData, "contact_email"),
+    // Re-mounts the radio group after React's form reset (see event form).
+    nonce: Math.random().toString(36).slice(2),
+  };
+  const parsed = legalSchema.safeParse(raw);
+  if (!parsed.success)
+    return { errors: fieldErrors(parsed.error), values: raw, message: "Preveri označena polja." };
+  const d = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_space_legal_info", {
+    p_space: space.id,
+    p_form: d.legal_form,
+    p_name: d.legal_name,
+    p_address: d.address,
+    p_registration: d.registration_number,
+    p_email: d.contact_email,
+  });
+  if (error) return { message: friendlyDbError(error), values: raw };
+  revalidatePath(`/organizator/${slug}`, "layout");
+  revalidatePath(`/prostori/${slug}`);
+  return { ok: true, message: "Pravni podatki so shranjeni.", values: raw };
 }

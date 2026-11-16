@@ -29,6 +29,7 @@ insert into ids values ('org', pg_temp.mk_user('dl_org')::text), ('ana', pg_temp
   ('bor', pg_temp.mk_user('dl_bor')::text);
 select pg_temp.act_as('org');
 insert into ids values ('space', public.create_space('studio', 'Rok plačila', 'rok-placila-pgtap')::text);
+select public.set_space_legal_info(pg_temp.id('space'), 'private');
 
 select throws_ok($$
   insert into public.events (space_id, created_by, slug, title, payment_deadline_hours)

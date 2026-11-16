@@ -102,3 +102,14 @@ Built inside confirmed decisions #4 (manual payment, organizer confirms, no comm
 ## 2026-11-16 — Payment deadline option (founder: "ročno zaenkrat, a naj ima možnost tudi avtomatično")
 - Default stays manual release. Organizer may optionally choose a payment deadline: 1, 2, 3 or 7 days after booking (never later than the start of the booked session). Overdue unpaid reservations are released automatically (pg_cron every 10 min, and immediately when someone else tries to book that event); the visitor is notified.
 - The deadline is shown on the event page, in the booking confirmation and in the organizer's attendee list, and is locked after publishing together with price and instructions.
+
+## 2026-11-16 — Organizer legal status (marketplace information duty)
+Founder asked to check whether "the organizer handles invoices, VAT and refunds" is enough. Research summary (not legal advice; lawyer review still required before a real launch, decision #10):
+- 14-day withdrawal right likely does not apply to dated leisure workshops (Directive 2011/83/EU art. 16(l); CJEU C-96/21). Organizer cancellation policies remain.
+- Mekko never holds money → no payment-services licence needed for manual payments.
+- Missing until now: as an online marketplace (ZVPot-1 / Omnibus 2019/2161) Mekko must show whether the provider is a trader and, if not, that consumer rights do not apply; trader identity + contact should be available (also DSA trader traceability — small-platform exemption unclear).
+Built:
+- Space setting "Pravni status organizatorja": Podjetje · s.p. · Društvo/zavod · **ODD (osebno dopolnilno delo)** (founder addition) · Zasebnik. Non-private forms require name, address and customer e-mail; company/s.p. also a registration number.
+- Status is public; provider details are shown to signed-in users (booking requires sign-in). Private organizers show a notice that consumer rights do not apply and that Mekko is not a party to the agreement. **Wording pending lawyer review.**
+- Paid (manual-payment) events cannot be published without a legal status; free events show "status ni naveden" until filled.
+- Still missing before real launch: Terms of use + privacy policy pages (to draft), lawyer review of the notices.

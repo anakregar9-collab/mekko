@@ -10,6 +10,7 @@ import { EmptyState, PageSkeleton } from "@/components/page-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { getAuthUserId } from "@/lib/auth/dal";
 import { ReportForm, StartConversationForm } from "@/components/messages/forms";
+import { ProviderInfo } from "@/components/spaces/provider-info";
 import { spaceKindLabel } from "@/lib/spaces";
 
 export const metadata: Metadata = { title: "Prostor" };
@@ -30,7 +31,7 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
   const supabase = await createClient();
   const { data: space } = await supabase
     .from("spaces")
-    .select("id, name, kind, city, tagline, bio, verification_status, membership_mode, is_demo")
+    .select("id, name, kind, city, tagline, bio, verification_status, membership_mode, is_demo, legal_form")
     .eq("slug", slug)
     .is("deleted_at", null)
     .maybeSingle();
@@ -54,6 +55,8 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
         {space.city && <p className="text-sm text-ink-muted">{space.city}</p>}
         {space.bio && <p className="pt-2 leading-relaxed whitespace-pre-line">{space.bio}</p>}
       </section>
+
+      <ProviderInfo spaceId={space.id} legalForm={space.legal_form} signedIn={!!me} />
 
       <section className="space-y-3">
         <h2 className="font-display text-xl font-bold">Prihajajoči dogodki</h2>
