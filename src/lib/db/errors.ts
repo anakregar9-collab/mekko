@@ -21,6 +21,7 @@ const messages: Record<string, string> = {
     "Za plačljiv dogodek najprej v Nastavitvah prostora izpolni pravni status organizatorja. Dogodek je shranjen kot osnutek.",
   registration_required: "Vpiši matično ali davčno številko.",
   invalid_legal_form: "Izberi pravni status.",
+  acknowledgement_required: "Za shranjevanje potrdi, da razumeš svojo odgovornost.",
   payment_terms_locked: "Cene in pogojev plačila po objavi ni mogoče spremeniti.",
 };
 

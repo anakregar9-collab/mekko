@@ -5,6 +5,7 @@ import { describedBy, Field, FormMessage, inputCls, SubmitButton, type FormState
 import { updateLegalInfo } from "@/lib/actions/spaces";
 import { legalForms, type LegalForm } from "@/lib/spaces";
 import { cn } from "@/lib/cn";
+import { OrganizerResponsibility } from "@/components/spaces/organizer-responsibility";
 
 export interface LegalInitial {
   legal_form: LegalForm | "";
@@ -125,6 +126,29 @@ export function LegalInfoForm({ slug, initial }: { slug: string; initial: LegalI
         </div>
       )}
 
+      <OrganizerResponsibility />
+      <div className="space-y-1">
+        <label className="flex items-start gap-3 text-sm font-medium">
+          <input
+            key={`ack-${state.values?.nonce ?? "0"}`}
+            type="checkbox"
+            name="ack"
+            defaultChecked={state.values?.ack === "on"}
+            className="mt-0.5 size-5 shrink-0 accent-[var(--color-brand)]"
+            aria-describedby={e.ack ? "ack-error" : undefined}
+            aria-invalid={e.ack ? true : undefined}
+          />
+          <span>
+            Razumem in potrjujem, da so registracija dejavnosti, izdajanje računov, sprejemanje gotovine,
+            davki in vračila moja odgovornost, ne odgovornost Mekka.
+          </span>
+        </label>
+        {e.ack && (
+          <p id="ack-error" className="text-sm font-medium text-brand-strong">
+            {e.ack}
+          </p>
+        )}
+      </div>
       <SubmitButton pendingText="Shranjujem …">Shrani pravne podatke</SubmitButton>
     </form>
   );

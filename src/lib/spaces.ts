@@ -24,13 +24,14 @@ export const roleLabel: Record<SpaceRoleName, string> = {
   member: "Član",
 };
 
-export type LegalForm = "company" | "sole_trader" | "association" | "odd" | "private";
+export type LegalForm = "company" | "sole_trader" | "association" | "institute" | "odd" | "private";
 
 /** Organizer legal status (marketplace information duty). Wording pending legal review. */
 export const legalForms: { v: LegalForm; l: string; d: string }[] = [
   { v: "company", l: "Podjetje", d: "d.o.o., d.d. ali druga gospodarska družba" },
   { v: "sole_trader", l: "Samostojni podjetnik (s.p.)", d: "Registrirana dejavnost kot s.p." },
-  { v: "association", l: "Društvo ali zavod", d: "Društvo, zavod ali druga nevladna organizacija" },
+  { v: "association", l: "Društvo", d: "Registrirano društvo ali druga nevladna organizacija" },
+  { v: "institute", l: "Zavod", d: "Zasebni ali javni zavod (tudi socialno podjetje v obliki zavoda)" },
   { v: "odd", l: "Osebno dopolnilno delo (ODD)", d: "Vpis v evidenco ODD pri AJPES in vrednotnica" },
   { v: "private", l: "Zasebnik", d: "Nimam registrirane dejavnosti (občasno, nepridobitno)" },
 ];

@@ -159,7 +159,8 @@ update public.spaces set legal_form = case id
     when 'b1000000-0000-4000-8000-000000000000' then 'sole_trader'
     when 'b2000000-0000-4000-8000-000000000000' then 'association'
     when 'b3000000-0000-4000-8000-000000000000' then 'odd'
-    else 'association' end
+    else 'association' end,
+  legal_ack_at = now()
 where is_demo and legal_form is null;
 
 insert into public.space_legal_info (space_id, legal_name, address, registration_number, contact_email)

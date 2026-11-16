@@ -886,6 +886,8 @@ export type Database = {
           id: string;
           is_demo: boolean;
           kind: Database["public"]["Enums"]["space_kind"];
+          legal_ack_at: string | null;
+          legal_ack_by: string | null;
           legal_form: string | null;
           membership_mode: Database["public"]["Enums"]["membership_mode"];
           name: string;
@@ -906,6 +908,8 @@ export type Database = {
           id?: string;
           is_demo?: boolean;
           kind: Database["public"]["Enums"]["space_kind"];
+          legal_ack_at?: string | null;
+          legal_ack_by?: string | null;
           legal_form?: string | null;
           membership_mode?: Database["public"]["Enums"]["membership_mode"];
           name: string;
@@ -925,6 +929,8 @@ export type Database = {
           id?: string;
           is_demo?: boolean;
           kind?: Database["public"]["Enums"]["space_kind"];
+          legal_ack_at?: string | null;
+          legal_ack_by?: string | null;
           legal_form?: string | null;
           membership_mode?: Database["public"]["Enums"]["membership_mode"];
           name?: string;
@@ -938,6 +944,13 @@ export type Database = {
           {
             foreignKeyName: "spaces_created_by_fkey";
             columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spaces_legal_ack_by_fkey";
+            columns: ["legal_ack_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
@@ -1118,6 +1131,7 @@ export type Database = {
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };
       set_space_legal_info: {
         Args: {
+          p_ack: boolean;
           p_address?: string;
           p_email?: string;
           p_form: string;

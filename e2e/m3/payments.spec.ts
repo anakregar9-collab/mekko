@@ -25,13 +25,16 @@ test("manual payment: reserve, organizer confirms receipt or releases the seat",
   await org.goto(`/organizator/${spaceSlug}/nastavitve`);
   const legal = org.getByTestId("legal-form");
   await legal.getByText("Samostojni podjetnik (s.p.)").click();
+  await expect(legal.getByTestId("organizer-responsibility")).toContainText("ne Mekko");
   await legal.getByRole("button", { name: "Shrani pravne podatke" }).click();
   await expect(legal.getByText("Vpiši ime ali naziv.")).toBeVisible();
+  await expect(legal.getByText("Za shranjevanje potrdi, da razumeš svojo odgovornost.")).toBeVisible();
   await expect(legal.getByText("Vpiši matično ali davčno številko.")).toBeVisible();
   await legal.getByLabel("Ime ali naziv ponudnika").fill("Vesna Novak s.p.");
   await legal.getByLabel("Naslov").fill("Metelkova 6, 1000 Ljubljana");
   await legal.getByLabel("Matična ali davčna številka").fill("1234567");
   await legal.getByLabel("E-pošta za stranke").fill("vesna@example.test");
+  await legal.getByLabel(/Razumem in potrjujem/).check();
   await legal.getByRole("button", { name: "Shrani pravne podatke" }).click();
   await expect(legal.getByText("Pravni podatki so shranjeni.")).toBeVisible();
   await checkPage(org);

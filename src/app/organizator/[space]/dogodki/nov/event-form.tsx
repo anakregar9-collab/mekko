@@ -6,6 +6,7 @@ import { describedBy, Field, FormMessage, inputCls, SubmitButton, type FormState
 import { Button } from "@/components/ui/button";
 import { createEvent } from "@/lib/actions/events";
 import { cn } from "@/lib/cn";
+import { OrganizerResponsibility } from "@/components/spaces/organizer-responsibility";
 
 const covers = [
   { v: "coral", c: "#f08a6e" },
@@ -403,10 +404,9 @@ export function EventForm({
                     <option value="168">7 dni po prijavi</option>
                   </select>
                 </Field>
-                <p className="text-xs text-ink-muted sm:col-span-2">
-                  Mekko plačil ne obdeluje in ne zaračuna provizije. Ceno in navodila po objavi ni več mogoče
-                  spremeniti. Za račune in vračila skrbiš sam/-a.
-                </p>
+                <div className="sm:col-span-2">
+                  <OrganizerResponsibility compact />
+                </div>
               </div>
             )}
           </div>

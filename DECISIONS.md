@@ -113,3 +113,8 @@ Built:
 - Status is public; provider details are shown to signed-in users (booking requires sign-in). Private organizers show a notice that consumer rights do not apply and that Mekko is not a party to the agreement. **Wording pending lawyer review.**
 - Paid (manual-payment) events cannot be published without a legal status; free events show "status ni naveden" until filled.
 - Still missing before real launch: Terms of use + privacy policy pages (to draft), lawyer review of the notices.
+
+## 2026-11-16 — Zavod + organizer responsibility (founder request)
+- "Zavod" is its own legal form (separate from "Društvo").
+- Organizer-facing notice (space legal settings + paid-event form): Mekko is only the platform; having a registered activity where required, invoicing, fiscal cash rules (FURS), taxes/VAT and refunds are the organizer's responsibility, not Mekko's.
+- Saving the legal status requires ticking an acknowledgement; time and person are stored (`spaces.legal_ack_at/by`). Wording pending lawyer review; the same principle goes into the Terms of use draft.

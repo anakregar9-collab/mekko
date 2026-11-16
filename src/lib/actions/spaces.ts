@@ -132,15 +132,22 @@ export async function leaveSpace(slug: string): Promise<void> {
 
 const legalSchema = z
   .object({
-    legal_form: z.enum(["company", "sole_trader", "association", "odd", "private"], {
+    legal_form: z.enum(["company", "sole_trader", "association", "institute", "odd", "private"], {
       error: "Izberi status.",
     }),
+    ack: z.string().optional().default(""),
     legal_name: z.string().trim().max(120, "Največ 120 znakov.").optional().default(""),
     address: z.string().trim().max(200, "Največ 200 znakov.").optional().default(""),
     registration_number: z.string().trim().max(30, "Največ 30 znakov.").optional().default(""),
     contact_email: z.string().trim().max(120).optional().default(""),
   })
   .superRefine((d, ctx) => {
+    if (d.ack !== "on")
+      ctx.addIssue({
+        code: "custom",
+        path: ["ack"],
+        message: "Za shranjevanje potrdi, da razumeš svojo odgovornost.",
+      });
     if (d.legal_form === "private") return;
     if (d.legal_name.length < 2)
       ctx.addIssue({ code: "custom", path: ["legal_name"], message: "Vpiši ime ali naziv." });
@@ -167,6 +174,7 @@ export async function updateLegalInfo(
     address: str(formData, "address"),
     registration_number: str(formData, "registration_number"),
     contact_email: str(formData, "contact_email"),
+    ack: str(formData, "ack"),
     // Re-mounts the radio group after React's form reset (see event form).
     nonce: Math.random().toString(36).slice(2),
   };
@@ -178,6 +186,7 @@ export async function updateLegalInfo(
   const { error } = await supabase.rpc("set_space_legal_info", {
     p_space: space.id,
     p_form: d.legal_form,
+    p_ack: true,
     p_name: d.legal_name,
     p_address: d.address,
     p_registration: d.registration_number,
