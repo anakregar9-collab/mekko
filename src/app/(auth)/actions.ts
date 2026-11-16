@@ -61,7 +61,10 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp(parsed.data);
   if (error) {
+    // Log the reason (never the e-mail address) so production issues are visible in the server logs.
+    console.error("signup_failed", { status: error.status, code: error.code, message: error.message });
     const exists = /already|registered|exists/i.test(error.message);
+    const mailProblem = /email|smtp|mail/i.test(`${error.code ?? ""} ${error.message}`) && !exists;
     return {
       mode: "register",
       values: { email: raw.email },
@@ -69,7 +72,9 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
         ? "Račun s tem e-poštnim naslovom že obstaja. Prijavi se."
         : error.status === 429
           ? "Preveč poskusov. Počakaj minuto in poskusi znova."
-          : "Registracija ni uspela. Poskusi znova.",
+          : mailProblem
+            ? "Registracija trenutno ne deluje, ker potrditvene e-pošte ne moremo poslati. Ekipa Mekko to že ureja – poskusi kasneje."
+            : "Registracija ni uspela. Poskusi znova.",
     };
   }
   if (!data.session || !data.user) {

@@ -50,13 +50,12 @@ export interface WorkspaceLink {
   milestone?: string;
 }
 
-/** Real organizer menu for one space (M1). */
+/** Real organizer menu for one space. Live menus list only built pages (no milestone placeholders). */
 export const liveSpaceLinks: readonly WorkspaceLink[] = [
   { label: "Pregled", href: "/organizator/:space" },
   { label: "Dogodki", href: "/organizator/:space/dogodki" },
   { label: "Ekipa", href: "/organizator/:space/ekipa" },
   { label: "Nastavitve prostora", href: "/organizator/:space/nastavitve" },
-  { label: "Finance", href: null, milestone: "M3" },
 ];
 
 export const liveOrganizerHomeLinks: readonly WorkspaceLink[] = [
@@ -71,8 +70,6 @@ export const liveAdminLinks: readonly WorkspaceLink[] = [
   { label: "Prijave vsebin", href: "/admin/prijave" },
   { label: "Zahteve GDPR", href: "/admin/zahteve" },
   { label: "Revizijska sled", href: "/admin/revizija" },
-  { label: "Moderacija", href: null, milestone: "M3" },
-  { label: "Transakcije", href: null, milestone: "M3" },
 ];
 
 export const organizerLinks: readonly WorkspaceLink[] = [

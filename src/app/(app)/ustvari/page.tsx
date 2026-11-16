@@ -70,7 +70,6 @@ async function Content() {
         <Soon
           icon={<Lightbulb aria-hidden="true" className="size-6" />}
           title="Ideja"
-          when="M4"
           tone="bg-sun-soft text-sun-ink"
         />
       </ul>
@@ -78,23 +77,13 @@ async function Content() {
   );
 }
 
-function Soon({
-  icon,
-  title,
-  when,
-  tone,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  when: string;
-  tone: string;
-}) {
+function Soon({ icon, title, tone }: { icon: React.ReactNode; title: string; tone: string }) {
   return (
     <li className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface/60 p-4 ring-1 ring-line">
       <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${tone}`}>{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block font-display text-lg font-bold text-ink-muted">{title}</span>
-        <span className="block text-sm text-ink-muted">Kmalu · predvideno v {when}</span>
+        <span className="block text-sm text-ink-muted">Kmalu</span>
       </span>
     </li>
   );

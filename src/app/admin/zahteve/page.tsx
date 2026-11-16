@@ -22,7 +22,7 @@ export default function Page() {
     <div className="space-y-4">
       <h1 className="font-display text-3xl font-extrabold tracking-tight">Zahteve GDPR</h1>
       <p className="text-sm text-ink-muted">
-        Rok za odgovor je 30 dni od oddaje. Izvoz in izbris se v M1 izvedeta ročno po internem postopku.
+        Rok za odgovor je 30 dni od oddaje. Izvoz in izbris zaenkrat izvedemo ročno po internem postopku.
       </p>
       <Suspense fallback={<PageSkeleton />}>
         <Content />
