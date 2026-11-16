@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Compass, Plus, Smile, type LucideIcon } from "lucide-react";
+import { CalendarCheck, Compass, MessageCircle, Plus, Smile, type LucideIcon } from "lucide-react";
 import { activeVisitorTab, makeVisitorTabs, PROTO, type NavBase, type VisitorTabKey } from "@/lib/navigation";
 import { cn } from "@/lib/cn";
 import { Logo } from "@/components/logo";
@@ -11,6 +11,7 @@ const icons: Record<VisitorTabKey, LucideIcon> = {
   odkrivanje: Compass,
   "moje-aktivnosti": CalendarCheck,
   ustvari: Plus,
+  sporocila: MessageCircle,
   "moj-mekko": Smile,
 };
 
@@ -18,13 +19,30 @@ const icons: Record<VisitorTabKey, LucideIcon> = {
  * The ONE visitor navigation element. Bottom tab bar on phones, left rail
  * from md up — the same DOM node, so there is never duplicated navigation.
  */
-export function VisitorNav({ base = PROTO }: { base?: NavBase }) {
+export function VisitorNav({
+  base = PROTO,
+  messagesBadge,
+}: {
+  base?: NavBase;
+  messagesBadge?: React.ReactNode;
+}) {
   const pathname = usePathname();
-  return <VisitorNavView base={base} active={activeVisitorTab(pathname, base)} />;
+  return (
+    <VisitorNavView base={base} active={activeVisitorTab(pathname, base)} messagesBadge={messagesBadge} />
+  );
 }
 
 /** Hook-free render, also used as the Suspense fallback on dynamic routes. */
-export function VisitorNavView({ base = PROTO, active }: { base?: NavBase; active: VisitorTabKey | null }) {
+export function VisitorNavView({
+  base = PROTO,
+  active,
+  messagesBadge,
+}: {
+  base?: NavBase;
+  active: VisitorTabKey | null;
+  /** Live unread count rendered on the Sporočila tab (server component passed in). */
+  messagesBadge?: React.ReactNode;
+}) {
   const tabs = makeVisitorTabs(base);
 
   return (
@@ -36,7 +54,7 @@ export function VisitorNavView({ base = PROTO, active }: { base?: NavBase; activ
       <div className="hidden px-6 pt-12 pb-8 md:block">
         <Logo href={`${base}/odkrivanje`} />
       </div>
-      <ul className="mx-auto grid max-w-lg grid-cols-4 md:mx-0 md:flex md:max-w-none md:flex-col md:gap-1 md:px-3">
+      <ul className="mx-auto grid max-w-lg grid-cols-5 md:mx-0 md:flex md:max-w-none md:flex-col md:gap-1 md:px-3">
         {tabs.map((tab) => {
           const Icon = icons[tab.key];
           const isActive = active === tab.key;
@@ -54,11 +72,12 @@ export function VisitorNavView({ base = PROTO, active }: { base?: NavBase; activ
               >
                 <span
                   className={cn(
-                    "flex items-center justify-center",
+                    "relative flex items-center justify-center",
                     isCreate && "size-8 rounded-full bg-brand text-white md:size-7",
                   )}
                 >
                   <Icon aria-hidden="true" className={isCreate ? "size-5" : "size-6"} strokeWidth={2.2} />
+                  {tab.key === "sporocila" && messagesBadge}
                 </span>
                 <span className="text-center">{tab.label}</span>
               </Link>

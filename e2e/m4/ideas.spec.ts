@@ -41,7 +41,7 @@ test("publish an idea, find it, save it; a moderator hides it after a report", a
     `/odkrivanje?pogled=ideje&kategorija=umetnost&f=zacetniki&q=${encodeURIComponent(title)}`,
   );
   await reader.getByRole("link", { name: new RegExp(title) }).click();
-  await expect(reader.getByText("Ustvarjalka Pia")).toBeVisible();
+  await expect(reader.getByTestId("idea").getByText("Ustvarjalka Pia")).toBeVisible();
   await reader.getByRole("button", { name: "Shrani" }).click();
   await expect(reader.getByRole("button", { name: "Shranjeno" })).toBeVisible();
   await reader.goto("/moj-mekko/shranjeno");

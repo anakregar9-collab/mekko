@@ -23,7 +23,7 @@ export async function UnreadNotificationsBadge() {
   );
 }
 
-/** Live unread-conversation count for the header messages icon. */
+/** Live unread-conversation count on the Sporočila tab (rendered inside <Suspense>). */
 export async function UnreadMessagesBadge() {
   const id = await getAuthUserId();
   if (!id) return null;
@@ -33,9 +33,9 @@ export async function UnreadMessagesBadge() {
   return (
     <span
       data-testid="unread-messages"
-      className="absolute top-1.5 right-1.5 flex min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[0.65rem] leading-5 font-bold text-white"
+      className="absolute -top-1.5 -right-2.5 flex min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[0.65rem] leading-5 font-bold text-white"
     >
-      <span className="sr-only">neprebrano: </span>
+      <span className="sr-only">, neprebrano: </span>
       {count}
     </span>
   );

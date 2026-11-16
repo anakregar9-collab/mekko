@@ -1,11 +1,12 @@
 /**
  * Navigation config — single source of truth for the visitor tabs and
- * organizer/admin workspace menus. PRODUCT_SPEC §2: exactly four visitor tabs.
+ * organizer/admin workspace menus. Five visitor tabs (founder change 2026-11-16: Sporočila became a tab;
+ * the header keeps only the notifications bell).
  */
 
 export const PROTO = "/prototip";
 
-export type VisitorTabKey = "odkrivanje" | "moje-aktivnosti" | "ustvari" | "moj-mekko";
+export type VisitorTabKey = "odkrivanje" | "moje-aktivnosti" | "ustvari" | "sporocila" | "moj-mekko";
 
 export interface VisitorTab {
   key: VisitorTabKey;
@@ -28,6 +29,7 @@ export function makeVisitorTabs(base: NavBase): readonly VisitorTab[] {
     },
     { key: "moje-aktivnosti", label: "Moje aktivnosti", href: `${base}/moje-aktivnosti`, activePrefixes: [] },
     { key: "ustvari", label: "Ustvari", href: `${base}/ustvari`, activePrefixes: [] },
+    { key: "sporocila", label: "Sporočila", href: `${base}/sporocila`, activePrefixes: [] },
     { key: "moj-mekko", label: "Moj Mekko", href: `${base}/moj-mekko`, activePrefixes: [] },
   ];
 }

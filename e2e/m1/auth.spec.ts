@@ -12,7 +12,7 @@ test.describe("guest", () => {
     await checkPage(page);
   });
 
-  test("Odkrivanje is public and the shell has 4 tabs + 2 header icons", async ({ page }) => {
+  test("Odkrivanje is public and the shell has 5 tabs + the notifications icon", async ({ page }) => {
     await page.goto("/odkrivanje");
     await expect(page.getByRole("heading", { name: "Odkrivanje" })).toBeVisible();
     const nav = page.getByRole("navigation", { name: "Glavna navigacija" });
@@ -20,9 +20,10 @@ test.describe("guest", () => {
       "Odkrivanje",
       "Moje aktivnosti",
       "Ustvari",
+      "Sporočila",
       "Moj Mekko",
     ]);
-    await expect(page.getByTestId("header-messages")).toHaveAttribute("href", "/sporocila");
+    await expect(page.getByTestId("tab-sporocila")).toHaveAttribute("href", "/sporocila");
     await expect(page.getByTestId("header-notifications")).toHaveAttribute("href", "/obvestila");
     await checkPage(page);
   });

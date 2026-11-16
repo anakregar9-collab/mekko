@@ -64,6 +64,8 @@ export async function expectNoOverflow(page: Page) {
 }
 
 export async function expectAccessible(page: Page) {
+  // Next.js streams <title> with the metadata; wait for it so axe doesn't run before it lands.
+  await page.waitForFunction(() => document.title.trim().length > 0, null, { timeout: 5000 });
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   const serious = axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(", ")}`)).toEqual([]);

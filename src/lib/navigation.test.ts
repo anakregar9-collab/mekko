@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import { activeVisitorTab, visitorTabs } from "./navigation";
 
 describe("visitor navigation", () => {
-  it("has exactly the four confirmed tabs in order (PRODUCT_SPEC §2)", () => {
+  it("has exactly the five confirmed tabs in order (founder change 2026-11-16)", () => {
     expect(visitorTabs.map((t) => t.label)).toEqual([
       "Odkrivanje",
       "Moje aktivnosti",
       "Ustvari",
+      "Sporočila",
       "Moj Mekko",
     ]);
   });
@@ -20,6 +21,7 @@ describe("visitor navigation", () => {
 
   it("does not match on mere string prefixes", () => {
     expect(activeVisitorTab("/prototip/ustvarjalci")).toBeNull();
-    expect(activeVisitorTab("/prototip/sporocila")).toBeNull();
+    expect(activeVisitorTab("/prototip/sporocilarna")).toBeNull();
+    expect(activeVisitorTab("/prototip/sporocila/abc")).toBe("sporocila");
   });
 });

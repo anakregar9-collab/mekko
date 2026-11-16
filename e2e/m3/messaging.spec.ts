@@ -46,7 +46,7 @@ test("visitor writes to an organizer, organizer replies, then blocks", async ({ 
   // Organizer: unread badge → inbox → reply.
   await org.goto("/odkrivanje");
   await expect(org.getByTestId("unread-messages")).toHaveText(/1/);
-  await org.getByTestId("header-messages").click();
+  await org.getByTestId("tab-sporocila").click();
   await expect(org.getByTestId("conversations")).toContainText("Obiskovalka Tina");
   await checkPage(org);
   await org.getByTestId("conversations").getByRole("link").first().click();

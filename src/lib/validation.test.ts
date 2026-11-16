@@ -75,13 +75,15 @@ describe("friendlyDbError", () => {
 });
 
 describe("live navigation", () => {
-  it("uses the same four tabs without the prototype prefix", () => {
+  it("uses the same five tabs without the prototype prefix", () => {
     expect(makeVisitorTabs("").map((t) => t.href)).toEqual([
       "/odkrivanje",
       "/moje-aktivnosti",
       "/ustvari",
+      "/sporocila",
       "/moj-mekko",
     ]);
+    expect(activeVisitorTab("/sporocila/abc", "")).toBe("sporocila");
     expect(activeVisitorTab("/moj-mekko/profil", "")).toBe("moj-mekko");
     expect(activeVisitorTab("/prototip/moj-mekko", "")).toBeNull();
   });

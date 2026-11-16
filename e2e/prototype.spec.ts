@@ -43,7 +43,7 @@ for (const path of [...visitorScreens, ...workspaceScreens]) {
 
 test.describe("visitor shell", () => {
   for (const path of visitorScreens) {
-    test(`${path}: exactly one main nav with the four tabs and two header icons`, async ({ page }) => {
+    test(`${path}: exactly one main nav with the five tabs and the notifications icon`, async ({ page }) => {
       await page.goto(path);
       const nav = page.getByRole("navigation", { name: "Glavna navigacija" });
       await expect(nav).toHaveCount(1);
@@ -51,19 +51,20 @@ test.describe("visitor shell", () => {
         "Odkrivanje",
         "Moje aktivnosti",
         "Ustvari",
+        "Sporočila",
         "Moj Mekko",
       ]);
-      await expect(page.getByTestId("header-messages")).toBeVisible();
+      await expect(page.getByTestId("header-messages")).toHaveCount(0);
       await expect(page.getByTestId("header-notifications")).toBeVisible();
-      // Messages and notifications are separate destinations.
-      await expect(page.getByTestId("header-messages")).toHaveAttribute("href", "/prototip/sporocila");
+      // Messages (tab) and notifications (header) are separate destinations.
+      await expect(page.getByTestId("tab-sporocila")).toHaveAttribute("href", "/prototip/sporocila");
       await expect(page.getByTestId("header-notifications")).toHaveAttribute("href", "/prototip/obvestila");
     });
   }
 
   test("nav tabs meet the 44px touch target and mark the active tab", async ({ page }) => {
     await page.goto("/prototip/dogodki/keramika-za-zacetnike");
-    for (const key of ["odkrivanje", "moje-aktivnosti", "ustvari", "moj-mekko"]) {
+    for (const key of ["odkrivanje", "moje-aktivnosti", "ustvari", "sporocila", "moj-mekko"]) {
       const box = await page.getByTestId(`tab-${key}`).boundingBox();
       expect(box!.height).toBeGreaterThanOrEqual(44);
     }

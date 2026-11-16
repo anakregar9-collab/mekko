@@ -129,3 +129,7 @@ Built:
 - Guests see the preview (title, summary, author, time); instructions, materials and link need sign-in — same rule as event details.
 - Authors can delete their ideas; users can save ideas (Moj Mekko → Shranjeno). Ideas can be reported; moderators can hide an idea with a reason (audited, author notified, author still sees it marked "Skrita").
 - Not yet: photos and PDF attachments (need Storage with type/size validation), editing, comments/likes/reviews, paid ideas (after legal review).
+
+## 2026-11-16 — Five visitor tabs (founder change)
+- Founder: four tabs looked too sparse; Sporočila becomes the 4th tab: Odkrivanje · Moje aktivnosti · Ustvari · Sporočila · Moj Mekko. This replaces the earlier confirmed "exactly four tabs" and "TWO header icons" items (PRODUCT_SPEC §2/§7 and CLAUDE.md updated).
+- To avoid duplicated navigation the header messages icon is removed; the header keeps only the notifications bell. The unread-conversation count is shown on the Sporočila tab.

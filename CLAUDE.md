@@ -2,7 +2,7 @@
 Read `PRODUCT_SPEC.md`, `MVP_ROADMAP.md`, and `DECISIONS.md` before proposing architecture changes. Product spec confirmed decisions override speculative suggestions. Never infer missing business requirements silently.
 
 ## Goal
-Build a polished, maintainable Slovenia-first, creative/lifestyle event-discovery platform. Four visitor mobile tabs: Odkrivanje / Moje aktivnosti / Ustvari / Moj Mekko. Playful creative, light mode, mobile-first. Separate organizer/admin workspaces. MVP early, with testable vertical slices.
+Build a polished, maintainable Slovenia-first, creative/lifestyle event-discovery platform. Five visitor mobile tabs: Odkrivanje / Moje aktivnosti / Ustvari / Sporočila / Moj Mekko (founder change 2026-11-16). Playful creative, light mode, mobile-first. Separate organizer/admin workspaces. MVP early, with testable vertical slices.
 
 ## Workflow
 1. Begin by inspecting repo state, scripts, environment files NAMES (not their secret values), and docs. Summarize current state and next atomic goal.
