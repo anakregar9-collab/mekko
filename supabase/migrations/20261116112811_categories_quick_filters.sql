@@ -31,9 +31,7 @@ from public.profile_interests pi
   join public.interests n on n.slug = m.new_slug
 on conflict do nothing;
 
-delete from public.profile_interests pi using public.interests o
-where o.id = pi.interest_id
-  and o.slug in ('risanje', 'kaligrafija', 'sivanje', 'cvetlicarstvo', 'ples', 'otroci-in-druzina');
+-- Old selections stay as inactive rows (never shown; replaced on the next save of "Zanimanja").
 
 update public.interests set is_active = false
 where slug in ('risanje', 'kaligrafija', 'sivanje', 'cvetlicarstvo', 'ples', 'otroci-in-druzina');
