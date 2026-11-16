@@ -67,24 +67,24 @@ async function Content() {
             <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
           </Link>
         </li>
-        <Soon
-          icon={<Lightbulb aria-hidden="true" className="size-6" />}
-          title="Ideja"
-          tone="bg-sun-soft text-sun-ink"
-        />
+        <li>
+          <Link
+            href="/ustvari/ideja"
+            className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] hover:ring-2 hover:ring-brand"
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-sun-soft text-sun-ink">
+              <Lightbulb aria-hidden="true" className="size-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-lg font-bold">Ideja</span>
+              <span className="block text-sm text-ink-muted">
+                Navodila, vzorec ali navdih za ustvarjanje doma
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
+          </Link>
+        </li>
       </ul>
     </div>
-  );
-}
-
-function Soon({ icon, title, tone }: { icon: React.ReactNode; title: string; tone: string }) {
-  return (
-    <li className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface/60 p-4 ring-1 ring-line">
-      <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${tone}`}>{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block font-display text-lg font-bold text-ink-muted">{title}</span>
-        <span className="block text-sm text-ink-muted">Kmalu</span>
-      </span>
-    </li>
   );
 }

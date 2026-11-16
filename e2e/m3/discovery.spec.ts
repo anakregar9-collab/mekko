@@ -37,8 +37,10 @@ test("Odkrivanje: Dogodki/Ideje tabs share categories; quick filters narrow the 
   await page.getByTestId("tab-ideje").click();
   await expect(page).toHaveURL(/pogled=ideje/);
   await expect(page).toHaveURL(/f=zacetniki/);
-  await expect(page.getByTestId("ideas-empty")).toContainText("Ideje prihajajo kmalu");
+  await expect(page.getByTestId("ideas-feed")).toContainText("Akvarelne voščilnice");
   await expect(cats.getByRole("link")).toHaveCount(10);
+  // Event-only filters are not offered for ideas.
+  await expect(quick.getByRole("button", { name: "Ta vikend" })).toHaveCount(0);
   await checkPage(page);
 });
 

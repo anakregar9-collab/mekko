@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import {
+  Lightbulb,
   Ban,
   Bookmark,
   ChevronRight,
@@ -83,7 +84,13 @@ async function Content() {
           href="/moj-mekko/shranjeno"
           icon={<Bookmark aria-hidden="true" className="size-6" />}
           title="Shranjeno"
-          desc="Dogodki, ki si jih shranil/-a"
+          desc="Dogodki in ideje, ki si jih shranil/-a"
+        />
+        <Row
+          href="/moj-mekko/ideje"
+          icon={<Lightbulb aria-hidden="true" className="size-6" />}
+          title="Moje ideje"
+          desc="Ideje, ki si jih objavil/-a"
         />
         <Row
           href="/moj-mekko/profil"

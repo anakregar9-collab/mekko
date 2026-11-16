@@ -123,3 +123,9 @@ Built:
 - Odkrivanje has two tabs, Dogodki and Ideje, with the same search, categories and quick filters (ideas tab shows "Ideje prihajajo kmalu" until ideas exist).
 - Categories (shared by events and ideas): Umetnost in risanje · Keramika in kiparstvo · Ročna dela in tekstil · Dom, deko in rastline · Kulinarika · Gibanje in dobro počutje · Glasba in ples · Foto in digitalno · Pisanje in jezik. Old narrower categories were merged; existing events and user interests were remapped.
 - Quick filters: Za začetnike · Online · Za otroke · Ta vikend (Saturday–Sunday, Ljubljana time). "Za začetnike" and "Za otroke" are event attributes set by the organizer (two checkboxes); "Otroci in družina" is no longer a category.
+
+## 2026-11-16 — Ideas, first slice (founder: "nadaljuj")
+- Anyone signed in can publish a free idea: title, short description, category (same 9 as events), step-by-step instructions, materials, time needed, optional https link, "Za začetnike" / "Za otroke" and a card colour. Published immediately (no pre-moderation, decision: risk-based moderation).
+- Guests see the preview (title, summary, author, time); instructions, materials and link need sign-in — same rule as event details.
+- Authors can delete their ideas; users can save ideas (Moj Mekko → Shranjeno). Ideas can be reported; moderators can hide an idea with a reason (audited, author notified, author still sees it marked "Skrita").
+- Not yet: photos and PDF attachments (need Storage with type/size validation), editing, comments/likes/reviews, paid ideas (after legal review).

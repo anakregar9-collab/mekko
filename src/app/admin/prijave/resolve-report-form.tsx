@@ -4,7 +4,15 @@ import { useActionState } from "react";
 import { FormMessage, inputCls, SubmitButton, type FormState } from "@/components/forms";
 import { resolveReport } from "@/lib/actions/messages";
 
-export function ResolveReportForm({ reportId, messageId }: { reportId: string; messageId?: number }) {
+export function ResolveReportForm({
+  reportId,
+  messageId,
+  ideaId,
+}: {
+  reportId: string;
+  messageId?: number;
+  ideaId?: string;
+}) {
   const [state, action] = useActionState<FormState, FormData>(resolveReport, {});
   if (state.ok) return <FormMessage state={state} />;
   const id = `note-${reportId}`;
@@ -12,6 +20,7 @@ export function ResolveReportForm({ reportId, messageId }: { reportId: string; m
     <form action={action} className="w-full space-y-2 lg:w-96">
       <input type="hidden" name="report_id" value={reportId} />
       {messageId !== undefined && <input type="hidden" name="message_id" value={messageId} />}
+      {ideaId && <input type="hidden" name="idea_id" value={ideaId} />}
       <label htmlFor={id} className="sr-only">
         Opomba moderatorja
       </label>
@@ -20,6 +29,11 @@ export function ResolveReportForm({ reportId, messageId }: { reportId: string; m
       {messageId !== undefined && (
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="remove_message" value="1" className="size-5" /> Odstrani sporočilo
+        </label>
+      )}
+      {ideaId && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="hide_idea" value="1" className="size-5" /> Skrij idejo
         </label>
       )}
       <div className="flex flex-wrap gap-2">

@@ -9,6 +9,8 @@ import {
   type QuickFilter,
 } from "@/lib/data/events";
 import { LiveEventCard } from "@/components/events/event-card";
+import { LiveIdeaCard } from "@/components/ideas/idea-card";
+import { listIdeas } from "@/lib/data/ideas";
 import { EmptyState, PageSkeleton } from "@/components/page-skeleton";
 import { cn } from "@/lib/cn";
 
@@ -62,6 +64,16 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
 
   const filtered = !!(q || interest || quick.length);
   const events = tab === "dogodki" ? await listUpcomingEvents({ q, interestId: interest?.id, quick }) : [];
+  // Ideas use the filters that make sense for them ("Online" / "Ta vikend" are event-only and kept in the URL).
+  const ideas =
+    tab === "ideje"
+      ? await listIdeas({
+          q,
+          interestId: interest?.id,
+          beginner: quick.includes("zacetniki"),
+          family: quick.includes("otroci"),
+        })
+      : [];
 
   return (
     <div className="space-y-4">
@@ -112,24 +124,26 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
         aria-label="Hitri filtri"
         className="scroll-row -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0"
       >
-        {QUICK_FILTERS.map((f) => {
-          const on = quick.includes(f.key);
-          return (
-            <Link
-              key={f.key}
-              href={href({ toggle: f.key })}
-              aria-pressed={on}
-              role="button"
-              className={cn(
-                "inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full px-4 text-sm font-semibold whitespace-nowrap ring-1",
-                on ? "bg-ink text-white ring-ink" : "bg-surface text-ink ring-line hover:bg-brand-soft",
-              )}
-            >
-              {on && <Check aria-hidden="true" className="size-4" />}
-              {f.label}
-            </Link>
-          );
-        })}
+        {QUICK_FILTERS.filter((f) => tab === "dogodki" || f.key === "zacetniki" || f.key === "otroci").map(
+          (f) => {
+            const on = quick.includes(f.key);
+            return (
+              <Link
+                key={f.key}
+                href={href({ toggle: f.key })}
+                aria-pressed={on}
+                role="button"
+                className={cn(
+                  "inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full px-4 text-sm font-semibold whitespace-nowrap ring-1",
+                  on ? "bg-ink text-white ring-ink" : "bg-surface text-ink ring-line hover:bg-brand-soft",
+                )}
+              >
+                {on && <Check aria-hidden="true" className="size-4" />}
+                {f.label}
+              </Link>
+            );
+          },
+        )}
       </nav>
 
       <nav
@@ -147,15 +161,35 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
       </nav>
 
       {tab === "ideje" ? (
-        <div data-testid="ideas-empty">
-          <EmptyState title="Ideje prihajajo kmalu">
-            <p className="flex items-start justify-center gap-2">
-              <Lightbulb aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-              Tukaj bodo navodila, vzorci in navdih za ustvarjanje doma – razvrščeni v iste kategorije kot
-              dogodki.
-            </p>
-          </EmptyState>
-        </div>
+        ideas.length === 0 ? (
+          <div data-testid="ideas-empty">
+            <EmptyState title={filtered ? "Ni zadetkov" : "Še ni idej"}>
+              {filtered ? (
+                <Link href="/odkrivanje?pogled=ideje" className="font-semibold text-brand-strong underline">
+                  Počisti iskanje in filtre
+                </Link>
+              ) : (
+                <p className="flex items-start justify-center gap-2">
+                  <Lightbulb aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+                  <span>
+                    Deli navodila ali navdih za ustvarjanje doma.{" "}
+                    <Link href="/ustvari/ideja" className="font-semibold text-brand-strong underline">
+                      Objavi prvo idejo
+                    </Link>
+                  </span>
+                </p>
+              )}
+            </EmptyState>
+          </div>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2" data-testid="ideas-feed">
+            {ideas.map((i) => (
+              <li key={i.id}>
+                <LiveIdeaCard idea={i} />
+              </li>
+            ))}
+          </ul>
+        )
       ) : events.length === 0 ? (
         <EmptyState title={filtered ? "Ni zadetkov" : "Kmalu novi dogodki"}>
           {filtered ? (

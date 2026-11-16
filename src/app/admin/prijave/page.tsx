@@ -23,6 +23,7 @@ const typeLabel: Record<string, string> = {
   message: "Sporočilo",
   event: "Dogodek",
   space: "Prostor",
+  idea: "Ideja",
 };
 
 export default function Page() {
@@ -51,13 +52,17 @@ async function Content() {
   if (list.length === 0) {
     return (
       <EmptyState title="Ni odprtih prijav">
-        <p>Ko uporabniki prijavijo osebo, sporočilo, dogodek ali prostor, se prijava prikaže tukaj.</p>
+        <p>Ko uporabniki prijavijo osebo, sporočilo, dogodek, prostor ali idejo, se prijava prikaže tukaj.</p>
       </EmptyState>
     );
   }
 
   const ids = (t: string) => list.filter((r) => r.target_type === t).map((r) => r.target_id);
   const msgIds = ids("message").map(Number).filter(Number.isFinite);
+  const { data: ideas } = await supabase
+    .from("ideas")
+    .select("id, slug, title, status")
+    .in("id", ids("idea"));
   const [{ data: msgs }, { data: people }, { data: events }, { data: spaces }] = await Promise.all([
     msgIds.length
       ? supabase.from("messages").select("id, body, removed_at, sender_id").in("id", msgIds)
@@ -81,6 +86,7 @@ async function Content() {
       {list.map((r) => {
         let target: React.ReactNode = <span className="text-ink-muted">Vsebine ni več</span>;
         let messageId: number | undefined;
+        let ideaId: string | undefined;
         if (r.target_type === "message") {
           const m = (msgs ?? []).find((x) => String(x.id) === r.target_id);
           if (m) {
@@ -114,6 +120,17 @@ async function Content() {
                 {e.title}
               </Link>
             );
+        } else if (r.target_type === "idea") {
+          const i = (ideas ?? []).find((x) => x.id === r.target_id);
+          if (i) {
+            ideaId = i.status === "published" ? i.id : undefined;
+            target = (
+              <Link href={`/ideje/${i.slug}`} className="font-semibold underline">
+                {i.title}
+                {i.status === "hidden" ? " (skrita)" : ""}
+              </Link>
+            );
+          }
         } else {
           const s = (spaces ?? []).find((x) => x.id === r.target_id);
           if (s)
@@ -137,7 +154,7 @@ async function Content() {
                 Prijavil/-a @{reporter?.handle ?? "?"} · {formatDate(r.created_at)} {formatTime(r.created_at)}
               </p>
             </div>
-            <ResolveReportForm reportId={r.id} messageId={messageId} />
+            <ResolveReportForm reportId={r.id} messageId={messageId} ideaId={ideaId} />
           </li>
         );
       })}

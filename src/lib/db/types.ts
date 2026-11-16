@@ -456,6 +456,88 @@ export type Database = {
         };
         Relationships: [];
       };
+      ideas: {
+        Row: {
+          author_id: string;
+          beginner_friendly: boolean;
+          body: string;
+          cover: string;
+          created_at: string;
+          external_url: string | null;
+          family_friendly: boolean;
+          hidden_reason: string | null;
+          id: string;
+          interest_id: number | null;
+          is_demo: boolean;
+          materials: string | null;
+          published_at: string;
+          slug: string;
+          status: string;
+          summary: string | null;
+          time_needed: string | null;
+          title: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id: string;
+          beginner_friendly?: boolean;
+          body: string;
+          cover?: string;
+          created_at?: string;
+          external_url?: string | null;
+          family_friendly?: boolean;
+          hidden_reason?: string | null;
+          id?: string;
+          interest_id?: number | null;
+          is_demo?: boolean;
+          materials?: string | null;
+          published_at?: string;
+          slug: string;
+          status?: string;
+          summary?: string | null;
+          time_needed?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_id?: string;
+          beginner_friendly?: boolean;
+          body?: string;
+          cover?: string;
+          created_at?: string;
+          external_url?: string | null;
+          family_friendly?: boolean;
+          hidden_reason?: string | null;
+          id?: string;
+          interest_id?: number | null;
+          is_demo?: boolean;
+          materials?: string | null;
+          published_at?: string;
+          slug?: string;
+          status?: string;
+          summary?: string | null;
+          time_needed?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ideas_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ideas_interest_id_fkey";
+            columns: ["interest_id"];
+            isOneToOne: false;
+            referencedRelation: "interests";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       interests: {
         Row: {
           id: number;
@@ -782,6 +864,40 @@ export type Database = {
           },
         ];
       };
+      saved_ideas: {
+        Row: {
+          created_at: string;
+          idea_id: string;
+          profile_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          idea_id: string;
+          profile_id: string;
+        };
+        Update: {
+          created_at?: string;
+          idea_id?: string;
+          profile_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "saved_ideas_idea_id_fkey";
+            columns: ["idea_id"];
+            isOneToOne: false;
+            referencedRelation: "ideas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_ideas_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       space_legal_info: {
         Row: {
           address: string;
@@ -1054,6 +1170,10 @@ export type Database = {
         Args: { p_note: string; p_report: string; p_status: Database["public"]["Enums"]["report_status"] };
         Returns: undefined;
       };
+      admin_set_idea_status: {
+        Args: { p_idea: string; p_reason: string; p_status: string };
+        Returns: undefined;
+      };
       admin_set_profile_status: {
         Args: {
           p_profile: string;
@@ -1098,6 +1218,14 @@ export type Database = {
       has_platform_role: {
         Args: { roles: Database["public"]["Enums"]["platform_role"][] };
         Returns: boolean;
+      };
+      idea_authors: {
+        Args: { p_ideas: string[] };
+        Returns: {
+          display_name: string;
+          handle: string;
+          idea_id: string;
+        }[];
       };
       insert_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       invite_space_member: {
@@ -1201,7 +1329,7 @@ export type Database = {
       registration_mode: "native" | "external";
       report_reason: "spam" | "harassment" | "inappropriate" | "scam" | "copyright" | "other";
       report_status: "open" | "actioned" | "dismissed";
-      report_target: "profile" | "message" | "event" | "space";
+      report_target: "profile" | "message" | "event" | "space" | "idea";
       space_kind: "solo_creator" | "community" | "studio" | "association";
       space_role: "owner" | "admin" | "staff" | "member";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
@@ -1336,7 +1464,7 @@ export const Constants = {
       registration_mode: ["native", "external"],
       report_reason: ["spam", "harassment", "inappropriate", "scam", "copyright", "other"],
       report_status: ["open", "actioned", "dismissed"],
-      report_target: ["profile", "message", "event", "space"],
+      report_target: ["profile", "message", "event", "space", "idea"],
       space_kind: ["solo_creator", "community", "studio", "association"],
       space_role: ["owner", "admin", "staff", "member"],
       verification_status: ["unverified", "pending", "verified", "rejected"],

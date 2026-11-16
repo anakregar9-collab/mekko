@@ -177,3 +177,29 @@ where is_demo and slug in ('keramika-za-zacetnike', 'vecer-akvarela-ob-caju', 't
   'online-osnove-kaligrafije', 'kvackanje-ob-kavi', 'tkanje-na-statvah', 'svece-iz-sojinega-voska');
 update public.events set family_friendly = true
 where is_demo and slug in ('jutranja-joga-na-krasu', 'svece-iz-sojinega-voska', 'kvackanje-ob-kavi');
+
+-- M4: TEST ideas by demo creators (flagged is_demo, shown with a "Testna ideja" badge).
+insert into public.ideas (id, author_id, slug, title, summary, body, materials, time_needed, interest_id, cover,
+  beginner_friendly, family_friendly, is_demo)
+values
+  ('d1000000-0000-4000-8000-000000000000', 'a3000000-0000-4000-8000-000000000000', 'akvarelne-voscilnice',
+   'Akvarelne voščilnice v 30 minutah', 'Mehki prelivi in preprost napis za praznike.',
+   E'1. List akvarelnega papirja prepogni na pol.\n2. Z mokrim čopičem namoči spodnjo tretjino.\n3. Kani dve barvi in pusti, da se prelijeta.\n4. Ko se posuši, s tankim flomastrom dodaj napis.',
+   E'Akvarelni papir A5\nAkvarelne barve\nČopič št. 8\nTanek flomaster', '30 minut',
+   (select id from public.interests where slug = 'umetnost'), 'sky', true, true, true),
+  ('d2000000-0000-4000-8000-000000000000', 'a2000000-0000-4000-8000-000000000000', 'kvackan-podstavek-za-kozarec',
+   'Kvačkan podstavek za kozarec', 'Prvi krog, drugi krog – in imaš darilo.',
+   E'1. Naredi čarobni obroček in vanj 12 šibic.\n2. V drugem krogu podvoji vsako šibico (24).\n3. V tretjem krogu podvoji vsako drugo (36).\n4. Zaključi z verižnim vbodom in skrij konec.',
+   E'Bombažna preja\nKvačka št. 4\nŠkarje', '1 ura',
+   (select id from public.interests where slug = 'rocna-dela'), 'lilac', true, false, true),
+  ('d3000000-0000-4000-8000-000000000000', 'a1000000-0000-4000-8000-000000000000', 'skodelica-iz-samosuse-gline',
+   'Skodelica iz samosušeče gline', 'Brez peči: oblikuj, posuši in zaščiti z lakom.',
+   E'1. Glino pregneti, da je mehka.\n2. Oblikuj kroglo in s palcem naredi jamico.\n3. Stene enakomerno stanjšaj s prsti.\n4. Suši 48 ur, nato pobarvaj in zaščiti z lakom (ni za hrano).',
+   E'Samosušeča glina 500 g\nPosoda z vodo\nAkrilne barve in lak', '2 uri + sušenje',
+   (select id from public.interests where slug = 'keramika'), 'clay', true, true, true),
+  ('d4000000-0000-4000-8000-000000000000', 'a4000000-0000-4000-8000-000000000000', 'jutranje-raztezanje-10-minut',
+   'Jutranje raztezanje v 10 minutah', 'Kratka rutina za hrbet in ramena.',
+   E'1. Mačka–krava: 8 ponovitev.\n2. Otroški položaj: 5 globokih vdihov.\n3. Kroženje z rameni naprej in nazaj.\n4. Predklon stoje s pokrčenimi koleni.',
+   'Podloga', '10 minut',
+   (select id from public.interests where slug = 'gibanje'), 'sage', true, true, true)
+on conflict (id) do nothing;
