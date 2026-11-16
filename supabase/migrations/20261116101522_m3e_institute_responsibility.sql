@@ -1,15 +1,30 @@
 -- M3e (founder 2026-11-16): "zavod" as its own legal form, and an organizer acknowledgement that registration,
 -- invoicing, accepting cash, taxes and refunds are the organizer's responsibility, not Mekko's.
+-- Written without DROP statements (the hosted migration tool asks for a confirmation the founder never receives):
+--   * the old column is renamed to legal_form_v1 (obsolete, kept read-only) and a new legal_form column with the
+--     wider check takes its place, so all code keeps using "legal_form";
+--   * the old 6-argument set_space_legal_info is replaced by a stub that always refuses (it cannot skip the
+--     acknowledgement); the new 7-argument version is the only working one.
 
-alter table public.spaces drop constraint spaces_legal_form_check;
-alter table public.spaces add constraint spaces_legal_form_check check (
+alter table public.spaces rename column legal_form to legal_form_v1;
+comment on column public.spaces.legal_form_v1 is 'OBSOLETE since M3e: replaced by legal_form. Remove in a later cleanup.';
+alter table public.spaces add column legal_form text check (
   legal_form is null or legal_form in ('company', 'sole_trader', 'association', 'institute', 'odd', 'private'));
+update public.spaces set legal_form = legal_form_v1 where legal_form_v1 is not null;
 
 alter table public.spaces
   add column legal_ack_at timestamptz,
   add column legal_ack_by uuid references public.profiles (id);
 
-drop function public.set_space_legal_info(uuid, text, text, text, text, text);
+create or replace function public.set_space_legal_info(
+  p_space uuid, p_form text, p_name text default null, p_address text default null,
+  p_registration text default null, p_email text default null
+) returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  raise exception 'acknowledgement_required' using errcode = 'P0001';
+end $$;
+revoke execute on function public.set_space_legal_info(uuid, text, text, text, text, text) from public, anon, authenticated;
 
 create function public.set_space_legal_info(
   p_space uuid, p_form text, p_ack boolean, p_name text default null, p_address text default null,

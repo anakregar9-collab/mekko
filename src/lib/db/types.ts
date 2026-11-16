@@ -889,6 +889,7 @@ export type Database = {
           legal_ack_at: string | null;
           legal_ack_by: string | null;
           legal_form: string | null;
+          legal_form_v1: string | null;
           membership_mode: Database["public"]["Enums"]["membership_mode"];
           name: string;
           slug: string;
@@ -911,6 +912,7 @@ export type Database = {
           legal_ack_at?: string | null;
           legal_ack_by?: string | null;
           legal_form?: string | null;
+          legal_form_v1?: string | null;
           membership_mode?: Database["public"]["Enums"]["membership_mode"];
           name: string;
           slug: string;
@@ -932,6 +934,7 @@ export type Database = {
           legal_ack_at?: string | null;
           legal_ack_by?: string | null;
           legal_form?: string | null;
+          legal_form_v1?: string | null;
           membership_mode?: Database["public"]["Enums"]["membership_mode"];
           name?: string;
           slug?: string;
@@ -1129,18 +1132,30 @@ export type Database = {
       seats_taken: { Args: { p_event: string; p_occurrence: string }; Returns: number };
       send_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };
-      set_space_legal_info: {
-        Args: {
-          p_ack: boolean;
-          p_address?: string;
-          p_email?: string;
-          p_form: string;
-          p_name?: string;
-          p_registration?: string;
-          p_space: string;
-        };
-        Returns: undefined;
-      };
+      set_space_legal_info:
+        | {
+            Args: {
+              p_ack: boolean;
+              p_address?: string;
+              p_email?: string;
+              p_form: string;
+              p_name?: string;
+              p_registration?: string;
+              p_space: string;
+            };
+            Returns: undefined;
+          }
+        | {
+            Args: {
+              p_address?: string;
+              p_email?: string;
+              p_form: string;
+              p_name?: string;
+              p_registration?: string;
+              p_space: string;
+            };
+            Returns: undefined;
+          };
       set_space_member_role: {
         Args: { p_profile: string; p_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: undefined;

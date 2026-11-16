@@ -43,3 +43,6 @@ Migration `20261116085406_m3c_payment_deadline.sql`, tests `supabase/tests/payme
 # M3d — Organizer legal status
 Migration `20261116091616_m3d_organizer_legal_info.sql`, tests `supabase/tests/legal_info.test.sql` (11).
 `spaces.legal_form` (public) + `space_legal_info` (signed-in read, RPC write `set_space_legal_info`, admin+). `publish_event` refuses paid events without legal form (`legal_info_required`). UI: settings form, `ProviderInfo` box on event and space pages, overview next step, admin spaces badge. Demo spaces carry clearly marked TEST details.
+
+# M3e — Zavod + organizer responsibility
+Migration `20261116101522_m3e_institute_responsibility.sql` (written without DROP statements: the hosted migration tool's confirmation prompt never reached the founder). `spaces.legal_form` was recreated with the wider check (`institute` added); the previous column is kept as `legal_form_v1` (obsolete, cleanup later). The old 6-argument `set_space_legal_info` is a refusing stub; the 7-argument version requires `p_ack = true` and stores `legal_ack_at/by`.
