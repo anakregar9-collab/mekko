@@ -28,7 +28,7 @@ DB tests: `supabase/tests/messaging.test.sql` (44 tests). E2E: `e2e/m3/messaging
 
 # M3b — Manual payment events
 
-Migration: `supabase/migrations/20261116082153_m3b_manual_payments.sql`; DB tests: `supabase/tests/payments.test.sql` (20); E2E: `e2e/m3/payments.spec.ts`.
+Migration: `supabase/migrations/20261116083609_m3b_manual_payments.sql`; DB tests: `supabase/tests/payments.test.sql` (20); E2E: `e2e/m3/payments.spec.ts`.
 
 - `events.payment_mode` ('free' | 'manual'), `price_cents`, `payment_instructions` (constraint: manual ⇒ price + instructions + native registration). Terms locked after publish (`lock_payment_terms` trigger).
 - `bookings.payment_state` ('none' | 'awaiting' | 'organizer_confirmed'), `amount_cents`, `payment_confirmed_at/by`; set by the `bookings_payment_snapshot` trigger, never by clients.
