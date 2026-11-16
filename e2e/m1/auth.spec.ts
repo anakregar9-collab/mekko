@@ -58,9 +58,9 @@ test("sign-up, onboarding, profile privacy and data request", async ({ page }) =
   await page.getByRole("textbox", { name: "Uporabniško ime" }).fill(handle);
   await page
     .locator("label")
-    .filter({ hasText: /^Keramika$/, visible: true })
+    .filter({ hasText: /^Keramika in kiparstvo$/, visible: true })
     .click();
-  await expect(page.getByRole("checkbox", { name: "Keramika" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Keramika in kiparstvo" })).toBeChecked();
   await page.getByRole("checkbox", { name: /Uporabi moj približni kraj/ }).check();
   await page.getByLabel("Kraj", { exact: true }).fill("Celje");
   await page.getByRole("radio", { name: /^Samo prijavljenim/ }).check();

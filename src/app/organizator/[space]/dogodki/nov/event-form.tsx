@@ -35,6 +35,8 @@ export function EventForm({
   const [mode, setMode] = useState(v.registration_mode || "native");
   const [pay, setPay] = useState(v.payment_mode || "free");
   const [online, setOnline] = useState(v.is_online === "true");
+  const [beginner, setBeginner] = useState(v.beginner_friendly === "true");
+  const [family, setFamily] = useState(v.family_friendly === "true");
   const [sessions, setSessions] = useState([{ k: 0 }]);
   const echoed = parseSessions(v.sessions_json);
   // Changes on every server response: re-mounts radio groups so they match state after React's form reset.
@@ -245,6 +247,32 @@ export function EventForm({
             </Field>
           </div>
         )}
+      </Card>
+
+      <Card title="Za koga je">
+        <p className="text-sm text-ink-muted">Obiskovalci lahko v Odkrivanju filtrirajo po teh oznakah.</p>
+        <input type="hidden" name="beginner_friendly" value={beginner ? "on" : ""} />
+        <input type="hidden" name="family_friendly" value={family ? "on" : ""} />
+        <label className="flex min-h-11 items-center gap-3">
+          <input
+            key={`beg-${formKey}`}
+            type="checkbox"
+            checked={beginner}
+            onChange={(ev) => setBeginner(ev.target.checked)}
+            className="size-5 accent-[var(--color-brand)]"
+          />
+          <span className="font-medium">Primerno za začetnike</span>
+        </label>
+        <label className="flex min-h-11 items-center gap-3">
+          <input
+            key={`fam-${formKey}`}
+            type="checkbox"
+            checked={family}
+            onChange={(ev) => setFamily(ev.target.checked)}
+            className="size-5 accent-[var(--color-brand)]"
+          />
+          <span className="font-medium">Primerno za otroke in družine</span>
+        </label>
       </Card>
 
       <Card title="Prijave">

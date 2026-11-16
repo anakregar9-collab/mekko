@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Search } from "lucide-react";
-import { listInterestsForFilter, listUpcomingEvents } from "@/lib/data/events";
+import { Check, Lightbulb, Search } from "lucide-react";
+import {
+  listInterestsForFilter,
+  listUpcomingEvents,
+  QUICK_FILTERS,
+  type QuickFilter,
+} from "@/lib/data/events";
 import { LiveEventCard } from "@/components/events/event-card";
 import { EmptyState, PageSkeleton } from "@/components/page-skeleton";
 import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = { title: "Odkrivanje" };
+
+type Tab = "dogodki" | "ideje";
 
 export default function OdkrivanjePage({ searchParams }: PageProps<"/odkrivanje">) {
   return (
@@ -20,28 +27,72 @@ export default function OdkrivanjePage({ searchParams }: PageProps<"/odkrivanje"
   );
 }
 
+function readQuick(v: string | string[] | undefined): QuickFilter[] {
+  const list = Array.isArray(v) ? v : v ? [v] : [];
+  const allowed = new Set(QUICK_FILTERS.map((f) => f.key));
+  return [...new Set(list.filter((x): x is QuickFilter => allowed.has(x as QuickFilter)))];
+}
+
 async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["searchParams"] }) {
   const sp = await searchParams;
+  const tab: Tab = sp.pogled === "ideje" ? "ideje" : "dogodki";
   const q = typeof sp.q === "string" ? sp.q : "";
   const cat = typeof sp.kategorija === "string" ? sp.kategorija : "";
+  const quick = readQuick(sp.f);
   const interests = await listInterestsForFilter();
   const interest = interests.find((i) => i.slug === cat);
-  const events = await listUpcomingEvents({ q, interestId: interest?.id });
 
-  const chipHref = (slug: string | null) => {
+  /** Same search, categories and quick filters on both tabs; each link changes one thing. */
+  const href = (change: { tab?: Tab; kategorija?: string | null; toggle?: QuickFilter }) => {
     const p = new URLSearchParams();
+    const t = change.tab ?? tab;
+    if (t === "ideje") p.set("pogled", "ideje");
     if (q) p.set("q", q);
-    if (slug) p.set("kategorija", slug);
+    const k = change.kategorija === undefined ? interest?.slug : change.kategorija;
+    if (k) p.set("kategorija", k);
+    const nextQuick = change.toggle
+      ? quick.includes(change.toggle)
+        ? quick.filter((f) => f !== change.toggle)
+        : [...quick, change.toggle]
+      : quick;
+    for (const f of nextQuick) p.append("f", f);
     const s = p.toString();
     return `/odkrivanje${s ? `?${s}` : ""}`;
   };
 
+  const filtered = !!(q || interest || quick.length);
+  const events = tab === "dogodki" ? await listUpcomingEvents({ q, interestId: interest?.id, quick }) : [];
+
   return (
     <div className="space-y-4">
+      <nav
+        aria-label="Vrsta vsebine"
+        className="grid grid-cols-2 gap-1 rounded-full bg-surface p-1 ring-1 ring-line"
+      >
+        {(["dogodki", "ideje"] as const).map((t) => (
+          <Link
+            key={t}
+            href={href({ tab: t })}
+            aria-current={tab === t ? "page" : undefined}
+            data-testid={`tab-${t}`}
+            className={cn(
+              "flex min-h-11 items-center justify-center rounded-full font-semibold",
+              tab === t ? "bg-brand text-white" : "text-ink-muted hover:text-ink",
+            )}
+          >
+            {t === "dogodki" ? "Dogodki" : "Ideje"}
+          </Link>
+        ))}
+      </nav>
+
       <form role="search" action="/odkrivanje" className="relative">
+        {tab === "ideje" && <input type="hidden" name="pogled" value="ideje" />}
         {interest && <input type="hidden" name="kategorija" value={interest.slug} />}
+        {quick.map((f) => (
+          <input key={f} type="hidden" name="f" value={f} />
+        ))}
         <label htmlFor="q" className="sr-only">
-          Išči dogodke
+          {tab === "dogodki" ? "Išči dogodke" : "Išči ideje"}
         </label>
         <Search
           aria-hidden="true"
@@ -52,30 +103,64 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
           name="q"
           type="search"
           defaultValue={q}
-          placeholder="Išči delavnice, kraje …"
+          placeholder={tab === "dogodki" ? "Išči delavnice, kraje …" : "Išči ideje in navodila …"}
           className="min-h-12 w-full rounded-full border border-line bg-surface pr-4 pl-12 text-base placeholder:text-ink-muted"
         />
       </form>
 
       <nav
+        aria-label="Hitri filtri"
+        className="scroll-row -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0"
+      >
+        {QUICK_FILTERS.map((f) => {
+          const on = quick.includes(f.key);
+          return (
+            <Link
+              key={f.key}
+              href={href({ toggle: f.key })}
+              aria-pressed={on}
+              role="button"
+              className={cn(
+                "inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full px-4 text-sm font-semibold whitespace-nowrap ring-1",
+                on ? "bg-ink text-white ring-ink" : "bg-surface text-ink ring-line hover:bg-brand-soft",
+              )}
+            >
+              {on && <Check aria-hidden="true" className="size-4" />}
+              {f.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <nav
         aria-label="Kategorije"
         className="scroll-row -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0"
       >
-        <Chip href={chipHref(null)} active={!interest}>
+        <Chip href={href({ kategorija: null })} active={!interest}>
           Vse
         </Chip>
         {interests.map((i) => (
-          <Chip key={i.id} href={chipHref(i.slug)} active={interest?.id === i.id}>
+          <Chip key={i.id} href={href({ kategorija: i.slug })} active={interest?.id === i.id}>
             {i.label_sl}
           </Chip>
         ))}
       </nav>
 
-      {events.length === 0 ? (
-        <EmptyState title={q || interest ? "Ni zadetkov" : "Kmalu novi dogodki"}>
-          {q || interest ? (
+      {tab === "ideje" ? (
+        <div data-testid="ideas-empty">
+          <EmptyState title="Ideje prihajajo kmalu">
+            <p className="flex items-start justify-center gap-2">
+              <Lightbulb aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+              Tukaj bodo navodila, vzorci in navdih za ustvarjanje doma – razvrščeni v iste kategorije kot
+              dogodki.
+            </p>
+          </EmptyState>
+        </div>
+      ) : events.length === 0 ? (
+        <EmptyState title={filtered ? "Ni zadetkov" : "Kmalu novi dogodki"}>
+          {filtered ? (
             <Link href="/odkrivanje" className="font-semibold text-brand-strong underline">
-              Počisti iskanje
+              Počisti iskanje in filtre
             </Link>
           ) : (
             <p>

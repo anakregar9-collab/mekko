@@ -58,7 +58,7 @@ with ev(id, space, slug, title, summary, description, interest, schedule, online
   ('c2000000-0000-4000-8000-000000000000'::uuid, 'b3000000-0000-4000-8000-000000000000'::uuid, 'vecer-akvarela-ob-caju',
    'Večer akvarela ob čaju', 'Sproščen večer slikanja jesenskih motivov.',
    'Vodeno slikanje za vse ravni. Pripravimo papir, barve in čopiče, ti prineseš dobro voljo.',
-   'slikanje', 'one_off', false, 'native', null, 'Maribor', 'Poštna ulica 3, 2000 Maribor', 12, 2,
+   'umetnost', 'one_off', false, 'native', null, 'Maribor', 'Poštna ulica 3, 2000 Maribor', 12, 2,
    'Vse potrebščine so vključene', 'flexible', 'sky'),
   ('c3000000-0000-4000-8000-000000000000'::uuid, 'b2000000-0000-4000-8000-000000000000'::uuid, 'tecaj-pletenja-4-srecanja',
    'Tečaj pletenja – 4 srečanja', 'Od prve zanke do lastne kape v štirih tednih.',
@@ -73,7 +73,7 @@ with ev(id, space, slug, title, summary, description, interest, schedule, online
   ('c5000000-0000-4000-8000-000000000000'::uuid, 'b3000000-0000-4000-8000-000000000000'::uuid, 'online-osnove-kaligrafije',
    'Online: osnove kaligrafije', 'Živa spletna delavnica za popolne začetnike.',
    'Povezavo do spletne sobe vidiš po prijavi. Potrebuješ le flomaster s čopičasto konico in papir.',
-   'kaligrafija', 'one_off', true, 'native', null, null, null, null, 1,
+   'umetnost', 'one_off', true, 'native', null, null, null, null, 1,
    E'Čopičasti flomaster\nGladek papir A4', 'flexible', 'sun'),
   ('c6000000-0000-4000-8000-000000000000'::uuid, 'b4000000-0000-4000-8000-000000000000'::uuid, 'svece-iz-sojinega-voska',
    'Sveče iz sojinega voska', 'Izdelaj dve dišeči sveči za darilo.',
@@ -170,3 +170,10 @@ values
   ('b3000000-0000-4000-8000-000000000000', 'Ana Riše (TESTNI ODD)', 'Poštna ulica 3, 2000 Maribor (testni naslov)', null, 'ana.rise@demo.mekko.invalid'),
   ('b4000000-0000-4000-8000-000000000000', 'Društvo Ustvarjalni Kras (TESTNO)', 'Partizanska cesta 1, 6210 Sežana (testni naslov)', null, 'ustvarjalni.kras@demo.mekko.invalid')
 on conflict (space_id) do nothing;
+
+-- Quick-filter attributes on TEST events (also set by the categories migration on hosted dev).
+update public.events set beginner_friendly = true
+where is_demo and slug in ('keramika-za-zacetnike', 'vecer-akvarela-ob-caju', 'tecaj-pletenja-4-srecanja',
+  'online-osnove-kaligrafije', 'kvackanje-ob-kavi', 'tkanje-na-statvah', 'svece-iz-sojinega-voska');
+update public.events set family_friendly = true
+where is_demo and slug in ('jutranja-joga-na-krasu', 'svece-iz-sojinega-voska', 'kvackanje-ob-kavi');

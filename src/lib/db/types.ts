@@ -303,6 +303,7 @@ export type Database = {
       events: {
         Row: {
           address: string | null;
+          beginner_friendly: boolean;
           booking_scope: Database["public"]["Enums"]["booking_scope"];
           cancel_reason: string | null;
           cancellation_policy: Database["public"]["Enums"]["cancellation_policy"];
@@ -313,6 +314,7 @@ export type Database = {
           created_by: string;
           description: string | null;
           external_url: string | null;
+          family_friendly: boolean;
           id: string;
           interest_id: number | null;
           is_demo: boolean;
@@ -338,6 +340,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           address?: string | null;
+          beginner_friendly?: boolean;
           booking_scope?: Database["public"]["Enums"]["booking_scope"];
           cancel_reason?: string | null;
           cancellation_policy?: Database["public"]["Enums"]["cancellation_policy"];
@@ -348,6 +351,7 @@ export type Database = {
           created_by: string;
           description?: string | null;
           external_url?: string | null;
+          family_friendly?: boolean;
           id?: string;
           interest_id?: number | null;
           is_demo?: boolean;
@@ -372,6 +376,7 @@ export type Database = {
         };
         Update: {
           address?: string | null;
+          beginner_friendly?: boolean;
           booking_scope?: Database["public"]["Enums"]["booking_scope"];
           cancel_reason?: string | null;
           cancellation_policy?: Database["public"]["Enums"]["cancellation_policy"];
@@ -382,6 +387,7 @@ export type Database = {
           created_by?: string;
           description?: string | null;
           external_url?: string | null;
+          family_friendly?: boolean;
           id?: string;
           interest_id?: number | null;
           is_demo?: boolean;

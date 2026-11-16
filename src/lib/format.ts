@@ -116,3 +116,19 @@ export function deadlineLabel(hours: number): string {
   const days = Math.round(hours / 24);
   return `${days} ${pluralSl(days, ["dan", "dneva", "dnevi", "dni"])}`;
 }
+
+/**
+ * Date keys (YYYY-MM-DD, Ljubljana time) of "this weekend": the coming Saturday and Sunday,
+ * or the rest of the current weekend when today is Saturday/Sunday.
+ */
+export function weekendDateKeys(nowMs: number): string[] {
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, weekday: "short" }).format(
+    new Date(nowMs),
+  );
+  const dayIndex = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(weekday);
+  const key = (offsetDays: number) => localDateKey(new Date(nowMs + offsetDays * 86_400_000).toISOString());
+  if (dayIndex === 0) return [key(0)];
+  if (dayIndex === 6) return [key(0), key(1)];
+  const toSat = 6 - dayIndex;
+  return [key(toSat), key(toSat + 1)];
+}

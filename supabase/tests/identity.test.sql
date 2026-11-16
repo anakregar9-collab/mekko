@@ -73,7 +73,7 @@ select throws_ok($$ update public.profiles set handle = 'Bo B!' where handle = '
   'handle format enforced');
 
 -- interests ---------------------------------------------------------------------
-select lives_ok($$ select public.set_my_interests((select array_agg(id) from public.interests where slug in ('keramika', 'ples'))) $$,
+select lives_ok($$ select public.set_my_interests((select array_agg(id) from public.interests where slug in ('keramika', 'glasba-in-ples'))) $$,
   'user sets own interests');
 select is((select count(*)::int from public.profile_interests), 2, 'user sees only own interests');
 select throws_ok($$ insert into public.profile_interests (profile_id, interest_id) values ((select id from ids where name = 'alice'), 1) $$,

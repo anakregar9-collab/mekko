@@ -9,6 +9,7 @@ import {
   localDateKey,
   pluralSl,
   spotsLeftLabel,
+  weekendDateKeys,
 } from "./format";
 
 const nbsp = (s: string) => s.replace(/ /g, " ");
@@ -100,5 +101,20 @@ describe("deadlineLabel", () => {
     expect(deadlineLabel(48)).toBe("2 dneva");
     expect(deadlineLabel(72)).toBe("3 dnevi");
     expect(deadlineLabel(168)).toBe("7 dni");
+  });
+});
+
+describe("weekendDateKeys", () => {
+  it("returns the coming Saturday and Sunday on a weekday (Ljubljana time)", () => {
+    // Wednesday 18 Nov 2026, 10:00 CET
+    expect(weekendDateKeys(Date.parse("2026-11-18T09:00:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
+  });
+  it("keeps the current weekend on Saturday and only Sunday on Sunday", () => {
+    expect(weekendDateKeys(Date.parse("2026-11-21T12:00:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
+    expect(weekendDateKeys(Date.parse("2026-11-22T12:00:00Z"))).toEqual(["2026-11-22"]);
+  });
+  it("uses Ljubljana, not UTC, around midnight", () => {
+    // Friday 20 Nov 23:30 UTC is already Saturday 00:30 in Ljubljana
+    expect(weekendDateKeys(Date.parse("2026-11-20T23:30:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
   });
 });

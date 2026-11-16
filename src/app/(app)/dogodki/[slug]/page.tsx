@@ -99,6 +99,8 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     price_cents: number | null;
     payment_instructions?: string | null;
     payment_deadline_hours: number | null;
+    beginner_friendly: boolean;
+    family_friendly: boolean;
     space_id: string;
     interest_id: number | null;
   };
@@ -174,6 +176,8 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
               </Badge>
             )}
             {series && <Badge tone="lilac">Večkratni tečaj</Badge>}
+            {event.beginner_friendly && <Badge tone="sage">Za začetnike</Badge>}
+            {event.family_friendly && <Badge tone="sun">Za otroke in družine</Badge>}
             {event.is_demo && <Badge>Testni dogodek</Badge>}
             {cancelled && <Badge tone="brand">Odpovedano</Badge>}
           </div>

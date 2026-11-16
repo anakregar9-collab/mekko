@@ -118,3 +118,8 @@ Built:
 - "Zavod" is its own legal form (separate from "Društvo").
 - Organizer-facing notice (space legal settings + paid-event form): Mekko is only the platform; having a registered activity where required, invoicing, fiscal cash rules (FURS), taxes/VAT and refunds are the organizer's responsibility, not Mekko's.
 - Saving the legal status requires ticking an acknowledgement; time and person are stored (`spaces.legal_ack_at/by`). Wording pending lawyer review; the same principle goes into the Terms of use draft.
+
+## 2026-11-16 — Odkrivanje: Dogodki | Ideje, new categories, quick filters (founder choice "Kombinacija")
+- Odkrivanje has two tabs, Dogodki and Ideje, with the same search, categories and quick filters (ideas tab shows "Ideje prihajajo kmalu" until ideas exist).
+- Categories (shared by events and ideas): Umetnost in risanje · Keramika in kiparstvo · Ročna dela in tekstil · Dom, deko in rastline · Kulinarika · Gibanje in dobro počutje · Glasba in ples · Foto in digitalno · Pisanje in jezik. Old narrower categories were merged; existing events and user interests were remapped.
+- Quick filters: Za začetnike · Online · Za otroke · Ta vikend (Saturday–Sunday, Ljubljana time). "Za začetnike" and "Za otroke" are event attributes set by the organizer (two checkboxes); "Otroci in družina" is no longer a category.

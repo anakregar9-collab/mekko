@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/db/types";
+import { localDateKey, weekendDateKeys } from "@/lib/format";
 
 export type EventRow = Database["public"]["Tables"]["events"]["Row"];
 export type OccurrenceRow = Database["public"]["Tables"]["event_occurrences"]["Row"];
@@ -8,7 +9,7 @@ export type CoverTone = "coral" | "sun" | "sage" | "lilac" | "sky" | "clay";
 
 /** Columns guests are allowed to read (see grants in the M2 migration). */
 export const PREVIEW_COLUMNS =
-  "id, space_id, slug, title, summary, interest_id, schedule, booking_scope, is_online, visibility, registration_mode, external_url, city, capacity, max_per_booking, cancellation_policy, cover, status, cancel_reason, is_demo, published_at, payment_mode, price_cents, payment_deadline_hours";
+  "id, space_id, slug, title, summary, interest_id, schedule, booking_scope, is_online, visibility, registration_mode, external_url, city, capacity, max_per_booking, cancellation_policy, cover, status, cancel_reason, is_demo, published_at, payment_mode, price_cents, payment_deadline_hours, beginner_friendly, family_friendly";
 
 export interface EventCardData {
   id: string;
@@ -45,6 +46,8 @@ type ListRow = Pick<
   | "registration_mode"
   | "payment_mode"
   | "price_cents"
+  | "beginner_friendly"
+  | "family_friendly"
   | "capacity"
   | "is_demo"
   | "interest_id"
@@ -61,14 +64,23 @@ function cleanQuery(q: string | undefined): string {
 }
 
 /** Upcoming published public events, soonest first. Search always covers everything (no personalization filter). */
+export type QuickFilter = "zacetniki" | "online" | "otroci" | "vikend";
+export const QUICK_FILTERS: { key: QuickFilter; label: string }[] = [
+  { key: "zacetniki", label: "Za začetnike" },
+  { key: "online", label: "Online" },
+  { key: "otroci", label: "Za otroke" },
+  { key: "vikend", label: "Ta vikend" },
+];
+
 export async function listUpcomingEvents(
-  opts: { q?: string; interestId?: number; spaceId?: string; limit?: number } = {},
+  opts: { q?: string; interestId?: number; spaceId?: string; limit?: number; quick?: QuickFilter[] } = {},
 ) {
+  const quick = new Set(opts.quick ?? []);
   const supabase = await createClient();
   let query = supabase
     .from("events")
     .select(
-      "id, slug, title, summary, city, cover, is_online, schedule, booking_scope, registration_mode, payment_mode, price_cents, capacity, is_demo, interest_id, space:spaces(name, slug), occurrences:event_occurrences(id, starts_at, ends_at, status)",
+      "id, slug, title, summary, city, cover, is_online, schedule, booking_scope, registration_mode, payment_mode, price_cents, beginner_friendly, family_friendly, capacity, is_demo, interest_id, space:spaces(name, slug), occurrences:event_occurrences(id, starts_at, ends_at, status)",
     )
     .eq("status", "published")
     .eq("visibility", "public")
@@ -77,13 +89,18 @@ export async function listUpcomingEvents(
   if (q) query = query.or(`title.ilike.%${q}%,summary.ilike.%${q}%,city.ilike.%${q}%`);
   if (opts.interestId) query = query.eq("interest_id", opts.interestId);
   if (opts.spaceId) query = query.eq("space_id", opts.spaceId);
+  if (quick.has("zacetniki")) query = query.eq("beginner_friendly", true);
+  if (quick.has("otroci")) query = query.eq("family_friendly", true);
+  if (quick.has("online")) query = query.eq("is_online", true);
   const { data } = await query;
   const now = Date.now();
+  const weekend = quick.has("vikend") ? weekendDateKeys(now) : null;
 
   const cards = ((data ?? []) as unknown as ListRow[])
     .map((e) => {
       const upcoming = e.occurrences
         .filter((o) => o.status === "scheduled" && Date.parse(o.ends_at) > now)
+        .filter((o) => !weekend || weekend.includes(localDateKey(o.starts_at)))
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
       return { e, upcoming };
     })
