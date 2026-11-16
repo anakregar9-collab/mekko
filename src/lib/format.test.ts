@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatPrice,
+  priceToCents,
   formatPriceRange,
   formatSlot,
   ljubljanaToISO,
@@ -73,5 +74,21 @@ describe("ljubljanaToISO", () => {
   });
   it("rejects malformed input", () => {
     expect(() => ljubljanaToISO("5.12.2026", "17:30")).toThrow(RangeError);
+  });
+});
+
+describe("priceToCents", () => {
+  it("parses whole and decimal euro amounts", () => {
+    expect(priceToCents("25")).toBe(2500);
+    expect(priceToCents("25,5")).toBe(2550);
+    expect(priceToCents("25.50")).toBe(2550);
+    expect(priceToCents(" 12 € ")).toBe(1200);
+  });
+  it("rejects garbage, negatives and too many decimals", () => {
+    expect(priceToCents("")).toBeNull();
+    expect(priceToCents("-5")).toBeNull();
+    expect(priceToCents("abc")).toBeNull();
+    expect(priceToCents("1,234")).toBeNull();
+    expect(priceToCents("99999")).toBeNull();
   });
 });

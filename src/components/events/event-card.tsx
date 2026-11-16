@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, ExternalLink, MapPin, Repeat, Video } from "lucide-react";
 import { Cover } from "@/components/ui/cover";
 import { Badge } from "@/components/ui/badge";
-import { formatSlot, pluralSl } from "@/lib/format";
+import { formatSlot, pluralSl, formatPrice } from "@/lib/format";
 import type { EventCardData } from "@/lib/data/events";
 
 export function LiveEventCard({ event }: { event: EventCardData }) {
@@ -52,7 +52,13 @@ export function LiveEventCard({ event }: { event: EventCardData }) {
             </li>
           </ul>
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-            <span className="font-semibold">Brezplačno</span>
+            <span className="font-semibold">
+              {event.registrationMode === "external"
+                ? "Cena pri organizatorju"
+                : event.priceCents
+                  ? formatPrice(event.priceCents)
+                  : "Brezplačno"}
+            </span>
             {event.registrationMode === "external" ? (
               <Badge tone="sun">
                 <ExternalLink aria-hidden="true" className="size-3" /> Zunanja prijava

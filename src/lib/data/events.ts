@@ -8,7 +8,7 @@ export type CoverTone = "coral" | "sun" | "sage" | "lilac" | "sky" | "clay";
 
 /** Columns guests are allowed to read (see grants in the M2 migration). */
 export const PREVIEW_COLUMNS =
-  "id, space_id, slug, title, summary, interest_id, schedule, booking_scope, is_online, visibility, registration_mode, external_url, city, capacity, max_per_booking, cancellation_policy, cover, status, cancel_reason, is_demo, published_at";
+  "id, space_id, slug, title, summary, interest_id, schedule, booking_scope, is_online, visibility, registration_mode, external_url, city, capacity, max_per_booking, cancellation_policy, cover, status, cancel_reason, is_demo, published_at, payment_mode, price_cents";
 
 export interface EventCardData {
   id: string;
@@ -20,6 +20,8 @@ export interface EventCardData {
   isOnline: boolean;
   schedule: EventRow["schedule"];
   registrationMode: EventRow["registration_mode"];
+  /** Null = free; a number = price per person paid directly to the organizer (manual payment). */
+  priceCents: number | null;
   capacity: number | null;
   isDemo: boolean;
   interestId: number | null;
@@ -41,6 +43,8 @@ type ListRow = Pick<
   | "schedule"
   | "booking_scope"
   | "registration_mode"
+  | "payment_mode"
+  | "price_cents"
   | "capacity"
   | "is_demo"
   | "interest_id"
@@ -64,7 +68,7 @@ export async function listUpcomingEvents(
   let query = supabase
     .from("events")
     .select(
-      "id, slug, title, summary, city, cover, is_online, schedule, booking_scope, registration_mode, capacity, is_demo, interest_id, space:spaces(name, slug), occurrences:event_occurrences(id, starts_at, ends_at, status)",
+      "id, slug, title, summary, city, cover, is_online, schedule, booking_scope, registration_mode, payment_mode, price_cents, capacity, is_demo, interest_id, space:spaces(name, slug), occurrences:event_occurrences(id, starts_at, ends_at, status)",
     )
     .eq("status", "published")
     .eq("visibility", "public")
@@ -108,6 +112,7 @@ export async function listUpcomingEvents(
         isOnline: e.is_online,
         schedule: e.schedule,
         registrationMode: e.registration_mode,
+        priceCents: e.payment_mode === "manual" ? e.price_cents : null,
         capacity: e.capacity,
         isDemo: e.is_demo,
         interestId: e.interest_id,

@@ -8,6 +8,7 @@ import { PageSkeleton } from "@/components/page-skeleton";
 import { Panel, StatTile } from "@/components/workspace/stat-tile";
 import { Badge } from "@/components/ui/badge";
 import { roleLabel, spaceKindLabel } from "@/lib/spaces";
+import { formatAmount } from "@/lib/format";
 import { RequestVerificationForm } from "./verification-form";
 
 export const metadata: Metadata = { title: "Pregled prostora" };
@@ -36,14 +37,18 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]">["
   const { data: bookings } = published.length
     ? await supabase
         .from("bookings")
-        .select("quantity")
+        .select("quantity, payment_state, amount_cents")
         .in(
           "event_id",
           published.map((e) => e.id),
         )
         .eq("status", "confirmed")
-    : { data: [] as { quantity: number }[] };
+    : { data: [] as { quantity: number; payment_state: string; amount_cents: number | null }[] };
   const people = (bookings ?? []).reduce((n, b) => n + b.quantity, 0);
+  const sum = (state: string) =>
+    (bookings ?? []).filter((b) => b.payment_state === state).reduce((n, b) => n + (b.amount_cents ?? 0), 0);
+  const confirmedCents = sum("organizer_confirmed");
+  const awaitingCents = sum("awaiting");
 
   const missing = [
     !space.tagline && "kratek opis",
@@ -71,7 +76,11 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]">["
           hint={`${(events ?? []).length - published.length} drugih (osnutki, odpovedani)`}
         />
         <StatTile label="Prijavljene osebe" value={String(people)} hint="Na objavljenih dogodkih" />
-        <StatTile label="Prihodki" value="—" hint="Plačila: po pravnem pregledu" />
+        <StatTile
+          label="Potrjena plačila"
+          value={formatAmount(confirmedCents)}
+          hint={`Ročna plačila, ki si jih potrdil/-a. Čaka še ${formatAmount(awaitingCents)}.`}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

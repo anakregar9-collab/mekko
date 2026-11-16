@@ -30,8 +30,12 @@ export function EventForm({
   const e = state.errors ?? {};
   const [schedule, setSchedule] = useState(v.schedule || "one_off");
   const [mode, setMode] = useState(v.registration_mode || "native");
+  const [pay, setPay] = useState(v.payment_mode || "free");
   const [online, setOnline] = useState(v.is_online === "true");
   const [sessions, setSessions] = useState([{ k: 0 }]);
+  const echoed = parseSessions(v.sessions_json);
+  // Changes on every server response: re-mounts radio groups so they match state after React's form reset.
+  const formKey = v.nonce ?? "0";
 
   return (
     <form action={action} noValidate className="space-y-5">
@@ -109,11 +113,12 @@ export function EventForm({
       </Card>
 
       <Card title="Termini">
-        <fieldset className="space-y-2">
+        <input type="hidden" name="schedule" value={schedule} />
+        <fieldset className="space-y-2" key={`schedule-${formKey}`}>
           <legend className="sr-only">Vrsta dogodka</legend>
           <div className="grid gap-2 sm:grid-cols-2">
             <Radio
-              name="schedule"
+              name="schedule_choice"
               value="one_off"
               checked={schedule === "one_off"}
               onChange={setSchedule}
@@ -121,7 +126,7 @@ export function EventForm({
               desc="Ljudje se prijavijo na posamezen termin."
             />
             <Radio
-              name="schedule"
+              name="schedule_choice"
               value="multi_session"
               checked={schedule === "multi_session"}
               onChange={setSchedule}
@@ -139,21 +144,27 @@ export function EventForm({
           {sessions.map((s, i) => (
             <li
               key={s.k}
-              className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 rounded-2xl bg-cream p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto]"
+              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2 rounded-2xl bg-cream p-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
             >
               <Field
                 label={`Datum ${sessions.length > 1 ? i + 1 : ""}`}
                 htmlFor={`d-${s.k}`}
                 className="col-span-3 sm:col-span-1"
               >
-                <input id={`d-${s.k}`} name="session_date" type="date" className={inputCls} />
+                <input
+                  id={`d-${s.k}`}
+                  name="session_date"
+                  type="date"
+                  defaultValue={echoed[i]?.d}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Od" htmlFor={`s-${s.k}`}>
                 <input
                   id={`s-${s.k}`}
                   name="session_start"
                   type="time"
-                  defaultValue="17:00"
+                  defaultValue={echoed[i]?.s || "17:00"}
                   className={inputCls}
                 />
               </Field>
@@ -162,7 +173,7 @@ export function EventForm({
                   id={`e-${s.k}`}
                   name="session_end"
                   type="time"
-                  defaultValue="19:00"
+                  defaultValue={echoed[i]?.e || "19:00"}
                   className={inputCls}
                 />
               </Field>
@@ -188,9 +199,10 @@ export function EventForm({
 
       <Card title="Lokacija">
         <label className="flex min-h-11 cursor-pointer items-center gap-3">
+          <input type="hidden" name="is_online" value={online ? "on" : ""} />
           <input
+            key={`online-${formKey}`}
             type="checkbox"
-            name="is_online"
             checked={online}
             onChange={(ev) => setOnline(ev.target.checked)}
             className="size-5 accent-[var(--color-brand)]"
@@ -233,19 +245,20 @@ export function EventForm({
       </Card>
 
       <Card title="Prijave">
-        <fieldset className="space-y-2">
+        <input type="hidden" name="registration_mode" value={mode} />
+        <fieldset className="space-y-2" key={`mode-${formKey}`}>
           <legend className="sr-only">Način prijave</legend>
           <div className="grid gap-2 sm:grid-cols-2">
             <Radio
-              name="registration_mode"
+              name="registration_mode_choice"
               value="native"
               checked={mode === "native"}
               onChange={setMode}
               label="Prijava prek Mekka"
-              desc="Brezplačno. Seznam udeležencev, obvestila, Moje aktivnosti."
+              desc="Seznam udeležencev, obvestila, Moje aktivnosti."
             />
             <Radio
-              name="registration_mode"
+              name="registration_mode_choice"
               value="external"
               checked={mode === "external"}
               onChange={setMode}
@@ -304,6 +317,67 @@ export function EventForm({
                 <option value="strict">Do 14 dni prej</option>
               </select>
             </Field>
+          </div>
+        )}
+        {mode === "native" && (
+          <div className="space-y-3" data-testid="price-section">
+            <input type="hidden" name="payment_mode" value={pay} />
+            <fieldset className="space-y-2" key={`pay-${formKey}`}>
+              <legend className="text-sm font-semibold">Cena</legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Radio
+                  name="payment_mode_choice"
+                  value="free"
+                  checked={pay === "free"}
+                  onChange={setPay}
+                  label="Brezplačno"
+                  desc="Prijava je takoj potrjena."
+                />
+                <Radio
+                  name="payment_mode_choice"
+                  value="manual"
+                  checked={pay === "manual"}
+                  onChange={setPay}
+                  label="Plačilo organizatorju"
+                  desc="Udeleženec plača tebi (nakazilo, gotovina). Ko prejmeš plačilo, ga potrdiš."
+                />
+              </div>
+            </fieldset>
+            {pay === "manual" && (
+              <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
+                <Field label="Cena na osebo (€)" htmlFor="price" error={e.price}>
+                  <input
+                    id="price"
+                    name="price"
+                    inputMode="decimal"
+                    placeholder="25"
+                    defaultValue={v.price}
+                    className={inputCls}
+                    {...describedBy("price", e.price)}
+                  />
+                </Field>
+                <Field
+                  label="Navodila za plačilo"
+                  htmlFor="payment_instructions"
+                  hint="Npr. IBAN in sklic ali »gotovina na kraju«. Vidijo jih samo prijavljeni uporabniki."
+                  error={e.payment_instructions}
+                >
+                  <textarea
+                    id="payment_instructions"
+                    name="payment_instructions"
+                    rows={2}
+                    maxLength={1000}
+                    defaultValue={v.payment_instructions}
+                    className={inputCls}
+                    {...describedBy("payment_instructions", e.payment_instructions, true)}
+                  />
+                </Field>
+                <p className="text-xs text-ink-muted sm:col-span-2">
+                  Mekko plačil ne obdeluje in ne zaračuna provizije. Ceno in navodila po objavi ni več mogoče
+                  spremeniti. Za račune in vračila skrbiš sam/-a.
+                </p>
+              </div>
+            )}
           </div>
         )}
         <Field label="Kaj naj udeleženci prinesejo (neobvezno)" htmlFor="materials">
@@ -375,4 +449,14 @@ function Radio({
       </span>
     </label>
   );
+}
+
+function parseSessions(json: string | undefined): { d: string; s: string; e: string }[] {
+  if (!json) return [];
+  try {
+    const list = JSON.parse(json) as unknown;
+    return Array.isArray(list) ? (list as { d: string; s: string; e: string }[]) : [];
+  } catch {
+    return [];
+  }
 }

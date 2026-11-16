@@ -13,6 +13,7 @@ import {
   Package,
   ShieldCheck,
   Video,
+  Wallet,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyProfile } from "@/lib/auth/dal";
@@ -23,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { BackLink } from "@/components/back-link";
 import { PageSkeleton } from "@/components/page-skeleton";
-import { formatSlot, pluralSl } from "@/lib/format";
+import { formatPrice, formatSlot, pluralSl } from "@/lib/format";
 import { nowMs } from "@/lib/time";
 import { spaceKindLabel } from "@/lib/spaces";
 import { BookingForm, CancelBookingForm } from "./booking-forms";
@@ -67,7 +68,9 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   const { slug } = await params;
   const profile = await getMyProfile();
   const supabase = await createClient();
-  const columns = profile ? `${PREVIEW_COLUMNS}, description, address, materials` : PREVIEW_COLUMNS;
+  const columns = profile
+    ? `${PREVIEW_COLUMNS}, description, address, materials, payment_instructions`
+    : PREVIEW_COLUMNS;
   const { data: raw } = await supabase.from("events").select(columns).eq("slug", slug).maybeSingle();
   if (!raw) notFound();
   const event = raw as unknown as Record<string, unknown> & {
@@ -91,6 +94,9 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     status: "draft" | "published" | "cancelled";
     cancel_reason: string | null;
     is_demo: boolean;
+    payment_mode: "free" | "manual";
+    price_cents: number | null;
+    payment_instructions?: string | null;
     space_id: string;
     interest_id: number | null;
   };
@@ -131,7 +137,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     ? await Promise.all([
         supabase
           .from("bookings")
-          .select("id, occurrence_id, quantity")
+          .select("id, occurrence_id, quantity, payment_state, amount_cents")
           .eq("event_id", event.id)
           .eq("booker_id", profile.id)
           .eq("status", "confirmed"),
@@ -149,6 +155,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   const booked = myBookings ?? [];
   const bookedOcc = new Set(booked.map((b) => b.occurrence_id));
   const cancelled = event.status === "cancelled";
+  const paid = event.payment_mode === "manual" && event.registration_mode === "native";
   const bookable = !cancelled && event.registration_mode === "native" && upcoming.length > 0;
   const where = event.is_online ? "Online" : (event.address ?? event.city ?? "");
 
@@ -278,6 +285,17 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
                 <p className="leading-relaxed whitespace-pre-line">{event.description}</p>
               </Section>
             )}
+            {paid && event.payment_instructions && (
+              <Section title="Plačilo" icon={<Wallet aria-hidden="true" className="size-5 text-ink-muted" />}>
+                <div className="space-y-1" data-testid="payment-instructions">
+                  <p className="whitespace-pre-line">{event.payment_instructions}</p>
+                  <p className="text-sm text-ink-muted">
+                    Plačilo poteka neposredno med tabo in organizatorjem. Za račun in morebitno vračilo se
+                    dogovoriš z organizatorjem.
+                  </p>
+                </div>
+              </Section>
+            )}
             {event.materials && (
               <Section
                 title="Kaj potrebuješ"
@@ -306,7 +324,20 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
 
       <aside aria-label="Prijava" className="space-y-4 md:self-start">
         <div className="space-y-3 rounded-[var(--radius-card)] bg-surface p-5 shadow-[var(--shadow-card)]">
-          <p className="font-display text-xl font-bold">Brezplačno</p>
+          {event.registration_mode === "external" ? (
+            <p className="font-display text-xl font-bold">Cena pri organizatorju</p>
+          ) : paid && event.price_cents ? (
+            <div data-testid="price">
+              <p className="font-display text-xl font-bold">
+                {formatPrice(event.price_cents)} <span className="text-base font-semibold">na osebo</span>
+              </p>
+              <p className="text-sm text-ink-muted">
+                Plačaš neposredno organizatorju. Mekko plačil ne obdeluje.
+              </p>
+            </div>
+          ) : (
+            <p className="font-display text-xl font-bold">Brezplačno</p>
+          )}
           {event.registration_mode === "native" && event.capacity !== null && (
             <p className="text-sm text-ink-muted">
               {series
@@ -318,6 +349,17 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
           {booked.length > 0 && (
             <div className="space-y-2 rounded-2xl bg-sage-soft p-3 text-sage-ink" data-testid="my-booking">
               <p className="font-semibold">Prijavljen/-a si</p>
+              {booked.some((b) => b.payment_state === "awaiting") && (
+                <p className="rounded-xl bg-sun-soft p-2 text-sm text-sun-ink" data-testid="payment-awaiting">
+                  Mesto je rezervirano. Organizator bo prijavo potrdil, ko prejme plačilo (
+                  {formatPrice(booked.find((b) => b.payment_state === "awaiting")?.amount_cents ?? 0)}).
+                </p>
+              )}
+              {booked.some((b) => b.payment_state === "organizer_confirmed") && (
+                <p className="text-sm font-semibold" data-testid="payment-confirmed">
+                  Organizator je potrdil prejem plačila.
+                </p>
+              )}
               {booked.map((b) => {
                 const o = occurrences.find((x) => x.id === b.occurrence_id);
                 return (
@@ -357,6 +399,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
                 <p className="font-semibold text-brand-strong">Razprodano</p>
               ) : (
                 <BookingForm
+                  priceCents={paid ? event.price_cents : null}
                   slug={event.slug}
                   eventId={event.id}
                   series={series}

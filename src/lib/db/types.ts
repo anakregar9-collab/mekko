@@ -70,6 +70,7 @@ export type Database = {
       };
       bookings: {
         Row: {
+          amount_cents: number | null;
           booker_id: string;
           cancelled_at: string | null;
           created_at: string;
@@ -77,11 +78,15 @@ export type Database = {
           id: string;
           note: string | null;
           occurrence_id: string | null;
+          payment_confirmed_at: string | null;
+          payment_confirmed_by: string | null;
+          payment_state: string;
           quantity: number;
           status: Database["public"]["Enums"]["booking_status"];
         };
         ComputedFields: never;
         Insert: {
+          amount_cents?: number | null;
           booker_id: string;
           cancelled_at?: string | null;
           created_at?: string;
@@ -89,10 +94,14 @@ export type Database = {
           id?: string;
           note?: string | null;
           occurrence_id?: string | null;
+          payment_confirmed_at?: string | null;
+          payment_confirmed_by?: string | null;
+          payment_state?: string;
           quantity?: number;
           status?: Database["public"]["Enums"]["booking_status"];
         };
         Update: {
+          amount_cents?: number | null;
           booker_id?: string;
           cancelled_at?: string | null;
           created_at?: string;
@@ -100,6 +109,9 @@ export type Database = {
           id?: string;
           note?: string | null;
           occurrence_id?: string | null;
+          payment_confirmed_at?: string | null;
+          payment_confirmed_by?: string | null;
+          payment_state?: string;
           quantity?: number;
           status?: Database["public"]["Enums"]["booking_status"];
         };
@@ -123,6 +135,13 @@ export type Database = {
             columns: ["occurrence_id"];
             isOneToOne: false;
             referencedRelation: "event_occurrences";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookings_payment_confirmed_by_fkey";
+            columns: ["payment_confirmed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -298,6 +317,9 @@ export type Database = {
           materials: string | null;
           max_per_booking: number;
           online_url: string | null;
+          payment_instructions: string | null;
+          payment_mode: string;
+          price_cents: number | null;
           published_at: string | null;
           registration_mode: Database["public"]["Enums"]["registration_mode"];
           schedule: Database["public"]["Enums"]["event_schedule"];
@@ -329,6 +351,9 @@ export type Database = {
           materials?: string | null;
           max_per_booking?: number;
           online_url?: string | null;
+          payment_instructions?: string | null;
+          payment_mode?: string;
+          price_cents?: number | null;
           published_at?: string | null;
           registration_mode?: Database["public"]["Enums"]["registration_mode"];
           schedule?: Database["public"]["Enums"]["event_schedule"];
@@ -359,6 +384,9 @@ export type Database = {
           materials?: string | null;
           max_per_booking?: number;
           online_url?: string | null;
+          payment_instructions?: string | null;
+          payment_mode?: string;
+          price_cents?: number | null;
           published_at?: string | null;
           registration_mode?: Database["public"]["Enums"]["registration_mode"];
           schedule?: Database["public"]["Enums"]["event_schedule"];
@@ -975,6 +1003,7 @@ export type Database = {
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
+      confirm_booking_payment: { Args: { p_booking: string }; Returns: undefined };
       contact_space: { Args: { p_body: string; p_space: string }; Returns: string };
       create_space: {
         Args: {
@@ -1015,6 +1044,7 @@ export type Database = {
       };
       notify_attendees: { Args: { p_event: string; p_message: string }; Returns: number };
       publish_event: { Args: { p_event: string }; Returns: undefined };
+      release_unpaid_booking: { Args: { p_booking: string; p_reason: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
       report_content: {
         Args: {

@@ -6,7 +6,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 export const inputCls =
-  "min-h-11 w-full rounded-xl border border-line bg-surface px-3 py-2 text-base text-ink placeholder:text-ink-muted aria-invalid:border-brand";
+  "min-h-11 w-full min-w-0 rounded-xl border border-line bg-surface px-3 py-2 text-base text-ink placeholder:text-ink-muted aria-invalid:border-brand";
 
 export interface FormState {
   ok?: boolean;

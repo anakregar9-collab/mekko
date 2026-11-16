@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSpaceRole } from "@/lib/auth/dal";
 import { friendlyDbError } from "@/lib/db/errors";
 import { fieldErrors, reasonSchema } from "@/lib/validation";
-import { ljubljanaToISO } from "@/lib/format";
+import { ljubljanaToISO, priceToCents } from "@/lib/format";
 import { slugify } from "@/lib/slug";
 import type { FormState } from "@/components/forms";
 
@@ -31,6 +31,9 @@ const eventSchema = z
     materials: z.string().trim().max(1000).optional().default(""),
     cancellation_policy: z.enum(["flexible", "moderate", "strict"]),
     cover: z.enum(COVERS),
+    payment_mode: z.enum(["free", "manual"]),
+    price: z.string().trim().optional().default(""),
+    payment_instructions: z.string().trim().max(1000, "Največ 1000 znakov.").optional().default(""),
   })
   .superRefine((d, ctx) => {
     if (d.registration_mode === "external" && !/^https:\/\/\S+$/.test(d.external_url))
@@ -43,6 +46,17 @@ const eventSchema = z
       !(Number.isInteger(Number(d.capacity)) && Number(d.capacity) >= 1 && Number(d.capacity) <= 10000)
     )
       ctx.addIssue({ code: "custom", path: ["capacity"], message: "Celo število od 1 do 10000 ali prazno." });
+    if (d.registration_mode === "native" && d.payment_mode === "manual") {
+      const cents = priceToCents(d.price);
+      if (cents === null || cents < 50 || cents > 100000)
+        ctx.addIssue({ code: "custom", path: ["price"], message: "Vpiši ceno med 0,50 in 1000 €." });
+      if (d.payment_instructions.length < 5)
+        ctx.addIssue({
+          code: "custom",
+          path: ["payment_instructions"],
+          message: "Napiši, kako naj udeleženci plačajo.",
+        });
+    }
   });
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "");
@@ -65,6 +79,9 @@ function readEvent(fd: FormData) {
     materials: str(fd, "materials"),
     cancellation_policy: str(fd, "cancellation_policy") || "flexible",
     cover: str(fd, "cover") || "coral",
+    payment_mode: str(fd, "payment_mode") || "free",
+    price: str(fd, "price"),
+    payment_instructions: str(fd, "payment_instructions"),
   };
 }
 
@@ -97,7 +114,15 @@ export async function createEvent(
 ): Promise<FormState> {
   const { space, profile } = await requireSpaceRole(spaceSlug, "admin");
   const raw = readEvent(formData);
-  const echo = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, String(v ?? "")]));
+  const echo: Record<string, string> = Object.fromEntries(
+    Object.entries(raw).map(([k, v]) => [k, String(v ?? "")]),
+  );
+  // Keep the entered sessions on a failed submit (React resets uncontrolled inputs to their defaults).
+  const dates = formData.getAll("session_date").map(String);
+  const starts = formData.getAll("session_start").map(String);
+  const ends = formData.getAll("session_end").map(String);
+  echo.nonce = Math.random().toString(36).slice(2);
+  echo.sessions_json = JSON.stringify(dates.map((d, i) => ({ d, s: starts[i] ?? "", e: ends[i] ?? "" })));
   const parsed = eventSchema.safeParse(raw);
   const sessions = readSessions(formData);
   const errs = parsed.success ? {} : fieldErrors(parsed.error);
@@ -131,6 +156,13 @@ export async function createEvent(
       materials: d.materials || null,
       cancellation_policy: d.cancellation_policy,
       cover: d.cover,
+      ...(d.registration_mode === "native" && d.payment_mode === "manual"
+        ? {
+            payment_mode: "manual",
+            price_cents: priceToCents(d.price),
+            payment_instructions: d.payment_instructions,
+          }
+        : { payment_mode: "free", price_cents: null, payment_instructions: null }),
     })
     .select("id")
     .single();
@@ -200,4 +232,43 @@ export async function deleteDraft(spaceSlug: string, eventId: string): Promise<v
   await supabase.from("events").delete().eq("id", eventId).eq("status", "draft");
   revalidatePath(`/organizator/${spaceSlug}/dogodki`);
   redirect(`/organizator/${spaceSlug}/dogodki`);
+}
+
+// ---------------------------------------------------------------------------
+// Manual payments (DECISIONS #4): the organizer states receipt; Mekko never marks "paid" itself.
+// ---------------------------------------------------------------------------
+export async function confirmPaymentAction(
+  spaceSlug: string,
+  eventId: string,
+  _prev: FormState,
+  fd: FormData,
+): Promise<FormState> {
+  await requireSpaceRole(spaceSlug, "staff");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("confirm_booking_payment", {
+    p_booking: String(fd.get("booking_id")),
+  });
+  if (error) return { message: friendlyDbError(error) };
+  revalidatePath(`/organizator/${spaceSlug}/dogodki/${eventId}`);
+  revalidatePath(`/organizator/${spaceSlug}`);
+  return { ok: true, message: "Prejem plačila je potrjen." };
+}
+
+export async function releaseBookingAction(
+  spaceSlug: string,
+  eventId: string,
+  _prev: FormState,
+  fd: FormData,
+): Promise<FormState> {
+  await requireSpaceRole(spaceSlug, "staff");
+  const reason = reasonSchema.safeParse(fd.get("reason"));
+  if (!reason.success) return { errors: { reason: reason.error.issues[0].message } };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("release_unpaid_booking", {
+    p_booking: String(fd.get("booking_id")),
+    p_reason: reason.data,
+  });
+  if (error) return { message: friendlyDbError(error) };
+  revalidatePath(`/organizator/${spaceSlug}/dogodki/${eventId}`);
+  return { ok: true, message: "Mesto je sproščeno." };
 }

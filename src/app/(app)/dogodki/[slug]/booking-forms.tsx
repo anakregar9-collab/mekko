@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Field, FormMessage, inputCls, SubmitButton, type FormState } from "@/components/forms";
 import { bookEvent, cancelBooking } from "@/lib/actions/bookings";
+import { formatPrice } from "@/lib/format";
 
 export function BookingForm({
   slug,
@@ -10,12 +11,15 @@ export function BookingForm({
   occurrences,
   maxPerBooking,
   series,
+  priceCents,
 }: {
   slug: string;
   eventId: string;
   occurrences: { id: string; label: string; disabled: boolean }[];
   maxPerBooking: number;
   series: boolean;
+  /** Set for manual-payment events: booking reserves the seat until the organizer confirms payment. */
+  priceCents?: number | null;
 }) {
   const [state, action] = useActionState<FormState, FormData>(bookEvent.bind(null, slug), {});
   if (state.ok) return <FormMessage state={state} />;
@@ -46,6 +50,12 @@ export function BookingForm({
       <Field label="Sporočilo organizatorju (neobvezno)" htmlFor="note">
         <input id="note" name="note" maxLength={300} className={inputCls} />
       </Field>
+      {priceCents ? (
+        <p className="text-sm text-ink-muted">
+          Prijava rezervira mesto. Plačaš po navodilih organizatorja ({formatPrice(priceCents)} na osebo), ki
+          nato potrdi prejem plačila.
+        </p>
+      ) : null}
       <SubmitButton pendingText="Prijavljam …" className="w-full">
         Prijavi se
       </SubmitButton>

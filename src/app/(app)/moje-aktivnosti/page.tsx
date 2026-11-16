@@ -21,6 +21,7 @@ interface Row {
   id: string;
   occurrence_id: string | null;
   status: "confirmed" | "cancelled_by_user" | "cancelled_by_organizer";
+  payment_state: "none" | "awaiting" | "organizer_confirmed";
   event: {
     title: string;
     slug: string;
@@ -35,7 +36,7 @@ async function Content() {
   const { data } = await supabase
     .from("bookings")
     .select(
-      "id, occurrence_id, status, event:events(title, slug, cover, occurrences:event_occurrences(id, starts_at, ends_at, status))",
+      "id, occurrence_id, status, payment_state, event:events(title, slug, cover, occurrences:event_occurrences(id, starts_at, ends_at, status))",
     )
     .eq("booker_id", profile.id)
     .in("status", ["confirmed", "cancelled_by_organizer"])
@@ -53,7 +54,8 @@ async function Content() {
         occurrenceId: o.id,
         startsAt: o.starts_at,
         endsAt: o.ends_at,
-        status: b.status,
+        // Manual-payment reservations show "Čaka plačilo" until the organizer confirms receipt.
+        status: b.status === "confirmed" && b.payment_state === "awaiting" ? "pending_payment" : b.status,
         sessionNumber: b.occurrence_id === null ? occs.indexOf(o) + 1 : null,
       });
     }

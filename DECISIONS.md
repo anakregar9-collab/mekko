@@ -87,3 +87,14 @@ Built inside confirmed decisions #6 (progressive DMs) and #9 (blocking). Paid ti
 - Reports on people, messages, events and spaces go to a moderator queue (/admin/prijave). Moderators can read a private message only after it has been reported. Removing a message deletes its text (the original is kept only in the audit log as evidence). All moderation is audited.
 - Organizer verification: the owner requests it, an admin (not a moderator) approves or rejects with a mandatory note; the owner gets a notification. Verified spaces show a badge.
 - Not in M3a: e-mail notifications for new messages (needs Resend), real-time updates (page refresh only), attachments, support ticket intake (next slice).
+
+## 2026-11-16 — M3b: events with manual payment to the organizer (founder: "gremo naprej")
+Built inside confirmed decisions #4 (manual payment, organizer confirms, no commission) and #10 (no online sales before legal review).
+- Organizer chooses "Brezplačno" or "Plačilo organizatorju" with a price per person (0,50–1000 €) and payment instructions (e.g. IBAN or cash on site). Only for registration through Mekko, not for external links.
+- Guests see the price; payment instructions are visible to signed-in users only.
+- A booking reserves the seat immediately (counts toward capacity) and is shown as "Čaka plačilo". The amount (price × people) is snapshotted at booking time.
+- The organizer (staff or higher) either confirms receipt ("Potrdi prejem plačila") or releases the seat with a reason the visitor sees. Mekko never marks anything as paid on its own; the visitor sees "Organizator je potrdil prejem plačila".
+- Price and payment instructions are locked once the event is published.
+- Organizer overview shows the total of payments they confirmed and the total still awaited, labelled as manual payments (real data only, no processing by Mekko).
+- **Open for founder / legal:** no automatic deadline that releases unpaid seats (organizer releases manually); invoices, VAT and refunds are the organizer's responsibility and are stated as such in the UI.
+- Bug fixed on the way: the event form lost session dates and radio/checkbox choices after a failed submit (a paid event could silently be saved as free). Choices are now submitted from component state.

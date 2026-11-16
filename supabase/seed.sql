@@ -132,3 +132,24 @@ select o.event_id,
     + make_interval(mins => o.minutes)
 from occ o
 where not exists (select 1 from public.event_occurrences x where x.event_id = o.event_id);
+
+-- M3b: one TEST event with manual payment to the organizer (no real payment details).
+insert into public.events (id, space_id, created_by, slug, title, summary, description, interest_id, schedule,
+  booking_scope, is_online, registration_mode, city, address, capacity, max_per_booking, materials,
+  cancellation_policy, cover, status, is_demo, published_at, payment_mode, price_cents, payment_instructions)
+select 'c9000000-0000-4000-8000-000000000000', s.id, s.created_by, 'tkanje-na-statvah',
+  'Tkanje na statvah', 'Stkaj svoj podstavek na mizicah statvah.',
+  'Dvourna delavnica za začetnike. Vse statve in preja so na voljo v studiu.',
+  (select id from public.interests where slug = 'rocna-dela'), 'one_off', 'occurrence', false, 'native',
+  'Ljubljana', 'Trubarjeva cesta 12, 1000 Ljubljana', 6, 2, 'Nič – vse je pripravljeno', 'moderate', 'sun',
+  'published', true, now(), 'manual', 2500,
+  E'TESTNI PODATKI – ne nakazuj denarja.\nGotovina na kraju ali nakazilo po dogovoru z organizatorjem.'
+from public.spaces s where s.id = 'b1000000-0000-4000-8000-000000000000'
+on conflict (id) do nothing;
+
+insert into public.event_occurrences (event_id, starts_at, ends_at)
+select 'c9000000-0000-4000-8000-000000000000',
+  ((current_date + d)::text || ' 17:00')::timestamp at time zone 'Europe/Ljubljana',
+  ((current_date + d)::text || ' 19:00')::timestamp at time zone 'Europe/Ljubljana'
+from (values (8), (22)) v(d)
+where not exists (select 1 from public.event_occurrences x where x.event_id = 'c9000000-0000-4000-8000-000000000000');

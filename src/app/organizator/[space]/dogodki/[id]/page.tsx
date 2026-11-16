@@ -9,8 +9,14 @@ import { BackLink } from "@/components/back-link";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Panel } from "@/components/workspace/stat-tile";
 import { Badge } from "@/components/ui/badge";
-import { formatSlot, pluralSl } from "@/lib/format";
-import { CancelEventForm, DeleteDraftButton, NotifyForm, PublishButton } from "./manage-forms";
+import { formatPrice, formatSlot, pluralSl } from "@/lib/format";
+import {
+  CancelEventForm,
+  DeleteDraftButton,
+  NotifyForm,
+  PaymentActions,
+  PublishButton,
+} from "./manage-forms";
 
 export const metadata: Metadata = { title: "Upravljanje dogodka" };
 
@@ -30,6 +36,8 @@ interface AttendeeRow {
   status: string;
   created_at: string;
   booker_id: string;
+  payment_state: "none" | "awaiting" | "organizer_confirmed";
+  amount_cents: number | null;
   booker: { display_name: string; handle: string } | null;
 }
 
@@ -54,7 +62,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
     supabase
       .from("bookings")
       .select(
-        "id, booker_id, occurrence_id, quantity, note, status, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
+        "id, booker_id, occurrence_id, quantity, note, status, payment_state, amount_cents, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
       )
       .eq("event_id", id)
       .order("created_at"),
@@ -154,6 +162,28 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
                               </span>
                             </p>
                             {b.note && <p className="text-sm text-ink-muted">„{b.note}“</p>}
+                            {b.payment_state === "awaiting" && (
+                              <>
+                                <p className="mt-1 text-sm">
+                                  <Badge tone="sun">Čaka plačilo</Badge>{" "}
+                                  <span className="tabular-nums">{formatPrice(b.amount_cents ?? 0)}</span>
+                                </p>
+                                {event.status === "published" && (
+                                  <PaymentActions
+                                    spaceSlug={slug}
+                                    eventId={event.id}
+                                    bookingId={b.id}
+                                    name={b.booker?.display_name ?? "Uporabnik"}
+                                  />
+                                )}
+                              </>
+                            )}
+                            {b.payment_state === "organizer_confirmed" && (
+                              <p className="mt-1 text-sm">
+                                <Badge tone="sage">Plačilo potrjeno</Badge>{" "}
+                                <span className="tabular-nums">{formatPrice(b.amount_cents ?? 0)}</span>
+                              </p>
+                            )}
                           </li>
                         ))}
                       </ul>

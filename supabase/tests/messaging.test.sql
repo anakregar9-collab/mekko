@@ -138,7 +138,10 @@ select lives_ok($$ select public.admin_remove_message(pg_temp.v('spam')::bigint,
 select lives_ok($$ select public.admin_resolve_report((select id from public.reports where target_id = pg_temp.v('spam')), 'actioned', 'Odstranjeno') $$,
   'moderator resolves the report');
 select pg_temp.act_root();
-select is((select count(*)::int from public.admin_audit_log where action in ('message.remove', 'report.resolve')), 2, 'moderation is audited');
+select is((select count(*)::int from public.admin_audit_log
+  where (action = 'message.remove' and target_id = pg_temp.v('spam'))
+     or (action = 'report.resolve' and target_id = (select id::text from public.reports where target_id = pg_temp.v('spam')))),
+  2, 'moderation is audited');
 select pg_temp.act_as('mod');
 select pg_temp.act_as('star');
 select is((select body from public.messages where id = pg_temp.v('spam')::bigint), '', 'removed message content is gone');

@@ -98,3 +98,15 @@ export function ljubljanaToISO(date: string, time: string): string {
   guess = naiveUtc - offsetMin(guess) * 60_000;
   return new Date(guess).toISOString();
 }
+
+/** Organizer price input → cents. Accepts "25", "25,50", "25.5", "25 €". Null when invalid. */
+export function priceToCents(input: string): number | null {
+  const m = input.replace(/\s|€/g, "").match(/^(\d{1,4})(?:[.,](\d{1,2}))?$/);
+  if (!m) return null;
+  return Number(m[1]) * 100 + Number((m[2] ?? "0").padEnd(2, "0"));
+}
+
+/** Money total in euros, zero shown as "0,00 €" (unlike formatPrice, which says "Brezplačno"). */
+export function formatAmount(cents: number): string {
+  return priceFormatter.format(cents / 100);
+}

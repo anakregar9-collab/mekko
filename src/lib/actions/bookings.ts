@@ -30,7 +30,7 @@ export async function bookEvent(slug: string, _prev: FormState, formData: FormDa
   if (error) return { message: errors[error.message] ?? "Prijava ni uspela. Poskusi znova." };
   revalidatePath(`/dogodki/${slug}`);
   revalidatePath("/moje-aktivnosti");
-  return { ok: true, message: "Prijava je potrjena. Najdeš jo v Mojih aktivnostih." };
+  return { ok: true, message: "Prijava je oddana. Najdeš jo v Mojih aktivnostih." };
 }
 
 export async function cancelBooking(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
