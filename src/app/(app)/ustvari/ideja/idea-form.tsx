@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { describedBy, Field, FormMessage, inputCls, SubmitButton, type FormState } from "@/components/forms";
 import { createIdea } from "@/lib/actions/ideas";
 import { cn } from "@/lib/cn";
+import { PhotoInput } from "@/components/ui/photo-input";
 
 const covers = [
   { v: "sun", l: "Rumena" },
@@ -120,6 +121,8 @@ export function IdeaForm({ interests }: { interests: { id: number; label_sl: str
         />
       </Field>
 
+      <PhotoInput name="photo" label="Fotografija (neobvezno)" error={e.photo} />
+
       <fieldset className="space-y-1">
         <legend className="text-sm font-semibold">Za koga je</legend>
         <input type="hidden" name="beginner_friendly" value={beginner ? "on" : ""} />
@@ -147,7 +150,7 @@ export function IdeaForm({ interests }: { interests: { id: number; label_sl: str
       </fieldset>
 
       <fieldset>
-        <legend className="mb-1 text-sm font-semibold">Barva kartice</legend>
+        <legend className="mb-1 text-sm font-semibold">Barva kartice (če ni fotografije)</legend>
         <div className="flex flex-wrap gap-2">
           {covers.map((c) => (
             <label key={c.v} className="cursor-pointer">

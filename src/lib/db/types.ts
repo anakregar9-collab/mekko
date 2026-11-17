@@ -310,6 +310,7 @@ export type Database = {
           capacity: number | null;
           city: string | null;
           cover: string;
+          cover_image_path: string | null;
           created_at: string;
           created_by: string;
           description: string | null;
@@ -347,6 +348,7 @@ export type Database = {
           capacity?: number | null;
           city?: string | null;
           cover?: string;
+          cover_image_path?: string | null;
           created_at?: string;
           created_by: string;
           description?: string | null;
@@ -383,6 +385,7 @@ export type Database = {
           capacity?: number | null;
           city?: string | null;
           cover?: string;
+          cover_image_path?: string | null;
           created_at?: string;
           created_by?: string;
           description?: string | null;
@@ -462,6 +465,7 @@ export type Database = {
           beginner_friendly: boolean;
           body: string;
           cover: string;
+          cover_image_path: string | null;
           created_at: string;
           external_url: string | null;
           family_friendly: boolean;
@@ -484,6 +488,7 @@ export type Database = {
           beginner_friendly?: boolean;
           body: string;
           cover?: string;
+          cover_image_path?: string | null;
           created_at?: string;
           external_url?: string | null;
           family_friendly?: boolean;
@@ -505,6 +510,7 @@ export type Database = {
           beginner_friendly?: boolean;
           body?: string;
           cover?: string;
+          cover_image_path?: string | null;
           created_at?: string;
           external_url?: string | null;
           family_friendly?: boolean;

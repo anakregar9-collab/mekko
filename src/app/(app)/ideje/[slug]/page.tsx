@@ -16,6 +16,7 @@ import { PageSkeleton } from "@/components/page-skeleton";
 import { ReportForm } from "@/components/messages/forms";
 import { SubmitButton } from "@/components/forms";
 import { formatDate } from "@/lib/format";
+import { coverUrl } from "@/lib/media";
 
 export const metadata: Metadata = { title: "Ideja" };
 
@@ -44,6 +45,7 @@ interface IdeaRow {
   status: "published" | "hidden";
   is_demo: boolean;
   published_at: string;
+  cover_image_path: string | null;
   body?: string;
   materials?: string | null;
   external_url?: string | null;
@@ -80,7 +82,13 @@ async function Content({ params }: { params: PageProps<"/ideje/[slug]">["params"
 
   return (
     <article className="mx-auto max-w-3xl space-y-5" data-testid="idea">
-      <Cover tone={idea.cover as CoverTone} className="h-40 rounded-[var(--radius-card)] sm:h-56" />
+      <Cover
+        tone={idea.cover as CoverTone}
+        imageUrl={coverUrl(idea.cover_image_path)}
+        alt={`Fotografija ideje ${idea.title}`}
+        priority
+        className="h-40 rounded-[var(--radius-card)] sm:h-56"
+      />
       <div className="space-y-2">
         <div className="flex flex-wrap gap-1.5">
           <Badge tone="sun">

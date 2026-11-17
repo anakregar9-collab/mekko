@@ -26,6 +26,7 @@ import { BackLink } from "@/components/back-link";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { deadlineLabel, formatDate, formatPrice, formatSlot, formatTime, pluralSl } from "@/lib/format";
 import { nowMs } from "@/lib/time";
+import { coverUrl } from "@/lib/media";
 import { spaceKindLabel } from "@/lib/spaces";
 import { BookingForm, CancelBookingForm } from "./booking-forms";
 import { ReportForm, StartConversationForm } from "@/components/messages/forms";
@@ -101,6 +102,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     payment_deadline_hours: number | null;
     beginner_friendly: boolean;
     family_friendly: boolean;
+    cover_image_path: string | null;
     space_id: string;
     interest_id: number | null;
   };
@@ -166,7 +168,13 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_20rem]">
       <div className="space-y-5">
-        <Cover tone={event.cover as CoverTone} className="h-48 rounded-[var(--radius-card)] sm:h-64" />
+        <Cover
+          tone={event.cover as CoverTone}
+          imageUrl={coverUrl(event.cover_image_path)}
+          alt={`Fotografija dogodka ${event.title}`}
+          priority
+          className="h-48 rounded-[var(--radius-card)] sm:h-64"
+        />
         <div className="space-y-2">
           <div className="flex flex-wrap gap-1.5">
             {interest && <Badge tone="clay">{interest.label_sl}</Badge>}

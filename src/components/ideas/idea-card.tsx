@@ -9,7 +9,7 @@ export function LiveIdeaCard({ idea }: { idea: IdeaCardData }) {
     <article className="group overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]">
       <Link href={`/ideje/${idea.slug}`} className="block focus-visible:outline-offset-[-3px]">
         <div className="relative">
-          <Cover tone={idea.cover} className="h-32 sm:h-40" />
+          <Cover tone={idea.cover} imageUrl={idea.coverImageUrl} className="h-32 sm:h-40" />
           <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
             <Badge tone="sun">
               <Lightbulb aria-hidden="true" className="size-3" /> Ideja

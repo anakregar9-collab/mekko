@@ -8,6 +8,7 @@ import { requirePlatformRole, requireUser } from "@/lib/auth/dal";
 import { friendlyDbError } from "@/lib/db/errors";
 import { fieldErrors, reasonSchema } from "@/lib/validation";
 import { slugify } from "@/lib/slug";
+import { uploadPhotoFromForm } from "@/lib/media-server";
 import type { FormState } from "@/components/forms";
 
 const COVERS = ["coral", "sun", "sage", "lilac", "sky", "clay"] as const;
@@ -55,6 +56,9 @@ export async function createIdea(_prev: FormState, fd: FormData): Promise<FormSt
   if (!parsed.success)
     return { errors: fieldErrors(parsed.error), values: echo, message: "Preveri označena polja." };
   const d = parsed.data;
+  const photo = await uploadPhotoFromForm(fd, "photo", profile.id);
+  if ("error" in photo)
+    return { errors: { photo: photo.error }, values: echo, message: "Preveri označena polja." };
   const slug = `${slugify(d.title).slice(0, 60) || "ideja"}-${Math.random().toString(36).slice(2, 6)}`;
   const supabase = await createClient();
   const { error } = await supabase.from("ideas").insert({
@@ -68,6 +72,7 @@ export async function createIdea(_prev: FormState, fd: FormData): Promise<FormSt
     external_url: d.external_url || null,
     interest_id: d.interest_id,
     cover: d.cover,
+    cover_image_path: photo.path,
     beginner_friendly: d.beginner_friendly,
     family_friendly: d.family_friendly,
   });

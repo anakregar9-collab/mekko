@@ -6,6 +6,7 @@ import { describedBy, Field, FormMessage, inputCls, SubmitButton, type FormState
 import { Button } from "@/components/ui/button";
 import { createEvent } from "@/lib/actions/events";
 import { cn } from "@/lib/cn";
+import { PhotoInput } from "@/components/ui/photo-input";
 import { OrganizerResponsibility } from "@/components/spaces/organizer-responsibility";
 
 const covers = [
@@ -92,8 +93,9 @@ export function EventForm({
               ))}
             </select>
           </Field>
+          <PhotoInput name="photo" label="Fotografija dogodka (neobvezno)" error={e.photo} />
           <fieldset>
-            <legend className="mb-1 text-sm font-semibold">Barva kartice</legend>
+            <legend className="mb-1 text-sm font-semibold">Barva kartice (če ni fotografije)</legend>
             <div className="flex flex-wrap gap-2">
               {covers.map((c, i) => (
                 <label key={c.v} className="cursor-pointer">

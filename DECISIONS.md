@@ -133,3 +133,9 @@ Built:
 ## 2026-11-16 — Five visitor tabs (founder change)
 - Founder: four tabs looked too sparse; Sporočila becomes the 4th tab: Odkrivanje · Moje aktivnosti · Ustvari · Sporočila · Moj Mekko. This replaces the earlier confirmed "exactly four tabs" and "TWO header icons" items (PRODUCT_SPEC §2/§7 and CLAUDE.md updated).
 - To avoid duplicated navigation the header messages icon is removed; the header keeps only the notifications bell. The unread-conversation count is shown on the Sporočila tab.
+
+## 2026-11-17 — Photos for events and ideas
+- One optional photo per event and per idea. Stored in the public Supabase Storage bucket `covers` (event/idea images are public content, not paid assets). Bucket enforces JPEG/PNG/WebP and max 5 MB; the server action also checks the file signature (a renamed text file is rejected). Users can upload only into their own folder (`<user id>/…`, RLS on storage.objects).
+- Phones send large photos, so the browser downscales to max 1600 px (JPEG 85 %) before upload. Photos replace the colour shapes on cards and detail pages; without a photo the colour placeholder stays. Alt text: "Fotografija dogodka/ideje <naslov>".
+- Not yet: changing/removing a photo after publishing (no edit forms yet), multiple photos/gallery, PDF attachments for ideas, automatic removal of orphaned files. A moderated (hidden) idea's photo URL stays reachable if someone already has the link.
+- Local dev now starts Supabase Storage (`pnpm db:start` no longer excludes storage-api).

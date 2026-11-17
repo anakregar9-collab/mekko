@@ -11,7 +11,7 @@ export function LiveEventCard({ event }: { event: EventCardData }) {
     <article className="group overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]">
       <Link href={`/dogodki/${event.slug}`} className="block focus-visible:outline-offset-[-3px]">
         <div className="relative">
-          <Cover tone={event.cover} className="h-36 sm:h-44" />
+          <Cover tone={event.cover} imageUrl={event.coverImageUrl} className="h-36 sm:h-44" />
           <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
             {event.isOnline && (
               <Badge tone="sky">

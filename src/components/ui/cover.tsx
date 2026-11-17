@@ -1,9 +1,9 @@
 import type { CoverTone } from "@/lib/domain/types";
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 /**
- * Decorative placeholder cover used instead of photos in the prototype.
- * Pure CSS shapes, aria-hidden — real covers will be uploaded images with alt text.
+ * Cover: an uploaded photo when there is one, otherwise decorative CSS shapes (aria-hidden).
  */
 const palettes: Record<CoverTone, { bg: string; a: string; b: string }> = {
   coral: { bg: "#fde6dc", a: "#f08a6e", b: "#f6b53b" },
@@ -14,8 +14,36 @@ const palettes: Record<CoverTone, { bg: string; a: string; b: string }> = {
   clay: { bg: "#f6e2d3", a: "#d49a73", b: "#7fb894" },
 };
 
-export function Cover({ tone, className }: { tone: CoverTone; className?: string }) {
+export function Cover({
+  tone,
+  className,
+  imageUrl,
+  alt = "",
+  priority = false,
+}: {
+  tone: CoverTone;
+  className?: string;
+  /** Public photo URL; when set the photo replaces the colour shapes. */
+  imageUrl?: string | null;
+  alt?: string;
+  priority?: boolean;
+}) {
   const p = palettes[tone];
+  if (imageUrl) {
+    return (
+      <div className={cn("relative overflow-hidden", className)} style={{ background: p.bg }}>
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          unoptimized
+          priority={priority}
+          sizes="(min-width: 768px) 50vw, 100vw"
+          className="object-cover"
+        />
+      </div>
+    );
+  }
   return (
     <div
       aria-hidden="true"

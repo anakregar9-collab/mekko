@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { CoverTone } from "@/lib/data/events";
+import { coverUrl } from "@/lib/media";
 
 export interface IdeaCardData {
   id: string;
@@ -9,6 +10,7 @@ export interface IdeaCardData {
   summary: string | null;
   timeNeeded: string | null;
   cover: CoverTone;
+  coverImageUrl: string | null;
   beginner: boolean;
   family: boolean;
   isDemo: boolean;
@@ -17,7 +19,7 @@ export interface IdeaCardData {
 
 /** Columns guests may read (instructions, materials and link need sign-in). */
 export const IDEA_PREVIEW_COLUMNS =
-  "id, author_id, slug, title, summary, time_needed, interest_id, cover, beginner_friendly, family_friendly, status, is_demo, published_at";
+  "id, author_id, slug, title, summary, time_needed, interest_id, cover, beginner_friendly, family_friendly, status, is_demo, published_at, cover_image_path";
 
 function cleanQuery(q: string | undefined): string {
   return (q ?? "")
@@ -52,6 +54,7 @@ export async function listIdeas(
     summary: r.summary,
     timeNeeded: r.time_needed,
     cover: r.cover as CoverTone,
+    coverImageUrl: coverUrl(r.cover_image_path),
     beginner: r.beginner_friendly,
     family: r.family_friendly,
     isDemo: r.is_demo,

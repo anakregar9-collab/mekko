@@ -9,6 +9,7 @@ import { friendlyDbError } from "@/lib/db/errors";
 import { fieldErrors, reasonSchema } from "@/lib/validation";
 import { ljubljanaToISO, priceToCents } from "@/lib/format";
 import { slugify } from "@/lib/slug";
+import { uploadPhotoFromForm } from "@/lib/media-server";
 import type { FormState } from "@/components/forms";
 
 const COVERS = ["coral", "sun", "sage", "lilac", "sky", "clay"] as const;
@@ -145,6 +146,9 @@ export async function createEvent(
         "Za plačljiv dogodek najprej v Nastavitvah prostora izpolni pravni status organizatorja (podjetje, s.p., društvo, ODD ali zasebnik).",
     };
   }
+  const photo = await uploadPhotoFromForm(formData, "photo", profile.id);
+  if ("error" in photo)
+    return { errors: { photo: photo.error }, values: echo, message: "Preveri označena polja." };
   const slug = `${slugify(d.title).slice(0, 60) || "dogodek"}-${Math.random().toString(36).slice(2, 6)}`;
   const supabase = await createClient();
   const { data: created, error } = await supabase
@@ -172,6 +176,7 @@ export async function createEvent(
       materials: d.materials || null,
       cancellation_policy: d.cancellation_policy,
       cover: d.cover,
+      cover_image_path: photo.path,
       ...(d.registration_mode === "native" && d.payment_mode === "manual"
         ? {
             payment_mode: "manual",
