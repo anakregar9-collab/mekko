@@ -28,3 +28,10 @@ export async function uploadPhotoFromForm(
   if (error) return { error: "Fotografije ni bilo mogoče naložiti. Poskusi znova." };
   return { path };
 }
+
+/** Best-effort removal of a replaced photo (own folder only — storage RLS ignores other people's files). */
+export async function removeOldPhoto(previous: string | null, next: string | null): Promise<void> {
+  if (!previous || previous === next) return;
+  const supabase = await createClient();
+  await supabase.storage.from("covers").remove([previous]);
+}

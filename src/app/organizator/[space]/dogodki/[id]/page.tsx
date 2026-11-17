@@ -107,6 +107,14 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
             Javna stran <ExternalLink aria-hidden="true" className="size-4" />
           </Link>
         )}
+        {isAdmin && event.status !== "cancelled" && (
+          <Link
+            href={`/organizator/${slug}/dogodki/${event.id}/uredi`}
+            className="inline-flex min-h-11 items-center gap-1 font-semibold text-brand-strong underline"
+          >
+            Uredi dogodek
+          </Link>
+        )}
       </div>
 
       {event.status === "draft" && isAdmin && (

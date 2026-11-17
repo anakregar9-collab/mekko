@@ -139,3 +139,11 @@ Built:
 - Phones send large photos, so the browser downscales to max 1600 px (JPEG 85 %) before upload. Photos replace the colour shapes on cards and detail pages; without a photo the colour placeholder stays. Alt text: "Fotografija dogodka/ideje <naslov>".
 - Not yet: changing/removing a photo after publishing (no edit forms yet), multiple photos/gallery, PDF attachments for ideas, automatic removal of orphaned files. A moderated (hidden) idea's photo URL stays reachable if someone already has the link.
 - Local dev now starts Supabase Storage (`pnpm db:start` no longer excludes storage-api).
+
+## 2026-11-17 — Editing after publishing
+- Authors edit their ideas (all fields, replace/remove photo). Only the author; others get 404 on the editor.
+- Space admins edit published events: title, descriptions, category, city/address or online link, external link, capacity, max per booking, materials, audience flags, photo, card colour.
+- Not editable after publishing (people booked under them): sessions/dates, price and payment terms, registration mode, cancellation policy, online/offline. Changing dates will be its own slice (needs attendee notification and possibly rebooking).
+- Capacity can never be set below the seats already booked on any session (DB trigger `guard_event_capacity`).
+- A changed address/city or online link automatically notifies everyone who booked.
+- Replaced photos are removed from storage when they are in the editor's own folder.

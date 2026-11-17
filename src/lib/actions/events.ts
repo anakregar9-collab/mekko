@@ -9,7 +9,7 @@ import { friendlyDbError } from "@/lib/db/errors";
 import { fieldErrors, reasonSchema } from "@/lib/validation";
 import { ljubljanaToISO, priceToCents } from "@/lib/format";
 import { slugify } from "@/lib/slug";
-import { uploadPhotoFromForm } from "@/lib/media-server";
+import { removeOldPhoto, uploadPhotoFromForm } from "@/lib/media-server";
 import type { FormState } from "@/components/forms";
 
 const COVERS = ["coral", "sun", "sage", "lilac", "sky", "clay"] as const;
@@ -298,4 +298,133 @@ export async function releaseBookingAction(
   if (error) return { message: friendlyDbError(error) };
   revalidatePath(`/organizator/${spaceSlug}/dogodki/${eventId}`);
   return { ok: true, message: "Mesto je sproščeno." };
+}
+
+// ---------------------------------------------------------------------------
+// Edit after publishing. Sessions, price/payment terms, registration mode and cancellation policy stay as
+// published (people booked under them). A changed location notifies everyone who booked.
+// ---------------------------------------------------------------------------
+const editSchema = z
+  .object({
+    title: z.string().trim().min(3, "Vsaj 3 znaki.").max(120),
+    summary: z.string().trim().max(200, "Največ 200 znakov.").optional().default(""),
+    description: z.string().trim().max(5000).optional().default(""),
+    interest_id: z.coerce.number().int().positive().optional(),
+    city: z.string().trim().max(80).optional().default(""),
+    address: z.string().trim().max(200).optional().default(""),
+    online_url: z.string().trim().optional().default(""),
+    external_url: z.string().trim().optional().default(""),
+    capacity: z.string().trim().optional().default(""),
+    max_per_booking: z.coerce.number().int().min(1).max(10),
+    materials: z.string().trim().max(1000).optional().default(""),
+    cover: z.enum(COVERS),
+    beginner_friendly: z.boolean(),
+    family_friendly: z.boolean(),
+  })
+  .superRefine((d, ctx) => {
+    if (
+      d.capacity &&
+      !(Number.isInteger(Number(d.capacity)) && Number(d.capacity) >= 1 && Number(d.capacity) <= 10000)
+    )
+      ctx.addIssue({ code: "custom", path: ["capacity"], message: "Celo število od 1 do 10000 ali prazno." });
+    if (d.online_url && !/^https:\/\/\S+$/.test(d.online_url))
+      ctx.addIssue({ code: "custom", path: ["online_url"], message: "Povezava mora začeti s https://" });
+    if (d.external_url && !/^https:\/\/\S+$/.test(d.external_url))
+      ctx.addIssue({ code: "custom", path: ["external_url"], message: "Povezava mora začeti s https://" });
+  });
+
+export async function updateEvent(
+  spaceSlug: string,
+  eventId: string,
+  _prev: FormState,
+  fd: FormData,
+): Promise<FormState> {
+  const { profile } = await requireSpaceRole(spaceSlug, "admin");
+  const raw = {
+    title: str(fd, "title"),
+    summary: str(fd, "summary"),
+    description: str(fd, "description"),
+    interest_id: str(fd, "interest_id") || undefined,
+    city: str(fd, "city"),
+    address: str(fd, "address"),
+    online_url: str(fd, "online_url"),
+    external_url: str(fd, "external_url"),
+    capacity: str(fd, "capacity"),
+    max_per_booking: str(fd, "max_per_booking") || "4",
+    materials: str(fd, "materials"),
+    cover: str(fd, "cover") || "coral",
+    beginner_friendly: fd.get("beginner_friendly") === "on",
+    family_friendly: fd.get("family_friendly") === "on",
+  };
+  const echo: Record<string, string> = Object.fromEntries(
+    Object.entries(raw).map(([k, v]) => [k, String(v ?? "")]),
+  );
+  echo.nonce = Math.random().toString(36).slice(2);
+  const parsed = editSchema.safeParse(raw);
+  if (!parsed.success)
+    return { errors: fieldErrors(parsed.error), values: echo, message: "Preveri označena polja." };
+  const d = parsed.data;
+
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("events")
+    .select("id, slug, status, is_online, registration_mode, address, city, cover_image_path")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (!current) return { message: "Dogodka ni bilo mogoče najti." };
+  const currentOnlineUrl = current.is_online
+    ? ((await supabase.rpc("event_online_url", { p_event: eventId })).data ?? null)
+    : null;
+  if (current.status === "cancelled") return { message: "Odpovedanega dogodka ni mogoče urejati." };
+  if (!current.is_online && !d.city) return { errors: { city: "Vpiši kraj." }, values: echo };
+
+  const photo = await uploadPhotoFromForm(fd, "photo", profile.id);
+  if ("error" in photo)
+    return { errors: { photo: photo.error }, values: echo, message: "Preveri označena polja." };
+  const nextPhoto = photo.path ?? (fd.get("remove_photo") === "on" ? null : current.cover_image_path);
+
+  const { error } = await supabase
+    .from("events")
+    .update({
+      title: d.title,
+      summary: d.summary || null,
+      description: d.description || null,
+      interest_id: d.interest_id ?? null,
+      city: current.is_online ? null : d.city,
+      address: current.is_online ? null : d.address || null,
+      online_url: current.is_online ? d.online_url || null : null,
+      external_url: current.registration_mode === "external" ? d.external_url || null : null,
+      capacity: d.capacity ? Number(d.capacity) : null,
+      max_per_booking: d.max_per_booking,
+      materials: d.materials || null,
+      cover: d.cover,
+      cover_image_path: nextPhoto,
+      beginner_friendly: d.beginner_friendly,
+      family_friendly: d.family_friendly,
+    })
+    .eq("id", eventId);
+  if (error) return { message: friendlyDbError(error), values: echo };
+  await removeOldPhoto(current.cover_image_path, nextPhoto);
+
+  // People who booked must learn about a new place or online link.
+  if (current.status === "published") {
+    const newPlace = current.is_online
+      ? d.online_url || null
+      : [d.address || null, d.city].filter(Boolean).join(", ");
+    const oldPlace = current.is_online
+      ? currentOnlineUrl
+      : [current.address, current.city].filter(Boolean).join(", ");
+    if ((newPlace ?? "") !== (oldPlace ?? "")) {
+      await supabase.rpc("notify_attendees", {
+        p_event: eventId,
+        p_message: current.is_online
+          ? "Povezava do spletne delavnice je spremenjena. Novo povezavo najdeš na strani dogodka."
+          : `Lokacija je spremenjena: ${newPlace}.`,
+      });
+    }
+  }
+  revalidatePath(`/organizator/${spaceSlug}/dogodki/${eventId}`);
+  revalidatePath(`/dogodki/${current.slug}`);
+  revalidatePath("/odkrivanje");
+  redirect(`/organizator/${spaceSlug}/dogodki/${eventId}`);
 }

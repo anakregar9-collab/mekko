@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { describedBy, Field, FormMessage, inputCls, SubmitButton, type FormState } from "@/components/forms";
-import { createIdea } from "@/lib/actions/ideas";
+import { createIdea, updateIdea } from "@/lib/actions/ideas";
 import { cn } from "@/lib/cn";
 import { PhotoInput } from "@/components/ui/photo-input";
 
@@ -15,9 +15,25 @@ const covers = [
   { v: "clay", l: "Glinena" },
 ];
 
-export function IdeaForm({ interests }: { interests: { id: number; label_sl: string }[] }) {
-  const [state, action] = useActionState<FormState, FormData>(createIdea, {});
-  const v = state.values ?? {};
+export interface IdeaEditTarget {
+  id: string;
+  values: Record<string, string>;
+  photoUrl: string | null;
+}
+
+/** Create a new idea, or edit an existing one when `edit` is given. */
+export function IdeaForm({
+  interests,
+  edit,
+}: {
+  interests: { id: number; label_sl: string }[];
+  edit?: IdeaEditTarget;
+}) {
+  const [state, action] = useActionState<FormState, FormData>(
+    edit ? updateIdea.bind(null, edit.id) : createIdea,
+    {},
+  );
+  const v = state.values ?? edit?.values ?? {};
   const e = state.errors ?? {};
   const [beginner, setBeginner] = useState(v.beginner_friendly === "true");
   const [family, setFamily] = useState(v.family_friendly === "true");
@@ -121,7 +137,26 @@ export function IdeaForm({ interests }: { interests: { id: number; label_sl: str
         />
       </Field>
 
-      <PhotoInput name="photo" label="Fotografija (neobvezno)" error={e.photo} />
+      {edit?.photoUrl && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold">Trenutna fotografija</p>
+          {/* eslint-disable-next-line @next/next/no-img-element -- small preview of the stored photo */}
+          <img
+            src={edit.photoUrl}
+            alt="Trenutna fotografija ideje"
+            className="h-32 w-full rounded-2xl object-cover"
+          />
+          <label className="flex min-h-11 items-center gap-3 text-sm">
+            <input type="checkbox" name="remove_photo" className="size-5 accent-[var(--color-brand)]" />
+            Odstrani trenutno fotografijo
+          </label>
+        </div>
+      )}
+      <PhotoInput
+        name="photo"
+        label={edit?.photoUrl ? "Nova fotografija (neobvezno)" : "Fotografija (neobvezno)"}
+        error={e.photo}
+      />
 
       <fieldset className="space-y-1">
         <legend className="text-sm font-semibold">Za koga je</legend>
@@ -178,8 +213,8 @@ export function IdeaForm({ interests }: { interests: { id: number; label_sl: str
         Objavi samo svojo vsebino ali vsebino, ki jo smeš deliti. Ideje, ki kršijo avtorske pravice ali
         pravila, lahko moderatorji skrijejo.
       </p>
-      <SubmitButton size="lg" pendingText="Objavljam …">
-        Objavi idejo
+      <SubmitButton size="lg" pendingText={edit ? "Shranjujem …" : "Objavljam …"}>
+        {edit ? "Shrani spremembe" : "Objavi idejo"}
       </SubmitButton>
     </form>
   );

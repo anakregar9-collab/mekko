@@ -164,6 +164,11 @@ async function Content({ params }: { params: PageProps<"/ideje/[slug]">["params"
               </button>
             </form>
             {mine && (
+              <Link href={`/ideje/${idea.slug}/uredi`} className={buttonClasses("secondary", "md")}>
+                Uredi idejo
+              </Link>
+            )}
+            {mine && (
               <form action={deleteIdea}>
                 <input type="hidden" name="idea_id" value={idea.id} />
                 <SubmitButton variant="ghost" pendingText="Brišem …">

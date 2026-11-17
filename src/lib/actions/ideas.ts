@@ -8,7 +8,7 @@ import { requirePlatformRole, requireUser } from "@/lib/auth/dal";
 import { friendlyDbError } from "@/lib/db/errors";
 import { fieldErrors, reasonSchema } from "@/lib/validation";
 import { slugify } from "@/lib/slug";
-import { uploadPhotoFromForm } from "@/lib/media-server";
+import { removeOldPhoto, uploadPhotoFromForm } from "@/lib/media-server";
 import type { FormState } from "@/components/forms";
 
 const COVERS = ["coral", "sun", "sage", "lilac", "sky", "clay"] as const;
@@ -34,8 +34,7 @@ const ideaSchema = z.object({
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "");
 
-export async function createIdea(_prev: FormState, fd: FormData): Promise<FormState> {
-  const profile = await requireUser({ next: "/ustvari/ideja" });
+function readIdea(fd: FormData) {
   const raw = {
     title: str(fd, "title"),
     summary: str(fd, "summary"),
@@ -52,6 +51,12 @@ export async function createIdea(_prev: FormState, fd: FormData): Promise<FormSt
     Object.entries(raw).map(([k, v]) => [k, String(v)]),
   );
   echo.nonce = Math.random().toString(36).slice(2);
+  return { raw, echo };
+}
+
+export async function createIdea(_prev: FormState, fd: FormData): Promise<FormState> {
+  const profile = await requireUser({ next: "/ustvari/ideja" });
+  const { raw, echo } = readIdea(fd);
   const parsed = ideaSchema.safeParse(raw);
   if (!parsed.success)
     return { errors: fieldErrors(parsed.error), values: echo, message: "Preveri označena polja." };
@@ -125,4 +130,48 @@ export async function setIdeaStatus(_prev: FormState, fd: FormData): Promise<For
   revalidatePath("/admin", "layout");
   revalidatePath("/odkrivanje");
   return { ok: true, message: status === "hidden" ? "Ideja je skrita." : "Ideja je spet vidna." };
+}
+
+export async function updateIdea(ideaId: string, _prev: FormState, fd: FormData): Promise<FormState> {
+  const profile = await requireUser();
+  const { raw, echo } = readIdea(fd);
+  const parsed = ideaSchema.safeParse(raw);
+  if (!parsed.success)
+    return { errors: fieldErrors(parsed.error), values: echo, message: "Preveri označena polja." };
+  const d = parsed.data;
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("ideas")
+    .select("slug, author_id, cover_image_path")
+    .eq("id", ideaId)
+    .maybeSingle();
+  if (!current || current.author_id !== profile.id) return { message: "Te ideje ne moreš urejati." };
+  const photo = await uploadPhotoFromForm(fd, "photo", profile.id);
+  if ("error" in photo)
+    return { errors: { photo: photo.error }, values: echo, message: "Preveri označena polja." };
+  const removePhoto = fd.get("remove_photo") === "on";
+  const nextPhoto = photo.path ?? (removePhoto ? null : current.cover_image_path);
+  const { error } = await supabase
+    .from("ideas")
+    .update({
+      title: d.title,
+      summary: d.summary || null,
+      body: d.body,
+      materials: d.materials || null,
+      time_needed: d.time_needed || null,
+      external_url: d.external_url || null,
+      interest_id: d.interest_id,
+      cover: d.cover,
+      cover_image_path: nextPhoto,
+      beginner_friendly: d.beginner_friendly,
+      family_friendly: d.family_friendly,
+    })
+    .eq("id", ideaId)
+    .eq("author_id", profile.id);
+  if (error) return { message: friendlyDbError(error), values: echo };
+  await removeOldPhoto(current.cover_image_path, nextPhoto);
+  revalidatePath(`/ideje/${current.slug}`);
+  revalidatePath("/odkrivanje");
+  revalidatePath("/moj-mekko/ideje");
+  redirect(`/ideje/${current.slug}`);
 }
