@@ -80,10 +80,10 @@ describe("live navigation", () => {
       "/odkrivanje",
       "/moje-aktivnosti",
       "/ustvari",
-      "/sporocila",
+      "/feed",
       "/moj-mekko",
     ]);
-    expect(activeVisitorTab("/sporocila/abc", "")).toBe("sporocila");
+    expect(activeVisitorTab("/u/ana", "")).toBe("feed");
     expect(activeVisitorTab("/moj-mekko/profil", "")).toBe("moj-mekko");
     expect(activeVisitorTab("/prototip/moj-mekko", "")).toBeNull();
   });

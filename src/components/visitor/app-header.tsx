@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, MessageCircle } from "lucide-react";
 import { Suspense } from "react";
 import { Logo } from "@/components/logo";
-import { UnreadNotificationsBadge } from "@/components/visitor/unread-badge";
-import { notifications } from "@/lib/demo/data";
+import { UnreadMessagesBadge, UnreadNotificationsBadge } from "@/components/visitor/unread-badge";
+import { conversations, notifications } from "@/lib/demo/data";
 
-/** Visitor header: logo (phones only — desktop rail shows it) + notifications bell. Messages are a tab (2026-11-16). */
+/** Visitor header: logo (phones only — desktop rail shows it) + TWO separate icons: messages and notifications. */
 export function AppHeader({ base = "/prototip" }: { base?: "" | "/prototip" }) {
   // Live routes render request-time badges; the prototype shows demo counts.
   const isDemo = base === "/prototip";
+  const unreadMessages = isDemo ? conversations.reduce((n, c) => n + c.unread, 0) : 0;
   const unreadNotifications = isDemo ? notifications.filter((n) => !n.read).length : 0;
 
   return (
@@ -18,6 +19,21 @@ export function AppHeader({ base = "/prototip" }: { base?: "" | "/prototip" }) {
           <Logo href={`${base}/odkrivanje`} />
         </div>
         <div className="flex items-center gap-1">
+          <HeaderIcon
+            href={`${base}/sporocila`}
+            label="Sporočila"
+            count={unreadMessages}
+            testId="header-messages"
+            live={
+              isDemo ? undefined : (
+                <Suspense fallback={null}>
+                  <UnreadMessagesBadge />
+                </Suspense>
+              )
+            }
+          >
+            <MessageCircle aria-hidden="true" className="size-6" />
+          </HeaderIcon>
           <HeaderIcon
             href={`${base}/obvestila`}
             label="Obvestila"

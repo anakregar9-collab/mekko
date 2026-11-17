@@ -83,7 +83,7 @@ export function ReportForm({
   targetId,
   label,
 }: {
-  targetType: "profile" | "message" | "event" | "space" | "idea";
+  targetType: "profile" | "message" | "event" | "space" | "idea" | "post" | "comment";
   targetId: string;
   label: string;
 }) {

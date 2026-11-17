@@ -37,7 +37,7 @@ Exit: test-mode transactions pass success/failure/retry/refund/dispute/multi-tic
 - Community open/approval membership, member-only posts, events and shared schedules; paid member dues later.
 Exit: purchase grants exactly the correct content access; private membership rules tested.
 
-### M4b — Ustvarjalni feed (founder request 2026-11-17, PROPOSED — needs founder answers)
+### M4b — Ustvarjalni feed (founder request 2026-11-17, CONFIRMED — see DECISIONS)
 Founder wish: a simplified Instagram for creative work — post photos of your own creations, like, comment, share with friends ("kolegi") and message them; the feed takes the place of the current Sporočila tab, messages stay reachable from the feed.
 - Conflicts with confirmed items, to be changed only on founder decision: PRODUCT_SPEC §2 "NOT a general infinite social network" and DECISIONS "no follower system yet".
 - Proposed scope: post = 1–5 photos + caption + optional link to an idea/event/category; likes; comments (report/block/moderation, rate limits); "kolegi" connections; feed of kolegi + optional public "Navdih" stream; share a post into a private message; profile grid of own posts.

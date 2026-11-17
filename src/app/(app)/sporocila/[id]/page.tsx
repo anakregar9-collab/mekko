@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/dal";
@@ -67,7 +68,7 @@ async function Content({ params }: { params: PageProps<"/sporocila/[id]">["param
               )}
             >
               <span className="sr-only">{m.mine ? "Ti" : name}: </span>
-              {m.removed ? "Sporočilo je odstranil moderator." : m.body}
+              {m.removed ? "Sporočilo je odstranil moderator." : <LinkedText text={m.body} mine={m.mine} />}
             </div>
             <p className="mt-0.5 text-xs text-ink-muted">
               {formatDate(m.createdAt)} · {formatTime(m.createdAt)}
@@ -93,5 +94,28 @@ async function Content({ params }: { params: PageProps<"/sporocila/[id]">["param
 
       <ReportForm targetType="profile" targetId={conv.other.id} label={`Prijavi osebo ${name}`} />
     </div>
+  );
+}
+
+const POST_LINK = /(\/objave\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+
+/** Turns shared post links ("/objave/<id>") into real links; everything else stays plain text. */
+function LinkedText({ text, mine }: { text: string; mine: boolean }) {
+  return (
+    <>
+      {text.split(POST_LINK).map((part, i) =>
+        POST_LINK.test(part) ? (
+          <Link
+            key={i}
+            href={part}
+            className={mine ? "font-semibold underline" : "font-semibold text-brand-strong underline"}
+          >
+            Odpri objavo
+          </Link>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
   );
 }

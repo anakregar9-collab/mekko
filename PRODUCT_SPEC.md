@@ -14,9 +14,9 @@ Mekko is a Slovenia-first discovery platform for creative and lifestyle activiti
 - Personal profile privacy chosen by user. Private data never shown as part of public profile.
 
 ## 2. Navigation, home, UX
-- Main mobile navigation exactly five (founder change 2026-11-16, previously four): Odkrivanje, Moje aktivnosti, Ustvari, Sporočila, Moj Mekko. Notifications stay as the header bell.
-- Messages and notifications stay separate destinations: Sporočila is a tab, notifications are the header bell (founder change 2026-11-16; previously two header icons).
-- Home is a dynamic social-feed-style discovery of events, ideas and relevant content, NOT a general infinite social network. Events are the core conversion action; clear filters and CTAs.
+- Main mobile navigation exactly five: Odkrivanje, Moje aktivnosti, Ustvari, Feed, Moj Mekko (founder 2026-11-17; Sporočila moved to a header icon next to notifications).
+- Header has two separate icons: messages and notifications (founder 2026-11-17).
+- Home is a dynamic social-feed-style discovery of events, ideas and relevant content. Since 2026-11-17 (founder) there is also a simplified creative feed (own creations, likes, comments, follows) — see DECISIONS; it is not a general-purpose social network. Events are the core conversion action; clear filters and CTAs.
 - Personalization inputs: onboarding interests, favorites/saves, approximate location. Provide controls to change interests/location, with search to browse everything. No requirement for AI recommender at launch.
 - Moje aktivnosti: registrations, history, calendar. Moj Mekko: personal profile, settings, saved items, purchased library and switch into organizer workspace.
 - Ustvari: centralized creation menu. Organizer mode has its own dashboard/navigation while remaining responsive on mobile.

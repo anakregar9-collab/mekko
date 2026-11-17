@@ -35,3 +35,24 @@ export async function removeOldPhoto(previous: string | null, next: string | nul
   const supabase = await createClient();
   await supabase.storage.from("covers").remove([previous]);
 }
+
+/** Upload 1..max photos from a multi-file field (same checks as a single photo). */
+export async function uploadPhotosFromForm(
+  fd: FormData,
+  field: string,
+  userId: string,
+  max: number,
+): Promise<{ paths: string[] } | { error: string }> {
+  const files = fd.getAll(field).filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) return { paths: [] };
+  if (files.length > max) return { error: `Največ ${max} fotografij.` };
+  const paths: string[] = [];
+  for (const file of files) {
+    const one = new FormData();
+    one.set("f", file);
+    const res = await uploadPhotoFromForm(one, "f", userId);
+    if ("error" in res) return res;
+    if (res.path) paths.push(res.path);
+  }
+  return { paths };
+}

@@ -177,6 +177,15 @@ async function Content({ params }: { params: PageProps<"/ideje/[slug]">["params"
               </form>
             )}
           </div>
+          {idea.status === "published" && (
+            <Link
+              href={`/objave/nova?ideja=${idea.slug}`}
+              className="flex items-center justify-between gap-2 rounded-2xl bg-sun-soft p-4 font-semibold text-sun-ink"
+              data-testid="share-creation"
+            >
+              Si naredil/-a po tej ideji? Pokaži v feedu →
+            </Link>
+          )}
           {!mine && idea.status === "published" && (
             <ReportForm targetType="idea" targetId={idea.id} label="Prijavi idejo" />
           )}

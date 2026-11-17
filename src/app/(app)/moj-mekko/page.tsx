@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import {
+  Images,
+  UserPlus,
   Lightbulb,
   Ban,
   Bookmark,
@@ -85,6 +87,18 @@ async function Content() {
           icon={<Bookmark aria-hidden="true" className="size-6" />}
           title="Shranjeno"
           desc="Dogodki in ideje, ki si jih shranil/-a"
+        />
+        <Row
+          href={`/u/${profile.handle}`}
+          icon={<Images aria-hidden="true" className="size-6" />}
+          title="Moj profil v feedu"
+          desc="Tvoje objave, sledilci in kdo ti sledi"
+        />
+        <Row
+          href="/moj-mekko/sledilci"
+          icon={<UserPlus aria-hidden="true" className="size-6" />}
+          title="Prošnje za sledenje"
+          desc="Za zasebne profile: koga sprejmeš med sledilce"
         />
         <Row
           href="/moj-mekko/ideje"

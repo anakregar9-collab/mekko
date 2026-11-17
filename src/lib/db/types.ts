@@ -459,6 +459,43 @@ export type Database = {
         };
         Relationships: [];
       };
+      follows: {
+        Row: {
+          created_at: string;
+          followee_id: string;
+          follower_id: string;
+          status: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          followee_id: string;
+          follower_id: string;
+          status?: string;
+        };
+        Update: {
+          created_at?: string;
+          followee_id?: string;
+          follower_id?: string;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "follows_followee_id_fkey";
+            columns: ["followee_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "follows_follower_id_fkey";
+            columns: ["follower_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ideas: {
         Row: {
           author_id: string;
@@ -697,6 +734,169 @@ export type Database = {
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      post_comments: {
+        Row: {
+          author_id: string;
+          body: string;
+          created_at: string;
+          id: number;
+          post_id: string;
+          removed_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id: string;
+          body: string;
+          created_at?: string;
+          id?: never;
+          post_id: string;
+          removed_at?: string | null;
+        };
+        Update: {
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+          id?: never;
+          post_id?: string;
+          removed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "post_comments_post_id_fkey";
+            columns: ["post_id"];
+            isOneToOne: false;
+            referencedRelation: "posts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      post_likes: {
+        Row: {
+          created_at: string;
+          post_id: string;
+          profile_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          post_id: string;
+          profile_id: string;
+        };
+        Update: {
+          created_at?: string;
+          post_id?: string;
+          profile_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey";
+            columns: ["post_id"];
+            isOneToOne: false;
+            referencedRelation: "posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "post_likes_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      post_photos: {
+        Row: {
+          path: string;
+          position: number;
+          post_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          path: string;
+          position: number;
+          post_id: string;
+        };
+        Update: {
+          path?: string;
+          position?: number;
+          post_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "post_photos_post_id_fkey";
+            columns: ["post_id"];
+            isOneToOne: false;
+            referencedRelation: "posts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      posts: {
+        Row: {
+          author_id: string;
+          caption: string | null;
+          created_at: string;
+          event_id: string | null;
+          hidden_reason: string | null;
+          id: string;
+          idea_id: string | null;
+          status: string;
+          visibility: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id: string;
+          caption?: string | null;
+          created_at?: string;
+          event_id?: string | null;
+          hidden_reason?: string | null;
+          id?: string;
+          idea_id?: string | null;
+          status?: string;
+          visibility?: string;
+        };
+        Update: {
+          author_id?: string;
+          caption?: string | null;
+          created_at?: string;
+          event_id?: string | null;
+          hidden_reason?: string | null;
+          id?: string;
+          idea_id?: string | null;
+          status?: string;
+          visibility?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "posts_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "posts_idea_id_fkey";
+            columns: ["idea_id"];
+            isOneToOne: false;
+            referencedRelation: "ideas";
             referencedColumns: ["id"];
           },
         ];
@@ -1163,6 +1363,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      add_comment: { Args: { p_body: string; p_post: string }; Returns: number };
       admin_remove_message: { Args: { p_message: number; p_reason: string }; Returns: undefined };
       admin_resolve_data_request: {
         Args: {
@@ -1178,6 +1379,10 @@ export type Database = {
       };
       admin_set_idea_status: {
         Args: { p_idea: string; p_reason: string; p_status: string };
+        Returns: undefined;
+      };
+      admin_set_post_status: {
+        Args: { p_post: string; p_reason: string; p_status: string };
         Returns: undefined;
       };
       admin_set_profile_status: {
@@ -1203,11 +1408,23 @@ export type Database = {
         Returns: string;
       };
       can_message: { Args: { p_to: string }; Returns: boolean };
+      can_view_post: { Args: { p_post: string }; Returns: boolean };
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
       confirm_booking_payment: { Args: { p_booking: string }; Returns: undefined };
       contact_space: { Args: { p_body: string; p_space: string }; Returns: string };
+      create_post: {
+        Args: {
+          p_caption: string;
+          p_event?: string;
+          p_idea?: string;
+          p_no_children: boolean;
+          p_paths: string[];
+          p_visibility: string;
+        };
+        Returns: string;
+      };
       create_space: {
         Args: {
           p_city?: string;
@@ -1221,6 +1438,43 @@ export type Database = {
       dm_open_after: { Args: Record<PropertyKey, never>; Returns: string };
       event_online_url: { Args: { p_event: string }; Returns: string };
       event_space: { Args: { p_event: string }; Returns: string };
+      feed_posts: {
+        Args: { p_author?: string; p_before?: string; p_limit?: number; p_scope: string };
+        Returns: {
+          author_handle: string;
+          author_id: string;
+          author_name: string;
+          caption: string;
+          comment_count: number;
+          created_at: string;
+          event_slug: string;
+          event_title: string;
+          id: string;
+          idea_slug: string;
+          idea_title: string;
+          like_count: number;
+          liked_by_me: boolean;
+          photos: string[];
+          status: string;
+          visibility: string;
+        }[];
+      };
+      feed_profile: {
+        Args: { p_handle: string };
+        Returns: {
+          bio: string;
+          display_name: string;
+          follow_status: string;
+          followers: number;
+          following: number;
+          handle: string;
+          id: string;
+          is_me: boolean;
+          posts: number;
+          visibility: string;
+        }[];
+      };
+      follow_user: { Args: { p_profile: string }; Returns: string };
       has_platform_role: {
         Args: { roles: Database["public"]["Enums"]["platform_role"][] };
         Returns: boolean;
@@ -1241,6 +1495,7 @@ export type Database = {
       is_active_user: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_blocked_between: { Args: { p_a: string; p_b: string }; Returns: boolean };
       is_conversation_member: { Args: { p_conversation: string }; Returns: boolean };
+      is_following: { Args: { p_followee: string }; Returns: boolean };
       is_moderator: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_platform_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_space_role: {
@@ -1254,9 +1509,24 @@ export type Database = {
         Returns: undefined;
       };
       notify_attendees: { Args: { p_event: string; p_message: string }; Returns: number };
+      post_comments_for: {
+        Args: { p_post: string };
+        Returns: {
+          author_handle: string;
+          author_id: string;
+          author_name: string;
+          body: string;
+          can_remove: boolean;
+          created_at: string;
+          id: number;
+          removed: boolean;
+        }[];
+      };
       publish_event: { Args: { p_event: string }; Returns: undefined };
       release_overdue_reservations: { Args: { p_event?: string }; Returns: number };
       release_unpaid_booking: { Args: { p_booking: string; p_reason: string }; Returns: undefined };
+      remove_comment: { Args: { p_comment: number }; Returns: undefined };
+      remove_post: { Args: { p_post: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
       report_content: {
         Args: {
@@ -1268,6 +1538,7 @@ export type Database = {
         Returns: string;
       };
       request_space_verification: { Args: { p_space: string }; Returns: undefined };
+      respond_follow: { Args: { p_accept: boolean; p_follower: string }; Returns: undefined };
       respond_space_invite: { Args: { p_accept: boolean; p_space: string }; Returns: undefined };
       seats_taken: { Args: { p_event: string; p_occurrence: string }; Returns: number };
       send_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
@@ -1302,7 +1573,9 @@ export type Database = {
       };
       space_role_rank: { Args: { r: Database["public"]["Enums"]["space_role"] }; Returns: number };
       start_conversation: { Args: { p_body: string; p_to: string }; Returns: string };
+      toggle_like: { Args: { p_post: string }; Returns: boolean };
       unblock_user: { Args: { p_profile: string }; Returns: undefined };
+      unfollow_user: { Args: { p_profile: string }; Returns: undefined };
       unread_conversations: { Args: Record<PropertyKey, never>; Returns: number };
       write_audit: {
         Args: {
@@ -1335,7 +1608,7 @@ export type Database = {
       registration_mode: "native" | "external";
       report_reason: "spam" | "harassment" | "inappropriate" | "scam" | "copyright" | "other";
       report_status: "open" | "actioned" | "dismissed";
-      report_target: "profile" | "message" | "event" | "space" | "idea";
+      report_target: "profile" | "message" | "event" | "space" | "idea" | "post" | "comment";
       space_kind: "solo_creator" | "community" | "studio" | "association";
       space_role: "owner" | "admin" | "staff" | "member";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
@@ -1470,7 +1743,7 @@ export const Constants = {
       registration_mode: ["native", "external"],
       report_reason: ["spam", "harassment", "inappropriate", "scam", "copyright", "other"],
       report_status: ["open", "actioned", "dismissed"],
-      report_target: ["profile", "message", "event", "space", "idea"],
+      report_target: ["profile", "message", "event", "space", "idea", "post", "comment"],
       space_kind: ["solo_creator", "community", "studio", "association"],
       space_role: ["owner", "admin", "staff", "member"],
       verification_status: ["unverified", "pending", "verified", "rejected"],

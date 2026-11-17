@@ -24,6 +24,8 @@ const typeLabel: Record<string, string> = {
   event: "Dogodek",
   space: "Prostor",
   idea: "Ideja",
+  post: "Objava v feedu",
+  comment: "Komentar",
 };
 
 export default function Page() {
@@ -63,6 +65,11 @@ async function Content() {
     .from("ideas")
     .select("id, slug, title, status")
     .in("id", ids("idea"));
+  const { data: postsRep } = await supabase.from("posts").select("id, caption, status").in("id", ids("post"));
+  const commentIds = ids("comment").map(Number).filter(Number.isFinite);
+  const { data: commentsRep } = commentIds.length
+    ? await supabase.from("post_comments").select("id, post_id, body, removed_at").in("id", commentIds)
+    : { data: [] as { id: number; post_id: string; body: string; removed_at: string | null }[] };
   const [{ data: msgs }, { data: people }, { data: events }, { data: spaces }] = await Promise.all([
     msgIds.length
       ? supabase.from("messages").select("id, body, removed_at, sender_id").in("id", msgIds)
@@ -87,6 +94,8 @@ async function Content() {
         let target: React.ReactNode = <span className="text-ink-muted">Vsebine ni več</span>;
         let messageId: number | undefined;
         let ideaId: string | undefined;
+        let postId: string | undefined;
+        let commentId: number | undefined;
         if (r.target_type === "message") {
           const m = (msgs ?? []).find((x) => String(x.id) === r.target_id);
           if (m) {
@@ -120,6 +129,32 @@ async function Content() {
                 {e.title}
               </Link>
             );
+        } else if (r.target_type === "post") {
+          const p = (postsRep ?? []).find((x) => x.id === r.target_id);
+          if (p) {
+            postId = p.status === "published" ? p.id : undefined;
+            target = (
+              <Link href={`/objave/${p.id}`} className="font-semibold underline">
+                {p.caption ? p.caption.slice(0, 80) : "Objava brez opisa"}
+                {p.status !== "published" ? " (skrita)" : ""}
+              </Link>
+            );
+          }
+        } else if (r.target_type === "comment") {
+          const c = (commentsRep ?? []).find((x) => String(x.id) === r.target_id);
+          if (c) {
+            commentId = c.removed_at ? undefined : c.id;
+            target = (
+              <>
+                <span className="block rounded-xl bg-cream p-2 break-words whitespace-pre-line">
+                  {c.removed_at ? "(odstranjeno)" : c.body}
+                </span>
+                <Link href={`/objave/${c.post_id}`} className="text-sm underline">
+                  Odpri objavo
+                </Link>
+              </>
+            );
+          }
         } else if (r.target_type === "idea") {
           const i = (ideas ?? []).find((x) => x.id === r.target_id);
           if (i) {
@@ -154,7 +189,13 @@ async function Content() {
                 Prijavil/-a @{reporter?.handle ?? "?"} · {formatDate(r.created_at)} {formatTime(r.created_at)}
               </p>
             </div>
-            <ResolveReportForm reportId={r.id} messageId={messageId} ideaId={ideaId} />
+            <ResolveReportForm
+              reportId={r.id}
+              messageId={messageId}
+              ideaId={ideaId}
+              postId={postId}
+              commentId={commentId}
+            />
           </li>
         );
       })}

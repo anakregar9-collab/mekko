@@ -1,7 +1,6 @@
 import { AppHeader } from "@/components/visitor/app-header";
 import { Suspense } from "react";
 import { VisitorNav, VisitorNavView } from "@/components/visitor/visitor-nav";
-import { UnreadMessagesBadge } from "@/components/visitor/unread-badge";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,14 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Suspense fallback={<VisitorNavView base="" active={null} />}>
-        <VisitorNav
-          base=""
-          messagesBadge={
-            <Suspense fallback={null}>
-              <UnreadMessagesBadge />
-            </Suspense>
-          }
-        />
+        <VisitorNav base="" />
       </Suspense>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Compass, MessageCircle, Plus, Smile, type LucideIcon } from "lucide-react";
+import { CalendarCheck, Compass, Images, Plus, Smile, type LucideIcon } from "lucide-react";
 import { activeVisitorTab, makeVisitorTabs, PROTO, type NavBase, type VisitorTabKey } from "@/lib/navigation";
 import { cn } from "@/lib/cn";
 import { Logo } from "@/components/logo";
@@ -11,7 +11,7 @@ const icons: Record<VisitorTabKey, LucideIcon> = {
   odkrivanje: Compass,
   "moje-aktivnosti": CalendarCheck,
   ustvari: Plus,
-  sporocila: MessageCircle,
+  feed: Images,
   "moj-mekko": Smile,
 };
 
@@ -19,30 +19,13 @@ const icons: Record<VisitorTabKey, LucideIcon> = {
  * The ONE visitor navigation element. Bottom tab bar on phones, left rail
  * from md up — the same DOM node, so there is never duplicated navigation.
  */
-export function VisitorNav({
-  base = PROTO,
-  messagesBadge,
-}: {
-  base?: NavBase;
-  messagesBadge?: React.ReactNode;
-}) {
+export function VisitorNav({ base = PROTO }: { base?: NavBase }) {
   const pathname = usePathname();
-  return (
-    <VisitorNavView base={base} active={activeVisitorTab(pathname, base)} messagesBadge={messagesBadge} />
-  );
+  return <VisitorNavView base={base} active={activeVisitorTab(pathname, base)} />;
 }
 
 /** Hook-free render, also used as the Suspense fallback on dynamic routes. */
-export function VisitorNavView({
-  base = PROTO,
-  active,
-  messagesBadge,
-}: {
-  base?: NavBase;
-  active: VisitorTabKey | null;
-  /** Live unread count rendered on the Sporočila tab (server component passed in). */
-  messagesBadge?: React.ReactNode;
-}) {
+export function VisitorNavView({ base = PROTO, active }: { base?: NavBase; active: VisitorTabKey | null }) {
   const tabs = makeVisitorTabs(base);
 
   return (
@@ -77,7 +60,6 @@ export function VisitorNavView({
                   )}
                 >
                   <Icon aria-hidden="true" className={isCreate ? "size-5" : "size-6"} strokeWidth={2.2} />
-                  {tab.key === "sporocila" && messagesBadge}
                 </span>
                 <span className="text-center">{tab.label}</span>
               </Link>

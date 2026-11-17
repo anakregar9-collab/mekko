@@ -151,3 +151,19 @@ Built:
 ## 2026-11-17 — Founder request: "Ustvarjalni feed" (mini Instagram) — PROPOSED, awaiting answers
 - Founder wants a simplified Instagram-style feed for one's own creations: post, like, comment, share with friends, message them; the feed should take the current Sporočila tab position.
 - This changes two confirmed items (PRODUCT_SPEC §2 "not a general infinite social network"; "no follower system yet"). Added to MVP_ROADMAP as M4b with open questions; nothing built until the founder answers them.
+
+## 2026-11-17 — Ustvarjalni feed: founder answers (CONFIRMED, replaces the "PROPOSED" entry above)
+1. Connections: **follow like Instagram** — follow anyone without approval; private profiles (visibility "private") must approve followers.
+2. Visibility: **posts visible to all signed-in users by default**; per post the author may choose "samo sledilci". Guests see no feed.
+3. **No recognisable children** in photos — only creations and adults. Posting requires confirming this; moderators hide violating posts.
+4. Feed posts **do not count** toward the free posting quota; anti-spam limits instead (20 posts/day, 60 comments/hour).
+Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no follower system yet" are superseded for the feed. The bottom tab Sporočila becomes the feed tab; messages move back to an icon in the header (next to notifications).
+
+## 2026-11-17 — Ustvarjalni feed built (first slice)
+- Bottom tab **Feed** (Sledim | Navdih); messages are again a header icon next to notifications.
+- Post = 1–5 photos (browser-resized, signature-checked) + optional caption, visibility "vsi prijavljeni" or "samo sledilci", optional link to an idea/event ("Si naredil/-a po tej ideji? Pokaži v feedu"). Posting requires confirming there are no recognisable children.
+- Follow like Instagram; private profiles approve requests (Moj Mekko → Prošnje za sledenje). Blocking hides posts both ways and ends follows.
+- Likes, comments (author, post author or moderator can remove), share a post to someone you follow via private message (normal messaging rules apply).
+- Profile page /u/<handle> with counts and photo grid. Reports cover posts and comments; moderators hide posts / remove comments (audited, author notified).
+- Limits: 20 posts/day, 60 comments/hour, 200 new follows/day.
+- Known limitations: no notifications yet for likes/comments/new followers; feed shows the latest 20 (no infinite scroll yet); no hashtags/search in the feed; photos of followers-only posts are stored in the public bucket under unguessable names (not linked anywhere public) — move to signed URLs if stricter privacy is needed; no test posts in the seed (needs real photos).

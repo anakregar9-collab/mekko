@@ -8,10 +8,14 @@ export function ResolveReportForm({
   reportId,
   messageId,
   ideaId,
+  postId,
+  commentId,
 }: {
   reportId: string;
   messageId?: number;
   ideaId?: string;
+  postId?: string;
+  commentId?: number;
 }) {
   const [state, action] = useActionState<FormState, FormData>(resolveReport, {});
   if (state.ok) return <FormMessage state={state} />;
@@ -21,6 +25,8 @@ export function ResolveReportForm({
       <input type="hidden" name="report_id" value={reportId} />
       {messageId !== undefined && <input type="hidden" name="message_id" value={messageId} />}
       {ideaId && <input type="hidden" name="idea_id" value={ideaId} />}
+      {postId && <input type="hidden" name="post_id" value={postId} />}
+      {commentId !== undefined && <input type="hidden" name="comment_id" value={commentId} />}
       <label htmlFor={id} className="sr-only">
         Opomba moderatorja
       </label>
@@ -34,6 +40,16 @@ export function ResolveReportForm({
       {ideaId && (
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="hide_idea" value="1" className="size-5" /> Skrij idejo
+        </label>
+      )}
+      {postId && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="hide_post" value="1" className="size-5" /> Skrij objavo
+        </label>
+      )}
+      {commentId !== undefined && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="remove_comment" value="1" className="size-5" /> Odstrani komentar
         </label>
       )}
       <div className="flex flex-wrap gap-2">
