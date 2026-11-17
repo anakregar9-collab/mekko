@@ -147,3 +147,7 @@ Built:
 - Capacity can never be set below the seats already booked on any session (DB trigger `guard_event_capacity`).
 - A changed address/city or online link automatically notifies everyone who booked.
 - Replaced photos are removed from storage when they are in the editor's own folder.
+
+## 2026-11-17 — Founder request: "Ustvarjalni feed" (mini Instagram) — PROPOSED, awaiting answers
+- Founder wants a simplified Instagram-style feed for one's own creations: post, like, comment, share with friends, message them; the feed should take the current Sporočila tab position.
+- This changes two confirmed items (PRODUCT_SPEC §2 "not a general infinite social network"; "no follower system yet"). Added to MVP_ROADMAP as M4b with open questions; nothing built until the founder answers them.
