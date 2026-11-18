@@ -66,6 +66,9 @@ test("sign-up, onboarding, profile privacy and data request", async ({ page }) =
   await page.getByLabel("Kraj", { exact: true }).fill("Celje");
   await page.getByRole("radio", { name: /^Samo prijavljenim/ }).check();
   await page.getByRole("button", { name: "Nadaljuj" }).click();
+  await expect(page.getByText("Za nadaljevanje sprejmi Pogoje uporabe.")).toBeVisible();
+  await page.getByRole("checkbox", { name: /Sprejemam Pogoje uporabe/ }).check();
+  await page.getByRole("button", { name: "Nadaljuj" }).click();
 
   await expect(page).toHaveURL(/\/moj-mekko$/);
   const card = page.getByTestId("my-profile");
@@ -117,6 +120,7 @@ test("handles are unique across users", async ({ browser }) => {
   await register(b, `${uid("d")}@example.test`);
   await b.getByLabel("Ime, ki ga vidijo drugi").fill("Druga Oseba");
   await b.getByRole("textbox", { name: "Uporabniško ime" }).fill(handle);
+  await b.getByRole("checkbox", { name: /Sprejemam Pogoje uporabe/ }).check();
   await b.getByRole("button", { name: "Nadaljuj" }).click();
   await expect(b.getByText("To uporabniško ime je že zasedeno.").first()).toBeVisible();
 });

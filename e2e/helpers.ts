@@ -32,6 +32,7 @@ export async function signUp(page: Page, name: string): Promise<{ email: string;
   await expect(page).toHaveURL(/\/onboarding/);
   await page.getByLabel("Ime, ki ga vidijo drugi").fill(name);
   await page.getByRole("textbox", { name: "Uporabniško ime" }).fill(handle);
+  await page.getByRole("checkbox", { name: /Sprejemam Pogoje uporabe/ }).check();
   await page.getByRole("button", { name: "Nadaljuj" }).click();
   await expect(page).toHaveURL(/\/moj-mekko$/);
   return { email, handle };

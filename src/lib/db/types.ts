@@ -946,6 +946,8 @@ export type Database = {
           locale: string;
           onboarded_at: string | null;
           status: Database["public"]["Enums"]["account_status"];
+          terms_accepted_at: string | null;
+          terms_version: string | null;
           updated_at: string;
           visibility: Database["public"]["Enums"]["profile_visibility"];
         };
@@ -960,6 +962,8 @@ export type Database = {
           locale?: string;
           onboarded_at?: string | null;
           status?: Database["public"]["Enums"]["account_status"];
+          terms_accepted_at?: string | null;
+          terms_version?: string | null;
           updated_at?: string;
           visibility?: Database["public"]["Enums"]["profile_visibility"];
         };
@@ -973,6 +977,8 @@ export type Database = {
           locale?: string;
           onboarded_at?: string | null;
           status?: Database["public"]["Enums"]["account_status"];
+          terms_accepted_at?: string | null;
+          terms_version?: string | null;
           updated_at?: string;
           visibility?: Database["public"]["Enums"]["profile_visibility"];
         };

@@ -141,6 +141,15 @@ async function Content() {
       </ul>
 
       <SignOutButton />
+      <p className="text-center text-sm text-ink-muted">
+        <Link href="/pogoji" className="underline">
+          Pogoji uporabe
+        </Link>{" "}
+        ·{" "}
+        <Link href="/zasebnost" className="underline">
+          Politika zasebnosti
+        </Link>
+      </p>
     </div>
   );
 }

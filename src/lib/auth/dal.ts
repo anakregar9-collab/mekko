@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
+import { TERMS_VERSION } from "@/lib/legal";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/db/types";
 
@@ -30,13 +31,16 @@ export const getMyProfile = cache(async (): Promise<Profile | null> => {
 });
 
 export async function requireUser(
-  opts: { allowUnonboarded?: boolean; next?: string } = {},
+  opts: { allowUnonboarded?: boolean; allowTermsPending?: boolean; next?: string } = {},
 ): Promise<Profile> {
   const profile = await getMyProfile();
-  if (!profile) redirect(`/prijava${opts.next ? `?naprej=${encodeURIComponent(opts.next)}` : ""}`);
+  const next = opts.next ? `?naprej=${encodeURIComponent(opts.next)}` : "";
+  if (!profile) redirect(`/prijava${next}`);
   if (profile.status !== "active") redirect("/racun-omejen");
-  if (!profile.onboarded_at && !opts.allowUnonboarded) {
-    redirect(`/onboarding${opts.next ? `?naprej=${encodeURIComponent(opts.next)}` : ""}`);
+  if (!profile.onboarded_at && !opts.allowUnonboarded) redirect(`/onboarding${next}`);
+  // Existing users accept new terms before continuing (new users accept during onboarding).
+  if (profile.onboarded_at && profile.terms_version !== TERMS_VERSION && !opts.allowTermsPending) {
+    redirect(`/pogoji-potrditev${next}`);
   }
   return profile;
 }

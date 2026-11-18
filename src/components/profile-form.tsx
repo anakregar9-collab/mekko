@@ -49,7 +49,10 @@ export function ProfileForm({
   );
   const [handle, setHandle] = useState(v?.handle ?? (generated ? "" : initial.handle));
   const [handleTouched, setHandleTouched] = useState(!generated);
-  const [consent, setConsent] = useState(locationConsent);
+  const [consent, setConsent] = useState(v ? v.location_consent === "true" : locationConsent);
+  // After a failed submit React resets the form; re-mount checkboxes so they match the echoed values.
+  const formKey = v?.nonce ?? "0";
+  const chosenInterests = v ? (v.interests ?? "").split(",").filter(Boolean).map(Number) : selectedInterests;
   const e = state.errors ?? {};
 
   return (
@@ -128,7 +131,8 @@ export function ProfileForm({
                   type="checkbox"
                   name="interests"
                   value={i.id}
-                  defaultChecked={selectedInterests.includes(i.id)}
+                  key={`${i.id}-${formKey}`}
+                  defaultChecked={chosenInterests.includes(i.id)}
                   className="peer sr-only"
                 />
                 <span className="inline-flex min-h-10 items-center rounded-full bg-surface px-4 text-sm font-semibold ring-1 ring-line peer-checked:bg-brand peer-checked:text-white peer-checked:ring-brand peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand">
@@ -143,9 +147,10 @@ export function ProfileForm({
       <section className="space-y-4 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] sm:p-6">
         <h2 className="font-display text-lg font-bold">Lokacija</h2>
         <label className="flex min-h-11 cursor-pointer items-start gap-3">
+          <input type="hidden" name="location_consent" value={consent ? "on" : ""} />
           <input
+            key={`loc-${formKey}`}
             type="checkbox"
-            name="location_consent"
             checked={consent}
             onChange={(ev) => setConsent(ev.target.checked)}
             className="mt-1 size-5 shrink-0 accent-[var(--color-brand)]"
@@ -203,7 +208,8 @@ export function ProfileForm({
         <input
           type="checkbox"
           name="marketing_email"
-          defaultChecked={marketingConsent}
+          key={`mkt-${formKey}`}
+          defaultChecked={v ? v.marketing_email === "on" : marketingConsent}
           className="mt-1 size-5 shrink-0 accent-[var(--color-brand)]"
         />
         <span>
@@ -213,6 +219,36 @@ export function ProfileForm({
           </span>
         </span>
       </label>
+
+      {mode === "onboarding" && (
+        <div className="space-y-1 px-1">
+          <label className="flex min-h-11 cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              name="accept_terms"
+              className="mt-1 size-5 shrink-0 accent-[var(--color-brand)]"
+              aria-invalid={state.errors?.accept_terms ? true : undefined}
+              aria-describedby={state.errors?.accept_terms ? "accept_terms-error" : undefined}
+            />
+            <span>
+              Sprejemam{" "}
+              <a href="/pogoji" target="_blank" className="font-semibold text-brand-strong underline">
+                Pogoje uporabe
+              </a>{" "}
+              in potrjujem, da sem prebral/-a{" "}
+              <a href="/zasebnost" target="_blank" className="font-semibold text-brand-strong underline">
+                Politiko zasebnosti
+              </a>
+              .
+            </span>
+          </label>
+          {state.errors?.accept_terms && (
+            <p id="accept_terms-error" className="text-sm font-medium text-brand-strong">
+              {state.errors.accept_terms}
+            </p>
+          )}
+        </div>
+      )}
 
       <SubmitButton size="lg" className="w-full sm:w-auto">
         {mode === "onboarding" ? "Nadaljuj" : "Shrani"}

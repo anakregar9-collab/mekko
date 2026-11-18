@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { TERMS_VERSION } from "@/lib/legal";
 import { requireUser } from "@/lib/auth/dal";
 import { friendlyDbError } from "@/lib/db/errors";
 import { fieldErrors, onboardingSchema, profileSchema, safeNext } from "@/lib/validation";
@@ -46,15 +47,27 @@ async function recordConsent(
 }
 
 export async function saveOnboarding(_prev: FormState, formData: FormData): Promise<FormState> {
-  const profile = await requireUser({ allowUnonboarded: true });
+  const profile = await requireUser({ allowUnonboarded: true, allowTermsPending: true });
   const raw = {
     ...readProfile(formData),
     interests: formData.getAll("interests").map(String),
     location_consent: formData.get("location_consent") === "on",
   };
   const parsed = onboardingSchema.safeParse(raw);
-  if (!parsed.success)
-    return { errors: fieldErrors(parsed.error), values: echo(raw), message: "Preveri označena polja." };
+  const termsOk = formData.get("accept_terms") === "on";
+  if (!parsed.success || !termsOk)
+    return {
+      errors: {
+        ...(parsed.success ? {} : fieldErrors(parsed.error)),
+        ...(termsOk ? {} : { accept_terms: "Za nadaljevanje sprejmi Pogoje uporabe." }),
+      },
+      values: {
+        ...echo(raw),
+        marketing_email: formData.get("marketing_email") === "on" ? "on" : "",
+        nonce: Math.random().toString(36).slice(2),
+      },
+      message: "Preveri označena polja.",
+    };
   const d = parsed.data;
   const supabase = await createClient();
 
@@ -67,6 +80,8 @@ export async function saveOnboarding(_prev: FormState, formData: FormData): Prom
       approx_city: d.location_consent && d.approx_city ? d.approx_city : null,
       visibility: d.visibility,
       onboarded_at: new Date().toISOString(),
+      terms_version: TERMS_VERSION,
+      terms_accepted_at: new Date().toISOString(),
     })
     .eq("id", profile.id);
   if (error) {
@@ -156,4 +171,18 @@ export async function requestData(_prev: FormState, formData: FormData): Promise
         ? "Zahteva za izvoz je oddana. Podatke ti pošljemo po e-pošti v največ 30 dneh."
         : "Zahteva za izbris je oddana. Pred izbrisom te bomo kontaktirali po e-pošti.",
   };
+}
+
+/** Existing users accept a new version of the terms and privacy policy. */
+export async function acceptTerms(formData: FormData): Promise<void> {
+  const profile = await requireUser({ allowTermsPending: true });
+  const naprej = String(formData.get("naprej") ?? "");
+  if (formData.get("accept_terms") !== "on")
+    redirect(`/pogoji-potrditev?napaka=1${naprej ? `&naprej=${encodeURIComponent(naprej)}` : ""}`);
+  const supabase = await createClient();
+  await supabase
+    .from("profiles")
+    .update({ terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() })
+    .eq("id", profile.id);
+  redirect(safeNext(naprej, "/moj-mekko"));
 }

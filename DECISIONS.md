@@ -167,3 +167,10 @@ Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no f
 - Profile page /u/<handle> with counts and photo grid. Reports cover posts and comments; moderators hide posts / remove comments (audited, author notified).
 - Limits: 20 posts/day, 60 comments/hour, 200 new follows/day.
 - Known limitations: no notifications yet for likes/comments/new followers; feed shows the latest 20 (no infinite scroll yet); no hashtags/search in the feed; photos of followers-only posts are stored in the public bucket under unguessable names (not linked anywhere public) — move to signed URLs if stricter privacy is needed; no test posts in the seed (needs real photos).
+
+## 2026-11-18 — Terms of use + privacy policy (DRAFT for lawyer review)
+- Pages /pogoji and /zasebnost (Slovene), visibly marked "Osnutek v pregledu pri pravniku", version `TERMS_VERSION` in src/lib/legal.ts.
+- Content reflects what is built: Mekko as intermediary (not a party to organizer–visitor contracts), manual payments not processed by Mekko, organizer responsibility (registration, invoices, fiscal cash, taxes/VAT, refunds), content rules incl. no recognisable children, moderation + appeal by e-mail, processors (Supabase EU, Vercel, Resend later), retention, essential cookies only (so no cookie banner), GDPR rights + Informacijski pooblaščenec.
+- New users accept during onboarding; existing users are sent to /pogoji-potrditev until they accept the current version. Stored as profiles.terms_version / terms_accepted_at.
+- **Open (founder):** operator legal name, address and registration number (placeholders in src/lib/legal.ts); minimum age (draft: 15, Slovenian age of digital consent — to confirm); retention periods (draft: account data until deletion, 30 days after deletion, moderation logs 2 years); support e-mail podpora@mekko.eu must exist.
+- Bug fixed on the way: the onboarding form forgot the location/marketing/interest choices after a failed submit.

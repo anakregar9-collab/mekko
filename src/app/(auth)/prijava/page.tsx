@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { LoginForm } from "./login-form";
 
@@ -15,7 +16,14 @@ export default function LoginPage() {
         <LoginForm />
       </Suspense>
       <p className="text-xs text-ink-muted">
-        Prijava z Google računom bo na voljo kmalu. Tvojega e-poštnega naslova nikoli ne prikažemo drugim.
+        Prijava z Google računom bo na voljo kmalu. Tvojega e-poštnega naslova nikoli ne prikažemo drugim.{" "}
+        <Link href="/pogoji" className="underline">
+          Pogoji uporabe
+        </Link>{" "}
+        ·{" "}
+        <Link href="/zasebnost" className="underline">
+          Zasebnost
+        </Link>
       </p>
     </div>
   );
