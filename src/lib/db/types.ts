@@ -1546,6 +1546,16 @@ export type Database = {
       request_space_verification: { Args: { p_space: string }; Returns: undefined };
       respond_follow: { Args: { p_accept: boolean; p_follower: string }; Returns: undefined };
       respond_space_invite: { Args: { p_accept: boolean; p_space: string }; Returns: undefined };
+      search_people: {
+        Args: { p_query: string };
+        Returns: {
+          display_name: string;
+          follow_status: string;
+          handle: string;
+          id: string;
+          is_me: boolean;
+        }[];
+      };
       seats_taken: { Args: { p_event: string; p_occurrence: string }; Returns: number };
       send_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };

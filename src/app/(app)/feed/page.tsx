@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Plus, UserPlus } from "lucide-react";
+import { Plus, Search, UserPlus } from "lucide-react";
 import { requireUser } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 import { listFeed } from "@/lib/data/feed";
@@ -17,9 +17,14 @@ export default function Page({ searchParams }: PageProps<"/feed">) {
     <div className="mx-auto max-w-xl space-y-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="font-display text-3xl font-extrabold tracking-tight">Feed</h1>
-        <Link href="/objave/nova" className={buttonClasses("primary", "sm")}>
-          <Plus aria-hidden="true" className="size-4" /> Nova objava
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link href="/feed/iskanje" className={buttonClasses("ghost", "sm")}>
+            <Search aria-hidden="true" className="size-4" /> Poišči ljudi
+          </Link>
+          <Link href="/objave/nova" className={buttonClasses("primary", "sm")}>
+            <Plus aria-hidden="true" className="size-4" /> Nova objava
+          </Link>
+        </div>
       </div>
       <Suspense fallback={<PageSkeleton />}>
         <Content searchParams={searchParams} />
@@ -32,9 +37,10 @@ async function Content({ searchParams }: { searchParams: PageProps<"/feed">["sea
   const me = await requireUser({ next: "/feed" });
   const sp = await searchParams;
   const scope = sp.pogled === "navdih" ? "all" : "following";
+  const before = typeof sp.pred === "string" && !Number.isNaN(Date.parse(sp.pred)) ? sp.pred : undefined;
   const supabase = await createClient();
   const [posts, { count: pending }] = await Promise.all([
-    listFeed(scope),
+    listFeed(scope, before),
     supabase
       .from("follows")
       .select("follower_id", { count: "exact", head: true })
@@ -101,13 +107,31 @@ async function Content({ searchParams }: { searchParams: PageProps<"/feed">["sea
           </p>
         </EmptyState>
       ) : (
-        <ul className="space-y-4" data-testid="feed-posts">
-          {posts.map((p) => (
-            <li key={p.id}>
-              <PostCard post={p} back={scope === "all" ? "/feed?pogled=navdih" : "/feed"} />
-            </li>
-          ))}
-        </ul>
+        <>
+          {before && (
+            <Link
+              href={scope === "all" ? "/feed?pogled=navdih" : "/feed"}
+              className="text-sm font-semibold text-brand-strong underline"
+            >
+              ← Na najnovejše objave
+            </Link>
+          )}
+          <ul className="space-y-4" data-testid="feed-posts">
+            {posts.map((p) => (
+              <li key={p.id}>
+                <PostCard post={p} back={scope === "all" ? "/feed?pogled=navdih" : "/feed"} />
+              </li>
+            ))}
+          </ul>
+          {posts.length === 20 && (
+            <Link
+              href={`/feed?${scope === "all" ? "pogled=navdih&" : ""}pred=${encodeURIComponent(posts[posts.length - 1].createdAt)}`}
+              className={buttonClasses("secondary", "md", "w-full")}
+            >
+              Naloži starejše objave
+            </Link>
+          )}
+        </>
       )}
     </div>
   );

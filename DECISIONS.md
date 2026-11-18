@@ -174,3 +174,9 @@ Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no f
 - New users accept during onboarding; existing users are sent to /pogoji-potrditev until they accept the current version. Stored as profiles.terms_version / terms_accepted_at.
 - **Open (founder):** operator legal name, address and registration number (placeholders in src/lib/legal.ts); minimum age (draft: 15, Slovenian age of digital consent — to confirm); retention periods (draft: account data until deletion, 30 days after deletion, moderation logs 2 years); support e-mail podpora@mekko.eu must exist.
 - Bug fixed on the way: the onboarding form forgot the location/marketing/interest choices after a failed submit.
+
+## 2026-11-18 — Feed: notifications, people search, older posts (founder: skip e-mails for now, build features)
+- In-app notifications: new like (at most one per person+post per day, never for own posts), new comment, new follower, follow request, accepted request. No e-mail/push yet.
+- People search (/feed/iskanje) by name or handle, min. 2 characters; blocked pairs never appear; private profiles appear (following needs approval). Returns only name + handle.
+- Feed shows 20 posts per page with "Naloži starejše objave".
+- E-mails (Resend + mekko.eu DNS) postponed by founder; password reset therefore still missing.

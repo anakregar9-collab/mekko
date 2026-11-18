@@ -100,6 +100,8 @@ export async function followAction(fd: FormData): Promise<void> {
   else await supabase.rpc("unfollow_user", { p_profile: target });
   revalidatePath(`/u/${handle}`);
   revalidatePath("/feed");
+  const back = String(fd.get("back") ?? "");
+  if (back.startsWith("/feed/iskanje")) revalidatePath("/feed/iskanje");
 }
 
 export async function respondFollowAction(fd: FormData): Promise<void> {
