@@ -10,6 +10,8 @@ import { PageSkeleton } from "@/components/page-skeleton";
 import { Panel } from "@/components/workspace/stat-tile";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatPrice, formatSlot, formatTime, pluralSl } from "@/lib/format";
+import { SessionsPanel } from "./sessions-panel";
+import { nowMs } from "@/lib/time";
 import {
   CancelEventForm,
   DeleteDraftButton,
@@ -72,6 +74,25 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
   const bookings = (bookingsRaw ?? []) as unknown as AttendeeRow[];
   const active = bookings.filter((b) => b.status === "confirmed");
   const isAdmin = hasSpaceRole(role, "admin");
+  const now = nowMs();
+  const local = (iso: string) => {
+    const d = new Date(iso);
+    const fmt = (o: Intl.DateTimeFormatOptions) =>
+      new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Ljubljana", ...o }).format(d);
+    return {
+      date: fmt({ year: "numeric", month: "2-digit", day: "2-digit" }),
+      time: fmt({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+    };
+  };
+  const sessions = occurrences.map((o) => ({
+    id: o.id,
+    label: formatSlot(o.starts_at, o.ends_at),
+    date: local(o.starts_at).date,
+    start: local(o.starts_at).time,
+    end: local(o.ends_at).time,
+    cancelled: o.status === "cancelled",
+    editable: o.status === "scheduled" && Date.parse(o.starts_at) > now,
+  }));
   const groups =
     event.booking_scope === "series"
       ? [{ key: "series", label: "Cel tečaj", list: active }]
@@ -211,6 +232,11 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
         </Panel>
 
         <div className="space-y-4">
+          {isAdmin && event.status !== "cancelled" && (
+            <Panel title="Termini">
+              <SessionsPanel spaceSlug={slug} eventId={event.id} sessions={sessions} />
+            </Panel>
+          )}
           {event.status === "published" && active.length > 0 && (
             <Panel title="Obvesti udeležence">
               <NotifyForm spaceSlug={slug} eventId={event.id} />

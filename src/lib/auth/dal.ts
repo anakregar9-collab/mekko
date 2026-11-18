@@ -77,6 +77,8 @@ export const getMySpaces = cache(async (): Promise<MySpace[]> => {
     .select("role, status, space:spaces!inner(id, slug, name, kind, city)")
     .eq("profile_id", id)
     .in("status", ["active", "pending"])
+    // Team only: community members (role "member") are not part of the organizer workspace.
+    .neq("role", "member")
     .order("created_at", { ascending: true });
   return (data ?? []).map((r) => ({ space: r.space, role: r.role, status: r.status }));
 });

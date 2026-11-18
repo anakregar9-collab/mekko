@@ -28,17 +28,20 @@ export function EventEditForm({
   eventId,
   interests,
   initial,
+  membersAllowed = false,
 }: {
   spaceSlug: string;
   eventId: string;
   interests: { id: number; label_sl: string }[];
   initial: EventEditInitial;
+  membersAllowed?: boolean;
 }) {
   const [state, action] = useActionState<FormState, FormData>(updateEvent.bind(null, spaceSlug, eventId), {});
   const v = state.values ?? initial.values;
   const e = state.errors ?? {};
   const [beginner, setBeginner] = useState(v.beginner_friendly === "true");
   const [family, setFamily] = useState(v.family_friendly === "true");
+  const [membersOnly, setMembersOnly] = useState(v.members_only === "true");
   const formKey = v.nonce ?? "0";
 
   return (
@@ -203,6 +206,22 @@ export function EventEditForm({
           />
           <span className="font-medium">Primerno za otroke in družine</span>
         </label>
+        {membersAllowed && (
+          <>
+            <input type="hidden" name="members_only" value={membersOnly ? "on" : ""} />
+            <label className="flex min-h-11 items-center gap-3">
+              <input
+                key={`mem-${formKey}`}
+                type="checkbox"
+                checked={membersOnly}
+                onChange={(ev) => setMembersOnly(ev.target.checked)}
+                className="size-5 accent-[var(--color-brand)]"
+              />
+              <span className="font-medium">Samo za člane prostora</span>
+            </label>
+          </>
+        )}
+        {e.members_only && <p className="text-sm text-brand-strong">{e.members_only}</p>}
       </fieldset>
 
       {initial.photoUrl && (

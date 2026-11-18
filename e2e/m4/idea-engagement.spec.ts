@@ -40,7 +40,9 @@ test("readers like, rate and ask; the author is notified and answers", async ({ 
   await author.goto(ideaUrl);
   await author.getByLabel("Napiši komentar ali vprašanje").fill("Navaden papir za tisk, 80 g.");
   await author.getByRole("button", { name: "Komentiraj" }).click();
-  await expect(author.getByTestId("idea-comments").locator("li").filter({ hasText: "80 g" })).toContainText("avtor");
+  await expect(author.getByTestId("idea-comments").locator("li").filter({ hasText: "80 g" })).toContainText(
+    "avtor",
+  );
 
   // Guests: counts and average only, no comments.
   await guest.goto(ideaUrl);

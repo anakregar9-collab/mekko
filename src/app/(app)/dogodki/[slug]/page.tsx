@@ -29,6 +29,8 @@ import { nowMs } from "@/lib/time";
 import { coverUrl } from "@/lib/media";
 import { spaceKindLabel } from "@/lib/spaces";
 import { BookingForm, CancelBookingForm } from "./booking-forms";
+import { WaitlistForm } from "./waitlist-form";
+import { leaveWaitlist } from "@/lib/actions/community";
 import { ReportForm, StartConversationForm } from "@/components/messages/forms";
 import { ProviderInfo } from "@/components/spaces/provider-info";
 
@@ -96,6 +98,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     status: "draft" | "published" | "cancelled";
     cancel_reason: string | null;
     is_demo: boolean;
+    visibility: "public" | "unlisted" | "members";
     payment_mode: "free" | "manual";
     price_cents: number | null;
     payment_instructions?: string | null;
@@ -139,7 +142,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   if (!series) for (const o of upcoming) seatsByOcc.set(o.id, await seats(o.id));
   const seriesSeats = series ? await seats(null) : null;
 
-  const [{ data: myBookings }, { data: saved }, onlineUrl] = profile
+  const [{ data: myBookings }, { data: saved }, onlineUrl, { data: myWaitlist }] = profile
     ? await Promise.all([
         supabase
           .from("bookings")
@@ -155,14 +158,29 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
         event.is_online
           ? supabase.rpc("event_online_url", { p_event: event.id }).then((r) => r.data)
           : Promise.resolve(null),
+        supabase
+          .from("event_waitlist")
+          .select("occurrence_id, quantity")
+          .eq("event_id", event.id)
+          .eq("profile_id", profile.id),
       ])
-    : [{ data: [] }, { data: [] }, null];
+    : [{ data: [] }, { data: [] }, null, { data: [] }];
   const isSaved = (saved ?? []).length > 0;
   const booked = myBookings ?? [];
   const bookedOcc = new Set(booked.map((b) => b.occurrence_id));
   const cancelled = event.status === "cancelled";
   const paid = event.payment_mode === "manual" && event.registration_mode === "native";
   const bookable = !cancelled && event.registration_mode === "native" && upcoming.length > 0;
+  const waiting = myWaitlist ?? [];
+  const waitingOcc = new Set(waiting.map((w) => w.occurrence_id));
+  const fullSessions = series
+    ? []
+    : upcoming.filter((o) => seatsByOcc.get(o.id) === 0 && !bookedOcc.has(o.id) && !waitingOcc.has(o.id));
+  const canWaitSeries = series && seriesSeats === 0 && booked.length === 0 && waiting.length === 0;
+  const occLabel = (id: string | null) => {
+    const o = occurrences.find((x) => x.id === id);
+    return o ? formatSlot(o.starts_at, o.ends_at) : "Celoten tečaj";
+  };
   const where = event.is_online ? "Online" : (event.address ?? event.city ?? "");
 
   return (
@@ -186,6 +204,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
             {series && <Badge tone="lilac">Večkratni tečaj</Badge>}
             {event.beginner_friendly && <Badge tone="sage">Za začetnike</Badge>}
             {event.family_friendly && <Badge tone="sun">Za otroke in družine</Badge>}
+            {event.visibility === "members" && <Badge tone="lilac">Samo za člane</Badge>}
             {event.is_demo && <Badge>Testni dogodek</Badge>}
             {cancelled && <Badge tone="brand">Odpovedano</Badge>}
           </div>
@@ -452,6 +471,39 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
                 Prijavi se za udeležbo
               </Link>
             ))}
+
+          {bookable && profile && waiting.length > 0 && (
+            <ul className="space-y-2" data-testid="my-waitlist">
+              {waiting.map((w) => (
+                <li
+                  key={w.occurrence_id ?? "series"}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-lilac-soft p-3 text-sm"
+                >
+                  <span>
+                    <strong>Na čakalni listi si</strong> · {occLabel(w.occurrence_id)} · {w.quantity}{" "}
+                    {w.quantity === 1 ? "oseba" : "osebe"}
+                  </span>
+                  <form action={leaveWaitlist}>
+                    <input type="hidden" name="event_id" value={event.id} />
+                    <input type="hidden" name="occurrence_id" value={w.occurrence_id ?? ""} />
+                    <input type="hidden" name="slug" value={event.slug} />
+                    <button type="submit" className={buttonClasses("ghost", "sm")}>
+                      Zapusti čakalno listo
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {bookable && profile && (fullSessions.length > 0 || canWaitSeries) && (
+            <WaitlistForm
+              slug={event.slug}
+              eventId={event.id}
+              maxPerBooking={event.max_per_booking}
+              options={fullSessions.map((o) => ({ id: o.id, label: formatSlot(o.starts_at, o.ends_at) }))}
+            />
+          )}
 
           {!bookable && event.registration_mode === "native" && !cancelled && (
             <p className="text-sm text-ink-muted">Ni več prihajajočih terminov.</p>

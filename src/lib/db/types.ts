@@ -68,6 +68,40 @@ export type Database = {
           },
         ];
       };
+      booking_reminders: {
+        Row: {
+          booking_id: string;
+          occurrence_id: string;
+          sent_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          occurrence_id: string;
+          sent_at?: string;
+        };
+        Update: {
+          booking_id?: string;
+          occurrence_id?: string;
+          sent_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "booking_reminders_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "booking_reminders_occurrence_id_fkey";
+            columns: ["occurrence_id"];
+            isOneToOne: false;
+            referencedRelation: "event_occurrences";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       bookings: {
         Row: {
           amount_cents: number | null;
@@ -296,6 +330,56 @@ export type Database = {
             columns: ["event_id"];
             isOneToOne: false;
             referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      event_waitlist: {
+        Row: {
+          created_at: string;
+          event_id: string;
+          notified_at: string | null;
+          occurrence_id: string | null;
+          profile_id: string;
+          quantity: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          event_id: string;
+          notified_at?: string | null;
+          occurrence_id?: string | null;
+          profile_id: string;
+          quantity?: number;
+        };
+        Update: {
+          created_at?: string;
+          event_id?: string;
+          notified_at?: string | null;
+          occurrence_id?: string | null;
+          profile_id?: string;
+          quantity?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_waitlist_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_waitlist_occurrence_id_fkey";
+            columns: ["occurrence_id"];
+            isOneToOne: false;
+            referencedRelation: "event_occurrences";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_waitlist_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1323,6 +1407,49 @@ export type Database = {
           },
         ];
       };
+      space_posts: {
+        Row: {
+          author_id: string;
+          body: string;
+          created_at: string;
+          id: string;
+          removed_at: string | null;
+          space_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id: string;
+          body: string;
+          created_at?: string;
+          id?: string;
+          removed_at?: string | null;
+          space_id: string;
+        };
+        Update: {
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          removed_at?: string | null;
+          space_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "space_posts_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "space_posts_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       spaces: {
         Row: {
           bio: string | null;
@@ -1534,6 +1661,7 @@ export type Database = {
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
+      cancel_occurrence: { Args: { p_occ: string; p_reason: string }; Returns: number };
       confirm_booking_payment: { Args: { p_booking: string }; Returns: undefined };
       contact_space: { Args: { p_body: string; p_space: string }; Returns: string };
       create_post: {
@@ -1557,6 +1685,7 @@ export type Database = {
         };
         Returns: string;
       };
+      create_space_post: { Args: { p_body: string; p_space: string }; Returns: string };
       dm_open_after: { Args: Record<PropertyKey, never>; Returns: string };
       event_online_url: { Args: { p_event: string }; Returns: string };
       event_space: { Args: { p_event: string }; Returns: string };
@@ -1649,6 +1778,13 @@ export type Database = {
         Args: { min_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: boolean;
       };
+      join_space: { Args: { p_space: string }; Returns: string };
+      join_waitlist: {
+        Args: { p_event: string; p_occurrence: string; p_quantity: number };
+        Returns: undefined;
+      };
+      leave_space: { Args: { p_space: string }; Returns: undefined };
+      leave_waitlist: { Args: { p_event: string; p_occurrence: string }; Returns: undefined };
       mark_conversation_read: { Args: { p_conversation: string }; Returns: undefined };
       mark_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
       notify: {
@@ -1656,6 +1792,7 @@ export type Database = {
         Returns: undefined;
       };
       notify_attendees: { Args: { p_event: string; p_message: string }; Returns: number };
+      notify_waitlist: { Args: { p_event: string; p_occurrence: string }; Returns: undefined };
       post_comments_for: {
         Args: { p_post: string };
         Returns: {
@@ -1677,6 +1814,7 @@ export type Database = {
       remove_idea_comment: { Args: { p_comment: number }; Returns: undefined };
       remove_post: { Args: { p_post: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
+      remove_space_post: { Args: { p_post: string }; Returns: undefined };
       report_content: {
         Args: {
           p_details?: string;
@@ -1687,7 +1825,12 @@ export type Database = {
         Returns: string;
       };
       request_space_verification: { Args: { p_space: string }; Returns: undefined };
+      reschedule_occurrence: { Args: { p_ends: string; p_occ: string; p_starts: string }; Returns: number };
       respond_follow: { Args: { p_accept: boolean; p_follower: string }; Returns: undefined };
+      respond_member_request: {
+        Args: { p_accept: boolean; p_profile: string; p_space: string };
+        Returns: undefined;
+      };
       respond_space_invite: { Args: { p_accept: boolean; p_space: string }; Returns: undefined };
       search_people: {
         Args: { p_query: string };
@@ -1700,7 +1843,9 @@ export type Database = {
         }[];
       };
       seats_taken: { Args: { p_event: string; p_occurrence: string }; Returns: number };
+      send_event_reminders: { Args: Record<PropertyKey, never>; Returns: number };
       send_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
+      session_bookers: { Args: { p_occ: string }; Returns: string[] };
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };
       set_space_legal_info:
         | {
@@ -1730,6 +1875,7 @@ export type Database = {
         Args: { p_profile: string; p_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: undefined;
       };
+      space_member_count: { Args: { p_space: string }; Returns: number };
       space_role_rank: { Args: { r: Database["public"]["Enums"]["space_role"] }; Returns: number };
       start_conversation: { Args: { p_body: string; p_to: string }; Returns: string };
       toggle_idea_like: { Args: { p_idea: string }; Returns: boolean };
@@ -1759,7 +1905,7 @@ export type Database = {
       data_request_status: "open" | "in_progress" | "done" | "rejected";
       event_schedule: "one_off" | "multi_session" | "recurring";
       event_status: "draft" | "published" | "cancelled";
-      event_visibility: "public" | "unlisted";
+      event_visibility: "public" | "unlisted" | "members";
       membership_mode: "none" | "open" | "approval";
       membership_status: "pending" | "active" | "removed";
       occurrence_status: "scheduled" | "cancelled";
@@ -1894,7 +2040,7 @@ export const Constants = {
       data_request_status: ["open", "in_progress", "done", "rejected"],
       event_schedule: ["one_off", "multi_session", "recurring"],
       event_status: ["draft", "published", "cancelled"],
-      event_visibility: ["public", "unlisted"],
+      event_visibility: ["public", "unlisted", "members"],
       membership_mode: ["none", "open", "approval"],
       membership_status: ["pending", "active", "removed"],
       occurrence_status: ["scheduled", "cancelled"],

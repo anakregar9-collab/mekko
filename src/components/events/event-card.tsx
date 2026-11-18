@@ -24,6 +24,7 @@ export function LiveEventCard({ event }: { event: EventCardData }) {
                 {pluralSl(event.sessions, ["srečanje", "srečanji", "srečanja", "srečanj"])}
               </Badge>
             )}
+            {event.membersOnly && <Badge tone="lilac">Samo za člane</Badge>}
             {event.isDemo && (
               <Badge tone="neutral" className="bg-surface/95">
                 Testni dogodek

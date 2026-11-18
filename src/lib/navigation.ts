@@ -57,6 +57,7 @@ export const liveSpaceLinks: readonly WorkspaceLink[] = [
   { label: "Pregled", href: "/organizator/:space" },
   { label: "Dogodki", href: "/organizator/:space/dogodki" },
   { label: "Ekipa", href: "/organizator/:space/ekipa" },
+  { label: "Člani", href: "/organizator/:space/clani" },
   { label: "Nastavitve prostora", href: "/organizator/:space/nastavitve" },
 ];
 

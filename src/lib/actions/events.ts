@@ -26,6 +26,7 @@ const eventSchema = z
     is_online: z.boolean(),
     beginner_friendly: z.boolean(),
     family_friendly: z.boolean(),
+    members_only: z.boolean(),
     city: z.string().trim().max(80).optional().default(""),
     address: z.string().trim().max(200).optional().default(""),
     online_url: z.string().trim().optional().default(""),
@@ -63,6 +64,8 @@ const eventSchema = z
     }
   });
 
+const MEMBERS_OFF = "Prostor nima vključenega članstva. Vključi ga v razdelku Člani.";
+
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "");
 
 function readEvent(fd: FormData) {
@@ -77,6 +80,7 @@ function readEvent(fd: FormData) {
     is_online: fd.get("is_online") === "on",
     beginner_friendly: fd.get("beginner_friendly") === "on",
     family_friendly: fd.get("family_friendly") === "on",
+    members_only: fd.get("members_only") === "on",
     city: str(fd, "city"),
     address: str(fd, "address"),
     online_url: str(fd, "online_url"),
@@ -138,6 +142,8 @@ export async function createEvent(
     return { errors: errs, values: echo, message: "Preveri označena polja." };
   }
   const d = parsed.data;
+  if (d.members_only && space.membership_mode === "none")
+    return { errors: { members_only: MEMBERS_OFF }, values: echo, message: "Preveri označena polja." };
   // Paid events need the organizer's legal status (checked again in publish_event); fail before creating a draft.
   if (d.registration_mode === "native" && d.payment_mode === "manual" && !space.legal_form) {
     return {
@@ -168,6 +174,7 @@ export async function createEvent(
       is_online: d.is_online,
       beginner_friendly: d.beginner_friendly,
       family_friendly: d.family_friendly,
+      visibility: d.members_only ? "members" : "public",
       city: d.is_online ? null : d.city,
       address: d.is_online ? null : d.address || null,
       online_url: d.is_online && d.online_url ? d.online_url : null,
@@ -320,6 +327,7 @@ const editSchema = z
     cover: z.enum(COVERS),
     beginner_friendly: z.boolean(),
     family_friendly: z.boolean(),
+    members_only: z.boolean(),
   })
   .superRefine((d, ctx) => {
     if (
@@ -355,6 +363,7 @@ export async function updateEvent(
     cover: str(fd, "cover") || "coral",
     beginner_friendly: fd.get("beginner_friendly") === "on",
     family_friendly: fd.get("family_friendly") === "on",
+    members_only: fd.get("members_only") === "on",
   };
   const echo: Record<string, string> = Object.fromEntries(
     Object.entries(raw).map(([k, v]) => [k, String(v ?? "")]),
@@ -368,7 +377,9 @@ export async function updateEvent(
   const supabase = await createClient();
   const { data: current } = await supabase
     .from("events")
-    .select("id, slug, status, is_online, registration_mode, address, city, cover_image_path")
+    .select(
+      "id, slug, status, is_online, registration_mode, address, city, cover_image_path, visibility, space_id",
+    )
     .eq("id", eventId)
     .maybeSingle();
   if (!current) return { message: "Dogodka ni bilo mogoče najti." };
@@ -377,6 +388,20 @@ export async function updateEvent(
     : null;
   if (current.status === "cancelled") return { message: "Odpovedanega dogodka ni mogoče urejati." };
   if (!current.is_online && !d.city) return { errors: { city: "Vpiši kraj." }, values: echo };
+  if (d.members_only && current.visibility !== "members") {
+    const { data: sp } = await supabase
+      .from("spaces")
+      .select("membership_mode")
+      .eq("id", current.space_id)
+      .maybeSingle();
+    if (!sp || sp.membership_mode === "none")
+      return { errors: { members_only: MEMBERS_OFF }, values: echo, message: "Preveri označena polja." };
+  }
+  const visibility = d.members_only
+    ? "members"
+    : current.visibility === "members"
+      ? "public"
+      : current.visibility;
 
   const photo = await uploadPhotoFromForm(fd, "photo", profile.id);
   if ("error" in photo)
@@ -401,6 +426,7 @@ export async function updateEvent(
       cover_image_path: nextPhoto,
       beginner_friendly: d.beginner_friendly,
       family_friendly: d.family_friendly,
+      visibility,
     })
     .eq("id", eventId);
   if (error) return { message: friendlyDbError(error), values: echo };

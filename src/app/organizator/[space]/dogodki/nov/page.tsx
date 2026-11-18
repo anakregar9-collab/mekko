@@ -31,6 +31,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
         defaultCity={space.city ?? ""}
         interests={interests}
         hasLegalForm={!!space.legal_form}
+        membersAllowed={space.membership_mode !== "none"}
       />
     </>
   );

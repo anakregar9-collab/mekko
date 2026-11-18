@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Megaphone, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { listUpcomingEvents } from "@/lib/data/events";
 import { LiveEventCard } from "@/components/events/event-card";
@@ -12,6 +12,9 @@ import { getAuthUserId } from "@/lib/auth/dal";
 import { ReportForm, StartConversationForm } from "@/components/messages/forms";
 import { ProviderInfo } from "@/components/spaces/provider-info";
 import { spaceKindLabel } from "@/lib/spaces";
+import { joinSpace, leaveSpace } from "@/lib/actions/community";
+import { buttonClasses } from "@/components/ui/button";
+import { formatDate, formatTime, pluralSl } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Prostor" };
 
@@ -31,12 +34,39 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
   const supabase = await createClient();
   const { data: space } = await supabase
     .from("spaces")
-    .select("id, name, kind, city, tagline, bio, verification_status, membership_mode, is_demo, legal_form")
+    .select(
+      "id, slug, name, kind, city, tagline, bio, verification_status, membership_mode, is_demo, legal_form",
+    )
     .eq("slug", slug)
     .is("deleted_at", null)
     .maybeSingle();
   if (!space) notFound();
-  const [events, me] = await Promise.all([listUpcomingEvents({ spaceId: space.id }), getAuthUserId()]);
+  const me = await getAuthUserId();
+  const [events, { data: memberCount }, { data: mine }] = await Promise.all([
+    listUpcomingEvents({ spaceId: space.id, includeMembers: !!me }),
+    supabase.rpc("space_member_count", { p_space: space.id }),
+    me
+      ? supabase
+          .from("space_members")
+          .select("role, status")
+          .eq("space_id", space.id)
+          .eq("profile_id", me)
+          .neq("status", "removed")
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  const isActive = mine?.status === "active";
+  const isTeam = isActive && mine?.role !== "member";
+  const { data: announcements } = isActive
+    ? await supabase
+        .from("space_posts")
+        .select("id, body, created_at")
+        .eq("space_id", space.id)
+        .is("removed_at", null)
+        .order("created_at", { ascending: false })
+        .limit(20)
+    : { data: [] as { id: string; body: string; created_at: string }[] };
+  const count = memberCount ?? 0;
 
   return (
     <div className="space-y-6">
@@ -57,6 +87,81 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
       </section>
 
       <ProviderInfo spaceId={space.id} legalForm={space.legal_form} signedIn={!!me} />
+
+      {space.membership_mode !== "none" && (
+        <section
+          className="space-y-3 rounded-[var(--radius-card)] bg-lilac-soft p-5"
+          data-testid="membership-box"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 font-display text-lg font-bold text-lilac-ink">
+              <Users aria-hidden="true" className="size-5" /> Članstvo
+            </h2>
+            <span className="text-sm text-lilac-ink">
+              {count} {pluralSl(count, ["član", "člana", "člani", "članov"])}
+            </span>
+          </div>
+          <p className="text-sm">
+            {space.membership_mode === "open"
+              ? "Pridruži se in prejemaj obvestila prostora ter dostop do dogodkov samo za člane."
+              : "Za članstvo pošlji prošnjo. Organizator jo potrdi."}
+          </p>
+          {!me ? (
+            <a
+              href={`/prijava?naprej=${encodeURIComponent(`/prostori/${slug}`)}`}
+              className={buttonClasses("primary", "md")}
+            >
+              Prijavi se za članstvo
+            </a>
+          ) : isTeam ? (
+            <p className="text-sm font-semibold">Si v ekipi tega prostora.</p>
+          ) : isActive ? (
+            <form action={leaveSpace} className="flex flex-wrap items-center gap-3">
+              <input type="hidden" name="space_id" value={space.id} />
+              <input type="hidden" name="slug" value={slug} />
+              <span className="font-semibold">Si član/-ica ✓</span>
+              <button type="submit" className={buttonClasses("ghost", "sm")}>
+                Izstopi
+              </button>
+            </form>
+          ) : mine?.status === "pending" && mine.role === "member" ? (
+            <form action={leaveSpace} className="flex flex-wrap items-center gap-3">
+              <input type="hidden" name="space_id" value={space.id} />
+              <input type="hidden" name="slug" value={slug} />
+              <span className="font-semibold">Prošnja čaka na potrditev</span>
+              <button type="submit" className={buttonClasses("ghost", "sm")}>
+                Prekliči prošnjo
+              </button>
+            </form>
+          ) : (
+            <form action={joinSpace}>
+              <input type="hidden" name="space_id" value={space.id} />
+              <input type="hidden" name="slug" value={slug} />
+              <button type="submit" className={buttonClasses("primary", "md")}>
+                {space.membership_mode === "open" ? "Pridruži se" : "Pošlji prošnjo za članstvo"}
+              </button>
+            </form>
+          )}
+        </section>
+      )}
+
+      {isActive && (announcements ?? []).length > 0 && (
+        <section className="space-y-3" data-testid="announcements">
+          <h2 className="flex items-center gap-2 font-display text-xl font-bold">
+            <Megaphone aria-hidden="true" className="size-5" /> Obvestila za člane
+          </h2>
+          <ul className="space-y-2">
+            {(announcements ?? []).map((a) => (
+              <li key={a.id} className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-card)]">
+                <p className="break-words whitespace-pre-line">{a.body}</p>
+                <p className="mt-1 text-xs text-ink-muted">
+                  {formatDate(a.created_at)} {formatTime(a.created_at)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="font-display text-xl font-bold">Prihajajoči dogodki</h2>

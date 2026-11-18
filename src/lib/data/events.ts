@@ -27,6 +27,8 @@ export interface EventCardData {
   priceCents: number | null;
   capacity: number | null;
   isDemo: boolean;
+  /** Visible only to members of the organizing space (RLS hides it from everyone else). */
+  membersOnly: boolean;
   interestId: number | null;
   space: { name: string; slug: string } | null;
   next: { id: string; startsAt: string; endsAt: string } | null;
@@ -53,6 +55,7 @@ type ListRow = Pick<
   | "cover_image_path"
   | "capacity"
   | "is_demo"
+  | "visibility"
   | "interest_id"
 > & {
   space: { name: string; slug: string } | null;
@@ -76,17 +79,25 @@ export const QUICK_FILTERS: { key: QuickFilter; label: string }[] = [
 ];
 
 export async function listUpcomingEvents(
-  opts: { q?: string; interestId?: number; spaceId?: string; limit?: number; quick?: QuickFilter[] } = {},
+  opts: {
+    q?: string;
+    interestId?: number;
+    spaceId?: string;
+    limit?: number;
+    quick?: QuickFilter[];
+    /** Space page: also list members-only events (RLS returns them only to members). */
+    includeMembers?: boolean;
+  } = {},
 ) {
   const quick = new Set(opts.quick ?? []);
   const supabase = await createClient();
   let query = supabase
     .from("events")
     .select(
-      "id, slug, title, summary, city, cover, is_online, schedule, booking_scope, registration_mode, payment_mode, price_cents, beginner_friendly, family_friendly, cover_image_path, capacity, is_demo, interest_id, space:spaces(name, slug), occurrences:event_occurrences(id, starts_at, ends_at, status)",
+      "id, slug, title, summary, city, cover, is_online, schedule, booking_scope, registration_mode, payment_mode, price_cents, beginner_friendly, family_friendly, cover_image_path, capacity, is_demo, visibility, interest_id, space:spaces(name, slug), occurrences:event_occurrences(id, starts_at, ends_at, status)",
     )
     .eq("status", "published")
-    .eq("visibility", "public")
+    .in("visibility", opts.includeMembers && opts.spaceId ? ["public", "members"] : ["public"])
     .limit(200);
   const q = cleanQuery(opts.q);
   if (q) query = query.or(`title.ilike.%${q}%,summary.ilike.%${q}%,city.ilike.%${q}%`);
@@ -136,6 +147,7 @@ export async function listUpcomingEvents(
         coverImageUrl: coverUrl(e.cover_image_path),
         capacity: e.capacity,
         isDemo: e.is_demo,
+        membersOnly: e.visibility === "members",
         interestId: e.interest_id,
         space: e.space,
         next: { id: next.id, startsAt: next.starts_at, endsAt: next.ends_at },

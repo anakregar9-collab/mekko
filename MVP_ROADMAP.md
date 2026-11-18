@@ -44,6 +44,9 @@ Founder wish: a simplified Instagram for creative work — post photos of your o
 - Open questions: (1) kolegi = mutual request/accept vs follow; (2) default visibility (kolegi only vs public); (3) does the tab replace Sporočila (messages icon inside the feed header) — yes per founder; (4) minimum age / photos of children; (5) do posts count toward the posting quota.
 Exit: post/like/comment/share journeys tested on phone + desktop; RLS tests for visibility (kolegi vs public vs blocked); moderation queue covers posts and comments.
 
+### M4c — Sessions, waitlist, communities, reminders (DONE 2026-11-18 — see DECISIONS)
+- Move/cancel/add sessions with attendee notifications; waitlist with "spot free" notifications; community membership (open/approval), members-only events, announcements; in-app reminders 24 h before.
+
 ### M5 — Recorded courses + studio improvements
 - Single video and multi-lesson course, PDF attachments, lesson completion; creator/space library.
 - Studio calendar and attendance management, financial reports, staff roles; passes/cards after core booking behavior stable.

@@ -23,11 +23,13 @@ export function EventForm({
   defaultCity,
   interests,
   hasLegalForm,
+  membersAllowed = false,
 }: {
   spaceSlug: string;
   defaultCity: string;
   interests: { id: number; label_sl: string }[];
   hasLegalForm: boolean;
+  membersAllowed?: boolean;
 }) {
   const [state, action] = useActionState<FormState, FormData>(createEvent.bind(null, spaceSlug), {});
   const v = state.values ?? {};
@@ -38,6 +40,7 @@ export function EventForm({
   const [online, setOnline] = useState(v.is_online === "true");
   const [beginner, setBeginner] = useState(v.beginner_friendly === "true");
   const [family, setFamily] = useState(v.family_friendly === "true");
+  const [membersOnly, setMembersOnly] = useState(v.members_only === "true");
   const [sessions, setSessions] = useState([{ k: 0 }]);
   const echoed = parseSessions(v.sessions_json);
   // Changes on every server response: re-mounts radio groups so they match state after React's form reset.
@@ -275,6 +278,22 @@ export function EventForm({
           />
           <span className="font-medium">Primerno za otroke in družine</span>
         </label>
+        {membersAllowed && (
+          <>
+            <input type="hidden" name="members_only" value={membersOnly ? "on" : ""} />
+            <label className="flex min-h-11 items-center gap-3">
+              <input
+                key={`mem-${formKey}`}
+                type="checkbox"
+                checked={membersOnly}
+                onChange={(ev) => setMembersOnly(ev.target.checked)}
+                className="size-5 accent-[var(--color-brand)]"
+              />
+              <span className="font-medium">Samo za člane prostora</span>
+            </label>
+          </>
+        )}
+        {e.members_only && <p className="text-sm text-brand-strong">{e.members_only}</p>}
       </Card>
 
       <Card title="Prijave">

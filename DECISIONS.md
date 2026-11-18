@@ -186,3 +186,12 @@ Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no f
 - Guests see only the like/comment counts and the average rating (no identities, no comment text). Cards show ★ average (count) and ♥ count.
 - The author gets an in-app notification for a like (deduped per day), a first rating and every comment. Blocks prevent interaction. Comments: 60/hour shared with feed comments; removable by the commenter, the idea author and moderators (audited); reportable ("idea_comment" in the moderation queue).
 - Not yet: written reviews separate from comments, "made it" photos linked from the idea page (use the feed post link), sorting ideas by rating.
+
+## 2026-11-18 — Sessions, waitlist, communities, reminders (founder: "nardi use 4 in pol objavi")
+- **Session changes (organizer → Dogodek → Termini):** move a future session, cancel one session (reason required) or add a session. Default confirmed by founder ("use"): when a session moves, **bookings stay valid**; bookers get a notification with the new time and may cancel themselves on the event page. Cancelling a session cancels its bookings and notifies them.
+- **Waitlist:** when a session (or whole course) is full, signed-in visitors join a waitlist (1–max persons). When a spot frees up (cancellation or larger capacity) the oldest 5 waiting people get a notification "Sprostilo se je mesto"; they must book themselves (**no automatic booking**, first come first served). Re-notified at most every 12 h. Booking removes the person from the waitlist.
+- **Communities / membership:** spaces choose Brez članstva / Odprto / S potrditvijo (Organizator → Člani). Visitors join on the space page; requests notify the owner, admins accept/decline/remove. Public shows only the member count; the member list is visible only to the space team.
+- **Members-only events:** an event can be "Samo za člane prostora" (only when membership is on). RLS hides it from non-members everywhere (discovery, space page, direct link) and booking is refused for non-members.
+- **Announcements:** space team posts "Obvestila za člane" (max 20/day); members get an in-app notification and see them on the space page.
+- **Reminders:** an in-app reminder "Jutri: …" about 24 h before each booked session (pg_cron every 15 min, sent once per booking+session). E-mail reminders come with Resend later.
+- Not yet: e-mail/push for these, member-only chat/forum, waitlist position number, automatic booking from the waitlist, recurring-series editing in bulk.
