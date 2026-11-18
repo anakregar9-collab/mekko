@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import { Bookmark, Clock, ExternalLink, Lightbulb, ListChecks, Lock, Package } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyProfile } from "@/lib/auth/dal";
-import { IDEA_PREVIEW_COLUMNS, ideaAuthors } from "@/lib/data/ideas";
+import { IDEA_PREVIEW_COLUMNS, ideaAuthors, ideaStats } from "@/lib/data/ideas";
+import { IdeaEngagement, IdeaStatsSummary } from "@/components/ideas/idea-engagement";
 import type { CoverTone } from "@/lib/data/events";
 import { deleteIdea, toggleSaveIdea } from "@/lib/actions/ideas";
 import { Cover } from "@/components/ui/cover";
@@ -64,7 +65,7 @@ async function Content({ params }: { params: PageProps<"/ideje/[slug]">["params"
   const idea = data as unknown as IdeaRow;
   const mine = profile?.id === idea.author_id;
 
-  const [authors, { data: interest }, { data: saved }] = await Promise.all([
+  const [authors, { data: interest }, { data: saved }, stats] = await Promise.all([
     ideaAuthors([idea.id]),
     idea.interest_id
       ? supabase.from("interests").select("label_sl").eq("id", idea.interest_id).maybeSingle()
@@ -72,6 +73,7 @@ async function Content({ params }: { params: PageProps<"/ideje/[slug]">["params"
     profile
       ? supabase.from("saved_ideas").select("idea_id").eq("idea_id", idea.id).eq("profile_id", profile.id)
       : Promise.resolve({ data: [] }),
+    ideaStats([idea.id]),
   ]);
   const author = authors.get(idea.id);
   const isSaved = (saved ?? []).length > 0;
@@ -189,20 +191,30 @@ async function Content({ params }: { params: PageProps<"/ideje/[slug]">["params"
           {!mine && idea.status === "published" && (
             <ReportForm targetType="idea" targetId={idea.id} label="Prijavi idejo" />
           )}
+          {idea.status === "published" && (
+            <IdeaEngagement
+              idea={{ id: idea.id, slug: idea.slug, authorId: idea.author_id }}
+              stats={stats.get(idea.id)}
+              me={profile.id}
+            />
+          )}
         </>
       ) : (
-        <div className="space-y-3 rounded-2xl bg-lilac-soft p-5 text-lilac-ink" data-testid="login-gate">
-          <p className="flex items-center gap-2 font-semibold">
-            <Lock aria-hidden="true" className="size-5" /> Navodila in potrebščine vidijo prijavljeni
-          </p>
-          <p className="text-sm">Račun je brezplačen in narejen v minuti.</p>
-          <Link
-            href={`/prijava?naprej=${encodeURIComponent(`/ideje/${idea.slug}`)}`}
-            className={buttonClasses("primary", "md")}
-          >
-            Prijavi se za ogled
-          </Link>
-        </div>
+        <>
+          <IdeaStatsSummary stats={stats.get(idea.id)} />
+          <div className="space-y-3 rounded-2xl bg-lilac-soft p-5 text-lilac-ink" data-testid="login-gate">
+            <p className="flex items-center gap-2 font-semibold">
+              <Lock aria-hidden="true" className="size-5" /> Navodila in potrebščine vidijo prijavljeni
+            </p>
+            <p className="text-sm">Račun je brezplačen in narejen v minuti.</p>
+            <Link
+              href={`/prijava?naprej=${encodeURIComponent(`/ideje/${idea.slug}`)}`}
+              className={buttonClasses("primary", "md")}
+            >
+              Prijavi se za ogled
+            </Link>
+          </div>
+        </>
       )}
     </article>
   );

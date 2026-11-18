@@ -175,3 +175,57 @@ export async function updateIdea(ideaId: string, _prev: FormState, fd: FormData)
   revalidatePath("/moj-mekko/ideje");
   redirect(`/ideje/${current.slug}`);
 }
+
+// ---------------------------------------------------------------------------
+// Engagement: likes, 1–5 star ratings, comments
+// ---------------------------------------------------------------------------
+const engagementErrors: Record<string, string> = {
+  cannot_rate_own: "Svoje ideje ne moreš oceniti.",
+  invalid_rating: "Ocena je od 1 do 5 zvezdic.",
+  invalid_comment: "Komentar naj ima od 1 do 1000 znakov.",
+  rate_limited: "Napisal/-a si veliko komentarjev v kratkem času. Poskusi kasneje.",
+  idea_not_found: "Ideje ni bilo mogoče najti.",
+};
+
+export async function toggleIdeaLike(fd: FormData): Promise<void> {
+  await requireUser();
+  const supabase = await createClient();
+  await supabase.rpc("toggle_idea_like", { p_idea: String(fd.get("idea_id")) });
+  revalidatePath(`/ideje/${String(fd.get("slug"))}`);
+}
+
+export async function rateIdea(fd: FormData): Promise<void> {
+  await requireUser();
+  const stars = Number(fd.get("stars"));
+  const supabase = await createClient();
+  if (Number.isInteger(stars))
+    await supabase.rpc("rate_idea", { p_idea: String(fd.get("idea_id")), p_stars: stars });
+  revalidatePath(`/ideje/${String(fd.get("slug"))}`);
+}
+
+export async function addIdeaComment(
+  ideaId: string,
+  slug: string,
+  _prev: FormState,
+  fd: FormData,
+): Promise<FormState> {
+  await requireUser();
+  const body = String(fd.get("body") ?? "").trim();
+  if (!body) return { errors: { body: "Napiši komentar." } };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("add_idea_comment", { p_idea: ideaId, p_body: body });
+  if (error)
+    return {
+      message: engagementErrors[error.message] ?? "Komentarja ni bilo mogoče objaviti.",
+      values: { body },
+    };
+  revalidatePath(`/ideje/${slug}`);
+  return { ok: true };
+}
+
+export async function removeIdeaComment(fd: FormData): Promise<void> {
+  await requireUser();
+  const supabase = await createClient();
+  await supabase.rpc("remove_idea_comment", { p_comment: Number(fd.get("comment_id")) });
+  revalidatePath(`/ideje/${String(fd.get("slug"))}`);
+}

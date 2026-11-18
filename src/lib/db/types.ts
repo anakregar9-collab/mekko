@@ -496,6 +496,120 @@ export type Database = {
           },
         ];
       };
+      idea_comments: {
+        Row: {
+          author_id: string;
+          body: string;
+          created_at: string;
+          id: number;
+          idea_id: string;
+          removed_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id: string;
+          body: string;
+          created_at?: string;
+          id?: never;
+          idea_id: string;
+          removed_at?: string | null;
+        };
+        Update: {
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+          id?: never;
+          idea_id?: string;
+          removed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "idea_comments_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "idea_comments_idea_id_fkey";
+            columns: ["idea_id"];
+            isOneToOne: false;
+            referencedRelation: "ideas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      idea_likes: {
+        Row: {
+          created_at: string;
+          idea_id: string;
+          profile_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          idea_id: string;
+          profile_id: string;
+        };
+        Update: {
+          created_at?: string;
+          idea_id?: string;
+          profile_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "idea_likes_idea_id_fkey";
+            columns: ["idea_id"];
+            isOneToOne: false;
+            referencedRelation: "ideas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "idea_likes_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      idea_ratings: {
+        Row: {
+          idea_id: string;
+          profile_id: string;
+          stars: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          idea_id: string;
+          profile_id: string;
+          stars: number;
+          updated_at?: string;
+        };
+        Update: {
+          idea_id?: string;
+          profile_id?: string;
+          stars?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "idea_ratings_idea_id_fkey";
+            columns: ["idea_id"];
+            isOneToOne: false;
+            referencedRelation: "ideas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "idea_ratings_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ideas: {
         Row: {
           author_id: string;
@@ -1370,6 +1484,7 @@ export type Database = {
     };
     Functions: {
       add_comment: { Args: { p_body: string; p_post: string }; Returns: number };
+      add_idea_comment: { Args: { p_body: string; p_idea: string }; Returns: number };
       admin_remove_message: { Args: { p_message: number; p_reason: string }; Returns: undefined };
       admin_resolve_data_request: {
         Args: {
@@ -1413,6 +1528,7 @@ export type Database = {
         Args: { p_event: string; p_note?: string; p_occurrence: string; p_quantity: number };
         Returns: string;
       };
+      can_engage_idea: { Args: { p_idea: string }; Returns: boolean };
       can_message: { Args: { p_to: string }; Returns: boolean };
       can_view_post: { Args: { p_post: string }; Returns: boolean };
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
@@ -1493,6 +1609,31 @@ export type Database = {
           idea_id: string;
         }[];
       };
+      idea_comments_for: {
+        Args: { p_idea: string };
+        Returns: {
+          author_handle: string;
+          author_id: string;
+          author_name: string;
+          body: string;
+          can_remove: boolean;
+          created_at: string;
+          id: number;
+          removed: boolean;
+        }[];
+      };
+      idea_stats: {
+        Args: { p_ideas: string[] };
+        Returns: {
+          comment_count: number;
+          idea_id: string;
+          like_count: number;
+          liked_by_me: boolean;
+          my_rating: number;
+          rating_avg: number;
+          rating_count: number;
+        }[];
+      };
       insert_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       invite_space_member: {
         Args: { p_handle: string; p_role: Database["public"]["Enums"]["space_role"]; p_space: string };
@@ -1529,9 +1670,11 @@ export type Database = {
         }[];
       };
       publish_event: { Args: { p_event: string }; Returns: undefined };
+      rate_idea: { Args: { p_idea: string; p_stars: number }; Returns: undefined };
       release_overdue_reservations: { Args: { p_event?: string }; Returns: number };
       release_unpaid_booking: { Args: { p_booking: string; p_reason: string }; Returns: undefined };
       remove_comment: { Args: { p_comment: number }; Returns: undefined };
+      remove_idea_comment: { Args: { p_comment: number }; Returns: undefined };
       remove_post: { Args: { p_post: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
       report_content: {
@@ -1589,6 +1732,7 @@ export type Database = {
       };
       space_role_rank: { Args: { r: Database["public"]["Enums"]["space_role"] }; Returns: number };
       start_conversation: { Args: { p_body: string; p_to: string }; Returns: string };
+      toggle_idea_like: { Args: { p_idea: string }; Returns: boolean };
       toggle_like: { Args: { p_post: string }; Returns: boolean };
       unblock_user: { Args: { p_profile: string }; Returns: undefined };
       unfollow_user: { Args: { p_profile: string }; Returns: undefined };
@@ -1624,7 +1768,7 @@ export type Database = {
       registration_mode: "native" | "external";
       report_reason: "spam" | "harassment" | "inappropriate" | "scam" | "copyright" | "other";
       report_status: "open" | "actioned" | "dismissed";
-      report_target: "profile" | "message" | "event" | "space" | "idea" | "post" | "comment";
+      report_target: "profile" | "message" | "event" | "space" | "idea" | "post" | "comment" | "idea_comment";
       space_kind: "solo_creator" | "community" | "studio" | "association";
       space_role: "owner" | "admin" | "staff" | "member";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
@@ -1759,7 +1903,7 @@ export const Constants = {
       registration_mode: ["native", "external"],
       report_reason: ["spam", "harassment", "inappropriate", "scam", "copyright", "other"],
       report_status: ["open", "actioned", "dismissed"],
-      report_target: ["profile", "message", "event", "space", "idea", "post", "comment"],
+      report_target: ["profile", "message", "event", "space", "idea", "post", "comment", "idea_comment"],
       space_kind: ["solo_creator", "community", "studio", "association"],
       space_role: ["owner", "admin", "staff", "member"],
       verification_status: ["unverified", "pending", "verified", "rejected"],

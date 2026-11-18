@@ -180,3 +180,9 @@ Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no f
 - People search (/feed/iskanje) by name or handle, min. 2 characters; blocked pairs never appear; private profiles appear (following needs approval). Returns only name + handle.
 - Feed shows 20 posts per page with "Naloži starejše objave".
 - E-mails (Resend + mekko.eu DNS) postponed by founder; password reset therefore still missing.
+
+## 2026-11-18 — Ideas: likes, comments/questions, star ratings
+- Signed-in users like an idea, rate it 1–5 stars (one rating per person, changeable; not one's own idea) and comment/ask questions. The author's replies are marked "avtor".
+- Guests see only the like/comment counts and the average rating (no identities, no comment text). Cards show ★ average (count) and ♥ count.
+- The author gets an in-app notification for a like (deduped per day), a first rating and every comment. Blocks prevent interaction. Comments: 60/hour shared with feed comments; removable by the commenter, the idea author and moderators (audited); reportable ("idea_comment" in the moderation queue).
+- Not yet: written reviews separate from comments, "made it" photos linked from the idea page (use the feed post link), sorting ideas by rating.

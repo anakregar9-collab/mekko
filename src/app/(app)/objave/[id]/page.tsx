@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/dal";
 import { getComments, getPost } from "@/lib/data/feed";
-import { removeComment, removePost } from "@/lib/actions/feed";
+import { addComment, removeComment, removePost } from "@/lib/actions/feed";
 import { PostCard } from "@/components/feed/post-card";
 import { CommentForm } from "@/components/feed/comment-form";
 import { ReportForm } from "@/components/messages/forms";
@@ -97,7 +97,7 @@ async function Content({
             ))}
           </ul>
         )}
-        {post.status === "published" && <CommentForm postId={post.id} />}
+        {post.status === "published" && <CommentForm action={addComment.bind(null, post.id)} />}
       </section>
 
       {mine ? (

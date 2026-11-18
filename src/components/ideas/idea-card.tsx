@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock, Lightbulb } from "lucide-react";
+import { Clock, Heart, Lightbulb, Star } from "lucide-react";
 import { Cover } from "@/components/ui/cover";
 import { Badge } from "@/components/ui/badge";
 import type { IdeaCardData } from "@/lib/data/ideas";
@@ -28,6 +28,20 @@ export function LiveIdeaCard({ idea }: { idea: IdeaCardData }) {
           {idea.summary && <p className="text-sm text-ink-muted">{idea.summary}</p>}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             {idea.author && <span className="text-ink-muted">{idea.author}</span>}
+            {idea.ratingAvg !== null && (
+              <span className="flex items-center gap-1 font-semibold">
+                <Star aria-hidden="true" className="size-4 fill-sun text-sun" />
+                {idea.ratingAvg.toFixed(1).replace(".", ",")}
+                <span className="sr-only">od 5, ocen: </span>
+                <span className="font-normal text-ink-muted">({idea.ratingCount})</span>
+              </span>
+            )}
+            {idea.likeCount > 0 && (
+              <span className="flex items-center gap-1 text-ink-muted">
+                <Heart aria-hidden="true" className="size-4" /> {idea.likeCount}
+                <span className="sr-only">všečkov</span>
+              </span>
+            )}
             {idea.timeNeeded && (
               <span className="flex items-center gap-1 text-ink-muted">
                 <Clock aria-hidden="true" className="size-4" /> {idea.timeNeeded}

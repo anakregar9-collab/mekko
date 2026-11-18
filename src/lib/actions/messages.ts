@@ -100,7 +100,7 @@ export async function setBlocked(formData: FormData): Promise<void> {
 }
 
 const reportSchema = z.object({
-  target_type: z.enum(["profile", "message", "event", "space", "idea", "post", "comment"]),
+  target_type: z.enum(["profile", "message", "event", "space", "idea", "post", "comment", "idea_comment"]),
   target_id: z.string().min(1).max(64),
   reason: z.enum(["spam", "harassment", "inappropriate", "scam", "copyright", "other"], {
     error: "Izberi razlog.",
@@ -153,6 +153,12 @@ export async function resolveReport(_prev: FormState, formData: FormData): Promi
       p_post: String(formData.get("post_id")),
       p_status: "hidden",
       p_reason: note.data,
+    });
+    if (error) return { message: friendly(error.message) };
+  }
+  if (formData.get("remove_idea_comment") === "1") {
+    const { error } = await supabase.rpc("remove_idea_comment", {
+      p_comment: Number(formData.get("idea_comment_id")),
     });
     if (error) return { message: friendly(error.message) };
   }

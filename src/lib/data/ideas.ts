@@ -15,6 +15,37 @@ export interface IdeaCardData {
   family: boolean;
   isDemo: boolean;
   author: string | null;
+  likeCount: number;
+  ratingAvg: number | null;
+  ratingCount: number;
+}
+
+export interface IdeaStats {
+  likeCount: number;
+  commentCount: number;
+  ratingAvg: number | null;
+  ratingCount: number;
+  likedByMe: boolean;
+  myRating: number | null;
+}
+
+export async function ideaStats(ids: string[]): Promise<Map<string, IdeaStats>> {
+  if (ids.length === 0) return new Map();
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("idea_stats", { p_ideas: ids });
+  return new Map(
+    (data ?? []).map((r) => [
+      r.idea_id,
+      {
+        likeCount: r.like_count,
+        commentCount: r.comment_count,
+        ratingAvg: r.rating_avg === null ? null : Number(r.rating_avg),
+        ratingCount: r.rating_count,
+        likedByMe: r.liked_by_me,
+        myRating: r.my_rating,
+      },
+    ]),
+  );
 }
 
 /** Columns guests may read (instructions, materials and link need sign-in). */
@@ -46,7 +77,10 @@ export async function listIdeas(
   if (opts.family) query = query.eq("family_friendly", true);
   const { data } = await query;
   const rows = data ?? [];
-  const authors = await ideaAuthors(rows.map((r) => r.id));
+  const [authors, stats] = await Promise.all([
+    ideaAuthors(rows.map((r) => r.id)),
+    ideaStats(rows.map((r) => r.id)),
+  ]);
   return rows.map((r) => ({
     id: r.id,
     slug: r.slug,
@@ -59,6 +93,9 @@ export async function listIdeas(
     family: r.family_friendly,
     isDemo: r.is_demo,
     author: authors.get(r.id)?.display_name ?? null,
+    likeCount: stats.get(r.id)?.likeCount ?? 0,
+    ratingAvg: stats.get(r.id)?.ratingAvg ?? null,
+    ratingCount: stats.get(r.id)?.ratingCount ?? 0,
   }));
 }
 

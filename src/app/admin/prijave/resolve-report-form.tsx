@@ -10,12 +10,14 @@ export function ResolveReportForm({
   ideaId,
   postId,
   commentId,
+  ideaCommentId,
 }: {
   reportId: string;
   messageId?: number;
   ideaId?: string;
   postId?: string;
   commentId?: number;
+  ideaCommentId?: number;
 }) {
   const [state, action] = useActionState<FormState, FormData>(resolveReport, {});
   if (state.ok) return <FormMessage state={state} />;
@@ -27,6 +29,7 @@ export function ResolveReportForm({
       {ideaId && <input type="hidden" name="idea_id" value={ideaId} />}
       {postId && <input type="hidden" name="post_id" value={postId} />}
       {commentId !== undefined && <input type="hidden" name="comment_id" value={commentId} />}
+      {ideaCommentId !== undefined && <input type="hidden" name="idea_comment_id" value={ideaCommentId} />}
       <label htmlFor={id} className="sr-only">
         Opomba moderatorja
       </label>
@@ -45,6 +48,11 @@ export function ResolveReportForm({
       {postId && (
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="hide_post" value="1" className="size-5" /> Skrij objavo
+        </label>
+      )}
+      {ideaCommentId !== undefined && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="remove_idea_comment" value="1" className="size-5" /> Odstrani komentar
         </label>
       )}
       {commentId !== undefined && (

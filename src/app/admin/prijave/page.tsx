@@ -26,6 +26,7 @@ const typeLabel: Record<string, string> = {
   idea: "Ideja",
   post: "Objava v feedu",
   comment: "Komentar",
+  idea_comment: "Komentar pri ideji",
 };
 
 export default function Page() {
@@ -65,6 +66,10 @@ async function Content() {
     .from("ideas")
     .select("id, slug, title, status")
     .in("id", ids("idea"));
+  const ideaCommentIds = ids("idea_comment").map(Number).filter(Number.isFinite);
+  const { data: ideaCommentsRep } = ideaCommentIds.length
+    ? await supabase.from("idea_comments").select("id, idea_id, body, removed_at").in("id", ideaCommentIds)
+    : { data: [] as { id: number; idea_id: string; body: string; removed_at: string | null }[] };
   const { data: postsRep } = await supabase.from("posts").select("id, caption, status").in("id", ids("post"));
   const commentIds = ids("comment").map(Number).filter(Number.isFinite);
   const { data: commentsRep } = commentIds.length
@@ -96,6 +101,7 @@ async function Content() {
         let ideaId: string | undefined;
         let postId: string | undefined;
         let commentId: number | undefined;
+        let ideaCommentId: number | undefined;
         if (r.target_type === "message") {
           const m = (msgs ?? []).find((x) => String(x.id) === r.target_id);
           if (m) {
@@ -155,6 +161,16 @@ async function Content() {
               </>
             );
           }
+        } else if (r.target_type === "idea_comment") {
+          const c = (ideaCommentsRep ?? []).find((x) => String(x.id) === r.target_id);
+          if (c) {
+            ideaCommentId = c.removed_at ? undefined : c.id;
+            target = (
+              <span className="block rounded-xl bg-cream p-2 break-words whitespace-pre-line">
+                {c.removed_at ? "(odstranjeno)" : c.body}
+              </span>
+            );
+          }
         } else if (r.target_type === "idea") {
           const i = (ideas ?? []).find((x) => x.id === r.target_id);
           if (i) {
@@ -195,6 +211,7 @@ async function Content() {
               ideaId={ideaId}
               postId={postId}
               commentId={commentId}
+              ideaCommentId={ideaCommentId}
             />
           </li>
         );
