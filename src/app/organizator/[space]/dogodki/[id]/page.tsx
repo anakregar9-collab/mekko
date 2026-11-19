@@ -93,6 +93,9 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
     cancelled: o.status === "cancelled",
     editable: o.status === "scheduled" && Date.parse(o.starts_at) > now,
   }));
+  const attendanceSessions = occurrences.filter(
+    (o) => o.status === "scheduled" && Date.parse(o.starts_at) - now <= 12 * 3_600_000,
+  );
   const groups =
     event.booking_scope === "series"
       ? [{ key: "series", label: "Cel tečaj", list: active }]
@@ -232,6 +235,41 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
         </Panel>
 
         <div className="space-y-4">
+          {event.registration_mode === "native" && event.status !== "draft" && (
+            <Panel title="Prisotnost in izvoz">
+              <div className="space-y-3">
+                {attendanceSessions.length === 0 ? (
+                  <p className="text-sm text-ink-muted">
+                    Prisotnost lahko beležiš od 12 ur pred začetkom termina.
+                  </p>
+                ) : (
+                  <ul className="space-y-1" data-testid="attendance-links">
+                    {attendanceSessions
+                      .slice()
+                      .reverse()
+                      .slice(0, 8)
+                      .map((o) => (
+                        <li key={o.id}>
+                          <Link
+                            href={`/organizator/${slug}/dogodki/${event.id}/prisotnost/${o.id}`}
+                            className="inline-flex min-h-11 items-center font-semibold text-brand-strong underline"
+                          >
+                            Prisotnost: {formatSlot(o.starts_at, o.ends_at)}
+                          </Link>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+                <a
+                  href={`/organizator/${slug}/dogodki/${event.id}/udelezenci.csv`}
+                  className="inline-flex min-h-11 items-center font-semibold text-brand-strong underline"
+                  download
+                >
+                  Prenesi seznam udeležencev (CSV)
+                </a>
+              </div>
+            </Panel>
+          )}
           {isAdmin && event.status !== "cancelled" && (
             <Panel title="Termini">
               <SessionsPanel spaceSlug={slug} eventId={event.id} sessions={sessions} />

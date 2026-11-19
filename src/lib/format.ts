@@ -132,3 +132,28 @@ export function weekendDateKeys(nowMs: number): string[] {
   const toSat = 6 - dayIndex;
   return [key(toSat), key(toSat + 1)];
 }
+
+/** Month view bounds in Ljubljana time for "YYYY-MM"; falls back to the month of `nowIso`. */
+export function monthRange(
+  ym: string | undefined,
+  nowIso: string,
+): { key: string; startIso: string; endIso: string; prev: string; next: string; label: string } {
+  const valid = ym && /^\d{4}-(0[1-9]|1[0-2])$/.test(ym) ? ym : localDateKey(nowIso).slice(0, 7);
+  const [y, m] = valid.split("-").map(Number);
+  const shift = (d: number) => {
+    const t = new Date(Date.UTC(y, m - 1 + d, 1));
+    return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, "0")}`;
+  };
+  const next = shift(1);
+  const label = new Intl.DateTimeFormat(LOCALE, { month: "long", year: "numeric", timeZone: "UTC" }).format(
+    new Date(Date.UTC(y, m - 1, 15)),
+  );
+  return {
+    key: valid,
+    startIso: ljubljanaToISO(`${valid}-01`, "00:00"),
+    endIso: ljubljanaToISO(`${next}-01`, "00:00"),
+    prev: shift(-1),
+    next,
+    label,
+  };
+}

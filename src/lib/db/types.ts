@@ -68,6 +68,53 @@ export type Database = {
           },
         ];
       };
+      attendance: {
+        Row: {
+          booking_id: string;
+          marked_at: string;
+          marked_by: string | null;
+          occurrence_id: string;
+          present: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          marked_at?: string;
+          marked_by?: string | null;
+          occurrence_id: string;
+          present: boolean;
+        };
+        Update: {
+          booking_id?: string;
+          marked_at?: string;
+          marked_by?: string | null;
+          occurrence_id?: string;
+          present?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "attendance_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attendance_marked_by_fkey";
+            columns: ["marked_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attendance_occurrence_id_fkey";
+            columns: ["occurrence_id"];
+            isOneToOne: false;
+            referencedRelation: "event_occurrences";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       booking_reminders: {
         Row: {
           booking_id: string;
@@ -1846,6 +1893,10 @@ export type Database = {
       send_event_reminders: { Args: Record<PropertyKey, never>; Returns: number };
       send_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       session_bookers: { Args: { p_occ: string }; Returns: string[] };
+      set_attendance: {
+        Args: { p_booking: string; p_occurrence: string; p_present: boolean };
+        Returns: undefined;
+      };
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };
       set_space_legal_info:
         | {

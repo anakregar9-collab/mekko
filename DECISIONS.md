@@ -195,3 +195,10 @@ Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no f
 - **Announcements:** space team posts "Obvestila za člane" (max 20/day); members get an in-app notification and see them on the space page.
 - **Reminders:** an in-app reminder "Jutri: …" about 24 h before each booked session (pg_cron every 15 min, sent once per booking+session). E-mail reminders come with Resend later.
 - Not yet: e-mail/push for these, member-only chat/forum, waitlist position number, automatic booking from the waitlist, recurring-series editing in bulk.
+
+## 2026-11-19 — Studio tools (M5 part 2, no new business decisions)
+- **Koledar** (Organizator → Koledar): all sessions of the space by month, with bookings/capacity, cancelled sessions struck through, link to attendance.
+- **Prisotnost:** the space team (staff and up) marks each booking present/absent per session, from 12 h before the start. Stored in `attendance`; visible only to the team (attendees do not see it). Whole-course bookings are marked per session.
+- **Izvoz CSV:** attendee list per event (session, name, handle, persons, note, payment state, amount, attendance) for the team only; `;` separator + BOM for Slovene Excel; cells that could run as formulas are neutralised. Contains personal data — organizers are controllers for what they download (to mention in the organizer terms).
+- **Plačila:** overview of manual payments from real bookings only (confirmed total and this month, awaiting, overdue, per event). Mekko does not process money; no fabricated figures.
+- Not yet: passes/cards (needs pricing decisions), recorded courses (needs paid-content decision), staff-specific permissions beyond staff/admin/owner, export of all events at once.

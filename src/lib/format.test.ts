@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   deadlineLabel,
+  monthRange,
   formatPrice,
   priceToCents,
   formatPriceRange,
@@ -116,5 +117,25 @@ describe("weekendDateKeys", () => {
   it("uses Ljubljana, not UTC, around midnight", () => {
     // Friday 20 Nov 23:30 UTC is already Saturday 00:30 in Ljubljana
     expect(weekendDateKeys(Date.parse("2026-11-20T23:30:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
+  });
+});
+
+describe("monthRange", () => {
+  it("uses Ljubljana midnight bounds and neighbours", () => {
+    const r = monthRange("2026-11", "2026-11-19T10:00:00Z");
+    expect(r.startIso).toBe("2026-10-31T23:00:00.000Z");
+    expect(r.endIso).toBe("2026-11-30T23:00:00.000Z");
+    expect(r.prev).toBe("2026-10");
+    expect(r.next).toBe("2026-12");
+    expect(r.label).toMatch(/november 2026/);
+  });
+  it("wraps the year and handles summer time", () => {
+    const r = monthRange("2027-01", "2026-11-19T10:00:00Z");
+    expect(r.prev).toBe("2026-12");
+    expect(monthRange("2026-07", "x").startIso).toBe("2026-06-30T22:00:00.000Z");
+  });
+  it("falls back to the current month for bad input", () => {
+    expect(monthRange("2026-13", "2026-11-19T10:00:00Z").key).toBe("2026-11");
+    expect(monthRange(undefined, "2026-03-31T23:30:00Z").key).toBe("2026-04");
   });
 });
