@@ -70,7 +70,8 @@ test("sign-up, onboarding, profile privacy and data request", async ({ page }) =
   await page.getByRole("checkbox", { name: /Sprejemam Pogoje uporabe/ }).check();
   await page.getByRole("button", { name: "Nadaljuj" }).click();
 
-  await expect(page).toHaveURL(/\/moj-mekko$/);
+  // First test of a full run hits a cold server; onboarding save can exceed the default 5 s.
+  await expect(page).toHaveURL(/\/moj-mekko$/, { timeout: 15_000 });
   const card = page.getByTestId("my-profile");
   await expect(card).toContainText("Nina Test");
   await expect(card).toContainText(`@${handle} · Celje`);

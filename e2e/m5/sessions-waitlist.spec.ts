@@ -6,7 +6,9 @@ function dateInDays(days: number): string {
 }
 
 async function createEvent(org: Page, opts: { kind: string; capacity?: string; membersOnly?: boolean }) {
-  await org.goto(`/organizator/nov-prostor?vrsta=${opts.kind}&ime=${encodeURIComponent(`M5 ${uid("")}`)}`);
+  await org.goto(
+    `/organizator/nov-prostor?vrsta=${opts.kind}&ime=${encodeURIComponent(`Termini ${uid("")}`)}`,
+  );
   const spaceSlug = await org.getByLabel("Spletni naslov").inputValue();
   await org.getByRole("button", { name: "Ustvari prostor" }).click();
   await expect(org).toHaveURL(new RegExp(`/organizator/${spaceSlug}$`));
