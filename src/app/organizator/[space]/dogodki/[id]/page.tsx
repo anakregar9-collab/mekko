@@ -164,9 +164,10 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
                     <h3 className="flex flex-wrap justify-between gap-2 font-semibold">
                       <span>{g.label}</span>
                       <span className="text-sm font-normal text-ink-muted tabular-nums">
-                        {taken}
-                        {event.capacity ? ` / ${event.capacity}` : ""}{" "}
-                        {pluralSl(taken, ["oseba", "osebi", "osebe", "oseb"])}
+                        {taken} {pluralSl(taken, ["oseba", "osebi", "osebe", "oseb"])}
+                        {event.capacity
+                          ? ` od ${event.capacity} ${pluralSl(event.capacity, ["mesta", "mest", "mest", "mest"])}`
+                          : ""}
                       </span>
                     </h3>
                     {g.list.length === 0 ? (

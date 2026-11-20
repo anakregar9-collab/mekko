@@ -18,10 +18,11 @@ export default function Page({ searchParams }: PageProps<"/feed">) {
       <div className="flex items-center justify-between gap-2">
         <h1 className="font-display text-3xl font-extrabold tracking-tight">Feed</h1>
         <div className="flex items-center gap-1">
-          <Link href="/feed/iskanje" className={buttonClasses("ghost", "sm")}>
-            <Search aria-hidden="true" className="size-4" /> Poišči ljudi
+          <Link href="/feed/iskanje" className={buttonClasses("ghost", "sm", "min-w-11")}>
+            <Search aria-hidden="true" className="size-4" />
+            <span className="sr-only sm:not-sr-only">Poišči ljudi</span>
           </Link>
-          <Link href="/objave/nova" className={buttonClasses("primary", "sm")}>
+          <Link href="/objave/nova" className={buttonClasses("primary", "sm", "whitespace-nowrap")}>
             <Plus aria-hidden="true" className="size-4" /> Nova objava
           </Link>
         </div>

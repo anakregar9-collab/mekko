@@ -202,3 +202,7 @@ Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no f
 - **Izvoz CSV:** attendee list per event (session, name, handle, persons, note, payment state, amount, attendance) for the team only; `;` separator + BOM for Slovene Excel; cells that could run as formulas are neutralised. Contains personal data — organizers are controllers for what they download (to mention in the organizer terms).
 - **Plačila:** overview of manual payments from real bookings only (confirmed total and this month, awaiting, overdue, per event). Mekko does not process money; no fabricated figures.
 - Not yet: passes/cards (needs pricing decisions), recorded courses (needs paid-content decision), staff-specific permissions beyond staff/admin/owner, export of all events at once.
+
+## 2026-11-20 — Whole-app phone review
+- New regression test `e2e/phone/all-pages.spec.ts`: one account visits every real page (visitor, organizer, admin, guest — 52 pages) at 320/375/390/430 px and desktop, checking horizontal overflow and serious/critical WCAG issues; `AUDIT_SHOTS=<dir>` saves screenshots for visual review.
+- Result: no overflow and no serious a11y issues. Visual fixes: Feed header was cramped at 320 px (search is an icon on phones), attendee count now reads "2 osebi od 3 mest", calendar dates no longer capitalise month names.

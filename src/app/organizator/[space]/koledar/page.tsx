@@ -99,7 +99,7 @@ async function Content({ params, searchParams }: PageProps<"/organizator/[space]
           <span className="sr-only sm:not-sr-only">Prejšnji</span>
           <span className="sr-only"> mesec</span>
         </Link>
-        <p className="text-center font-display text-lg font-bold capitalize" aria-live="polite">
+        <p className="text-center font-display text-lg font-bold first-letter:uppercase" aria-live="polite">
           {month.label}
           <span className="block text-sm font-normal text-ink-muted normal-case">
             {totalSessions} {pluralSl(totalSessions, ["termin", "termina", "termini", "terminov"])}
@@ -128,7 +128,9 @@ async function Content({ params, searchParams }: PageProps<"/organizator/[space]
         <ol className="space-y-4" data-testid="calendar">
           {[...days.entries()].map(([day, list]) => (
             <li key={day} className="space-y-2">
-              <h2 className="font-semibold capitalize">{dayFmt.format(new Date(list[0].starts_at))}</h2>
+              <h2 className="font-semibold first-letter:uppercase">
+                {dayFmt.format(new Date(list[0].starts_at))}
+              </h2>
               <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]">
                 {list.map((r) => {
                   const t = taken(r);

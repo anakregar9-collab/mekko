@@ -93,7 +93,7 @@ test("organizer publishes an event, visitor books, organizer notifies and cancel
   const attendees = org.getByTestId("attendees");
   await expect(attendees).toContainText("Obiskovalec Jan");
   await expect(attendees).toContainText("Prideva s prijateljico");
-  await expect(attendees).toContainText("2 / 3");
+  await expect(attendees).toContainText("2 osebi od 3 mest");
   await org.getByLabel("Sporočilo").fill("Prinesite stara oblačila!");
   await org.getByRole("button", { name: "Pošlji obvestilo" }).click();
   await expect(org.getByText("Obvestilo je poslano (1 prejemnikov).")).toBeVisible();
