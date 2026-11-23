@@ -50,7 +50,8 @@ Exit: post/like/comment/share journeys tested on phone + desktop; RLS tests for 
 ### M5 — Recorded courses + studio improvements
 - Single video and multi-lesson course, PDF attachments, lesson completion; creator/space library.
 - Studio calendar and attendance management, financial reports, staff roles; passes/cards after core booking behavior stable.
-  - DONE 2026-11-19: month calendar, attendance per session, attendee CSV export, manual-payments overview (see DECISIONS). Open: passes/cards, recorded courses.
+  - DONE 2026-11-19: month calendar, attendance per session, attendee CSV export, manual-payments overview (see DECISIONS).
+  - DONE 2026-11-23/24: passes (karte) and recorded courses with YouTube lessons, manual payment confirmation or organizer's own payment link (see DECISIONS). Open: secured video hosting, courses in discovery.
 Exit: video assets secured, progress persistent, accounts with different permissions cannot access others' paid course content.
 
 ### M6 — Growth + advanced commerce

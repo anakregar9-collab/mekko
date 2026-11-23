@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { BadgeCheck, Megaphone, Users } from "lucide-react";
@@ -92,6 +93,13 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
           data: [] as { id: string; pass_type_id: string; status: string; valid_until: string | null }[],
         }),
   ]);
+  const { data: courses } = await supabase
+    .from("courses")
+    .select("id, slug, title, summary, price_cents")
+    .eq("space_id", space.id)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(20);
   const types = (passTypes ?? []) as unknown as {
     id: string;
     name: string;
@@ -254,6 +262,30 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
                 </li>
               );
             })}
+          </ul>
+        </section>
+      )}
+
+      {(courses ?? []).length > 0 && (
+        <section className="space-y-3" data-testid="space-courses">
+          <h2 className="font-display text-xl font-bold">Posneti tečaji</h2>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {(courses ?? []).map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/tecaji/${c.slug}`}
+                  className="block h-full space-y-1 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] hover:ring-2 hover:ring-brand"
+                >
+                  <span className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-semibold break-words">{c.title}</span>
+                    <span className="text-sm font-semibold tabular-nums">
+                      {c.price_cents ? formatAmount(c.price_cents) : "Brezplačno"}
+                    </span>
+                  </span>
+                  {c.summary && <span className="block text-sm text-ink-muted">{c.summary}</span>}
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
       )}

@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Sparkles,
   Ticket,
+  Clapperboard,
 } from "lucide-react";
 import { getMyPlatformRoles, getMySpaces, requireUser } from "@/lib/auth/dal";
 import { PageSkeleton } from "@/components/page-skeleton";
@@ -94,6 +95,12 @@ async function Content() {
           icon={<Ticket aria-hidden="true" className="size-6" />}
           title="Moje karte"
           desc="Karte za več obiskov in koliko obiskov ti še ostane"
+        />
+        <Row
+          href="/moj-mekko/tecaji"
+          icon={<Clapperboard aria-hidden="true" className="size-6" />}
+          title="Moji tečaji"
+          desc="Posneti tečaji, ki si jih začel/-a ali kupil/-a"
         />
         <Row
           href={`/u/${profile.handle}`}

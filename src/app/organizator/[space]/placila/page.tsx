@@ -54,7 +54,28 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/pla
     .select("price_cents, status, confirmed_at")
     .eq("space_id", space.id)
     .neq("status", "cancelled");
-  const passes = passRows ?? [];
+  const { data: courseRows } = await supabase
+    .from("courses")
+    .select("id")
+    .eq("space_id", space.id)
+    .not("price_cents", "is", null);
+  const courseIds = (courseRows ?? []).map((c) => c.id);
+  const { data: enrRows } = courseIds.length
+    ? await supabase
+        .from("course_enrollments")
+        .select("price_cents, status, confirmed_at")
+        .in("course_id", courseIds)
+        .neq("status", "cancelled")
+    : { data: [] as { price_cents: number | null; status: string; confirmed_at: string | null }[] };
+  // Course sales count like pass sales (same manual-confirmation model).
+  const passes = [
+    ...(passRows ?? []),
+    ...(enrRows ?? []).map((e) => ({
+      price_cents: e.price_cents ?? 0,
+      status: e.status,
+      confirmed_at: e.confirmed_at,
+    })),
+  ];
   if (list.length === 0 && passes.length === 0) {
     return (
       <EmptyState title="Še ni plačljivih dogodkov">
@@ -100,18 +121,18 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/pla
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="payment-stats">
         <StatTile
           label="Potrjeno skupaj"
-          value={formatAmount(sum(confirmed))}
-          hint={`${confirmed.length} prijav`}
+          value={formatAmount(sum(confirmed) + passSum(passConfirmed))}
+          hint={`${confirmed.length} prijav, ${passConfirmed.length} kart/tečajev`}
         />
         <StatTile
           label="Potrjeno ta mesec"
           value={formatAmount(sum(confirmedThisMonth) + passSum(passThisMonth))}
-          hint={`${confirmedThisMonth.length} prijav, ${passThisMonth.length} kart`}
+          hint={`${confirmedThisMonth.length} prijav, ${passThisMonth.length} kart/tečajev`}
         />
         <StatTile
           label="Čaka plačilo"
           value={formatAmount(sum(awaiting) + passSum(passAwaiting))}
-          hint={`${awaiting.length} prijav, ${passAwaiting.length} kart`}
+          hint={`${awaiting.length} prijav, ${passAwaiting.length} kart/tečajev`}
         />
         <StatTile label="Po roku" value={String(overdue.length)} hint="Čakajoče prijave s pretečenim rokom" />
       </div>

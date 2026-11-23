@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { CalendarPlus, ChevronRight, Lightbulb, Store } from "lucide-react";
+import { CalendarPlus, ChevronRight, Lightbulb, Store, Clapperboard } from "lucide-react";
 import { getMySpaces, requireUser } from "@/lib/auth/dal";
 import { PageSkeleton } from "@/components/page-skeleton";
 
@@ -62,6 +62,31 @@ async function Content() {
                 {spaces.length === 0
                   ? "Najprej ustvariš prostor (brezplačno)"
                   : "Enkratni dogodek ali tečaj z več srečanji"}
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={
+              spaces.length === 1
+                ? `/organizator/${spaces[0].space.slug}/tecaji`
+                : spaces.length > 1
+                  ? "/organizator"
+                  : "/organizator/nov-prostor"
+            }
+            className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] hover:ring-2 hover:ring-brand"
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-lilac-soft text-lilac-ink">
+              <Clapperboard aria-hidden="true" className="size-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-lg font-bold">Posnet tečaj</span>
+              <span className="block text-sm text-ink-muted">
+                {spaces.length === 0
+                  ? "Najprej ustvariš prostor (brezplačno)"
+                  : "Video lekcije z YouTuba, brezplačno ali plačljivo"}
               </span>
             </span>
             <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />

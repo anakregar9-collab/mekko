@@ -126,5 +126,10 @@ test("passes: organizer sells a 3-visit pass, confirms payment, visitor books wi
 
   // Payments overview counts the pass
   await org.goto(`/organizator/${slug}/placila`);
-  await expect(org.getByTestId("payment-stats")).toContainText("36,00");
+  const total = org
+    .getByTestId("payment-stats")
+    .locator("div")
+    .filter({ hasText: "Potrjeno skupaj" })
+    .first();
+  await expect(total).toContainText("36,00");
 });

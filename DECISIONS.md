@@ -224,3 +224,10 @@ Founder answers: "Organizator sam / Ročno ali pa poveže svoj Stripe… nič ne
 - Events: "Prijava s karto" for one-off/drop-in events (not whole courses). Booking with a pass skips payment, respects capacity, expiry (session must start before valid_until) and remaining visits. Visits are counted from confirmed bookings, so cancellations (by the visitor or a cancelled session) return them automatically.
 - Paid events can also show the organizer's own payment link.
 - Payments overview includes pass sales; attendee list and CSV mark pass bookings "Karta".
+
+## 2026-11-24 — Recorded courses built (M7b)
+- Organizer → Tečaji: create a course (free or paid; paid needs legal status, payment instructions, optional own payment link), add lessons as YouTube links (any YouTube URL form; only the 11-char id is stored), reorder/remove lessons, mark lessons as free preview, publish/hide (publishing needs ≥1 lesson with video). Buyers awaiting payment: "Plačilo prejeto – odkleni" or cancel with reason; learners list with progress.
+- Public course page /tecaji/<slug>: outline (titles) for everyone, free preview lessons playable by everyone, other lessons and notes only after the organizer confirms payment (free courses open immediately). Player uses youtube-nocookie.com. Learners mark lessons done; Moj Mekko → Moji tečaji shows progress.
+- Courses appear on the space page and under Ustvari → Posnet tečaj. Payments overview counts course sales with passes.
+- **Known limitation (call-out vs. roadmap "video assets secured"):** YouTube videos are protected only by Mekko hiding the video id from non-buyers. Anyone who has bought the course can copy the YouTube link and share it; "unlisted" videos are not private. Founder chose YouTube; real protection would need private hosting with signed URLs (cost) — open for a later decision.
+- Not yet: courses in Odkrivanje (the confirmed tabs are Dogodki | Ideje — adding a "Tečaji" tab needs a founder decision), course reviews, certificates, PDF attachments.

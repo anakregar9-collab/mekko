@@ -1,7 +1,7 @@
 -- M7b courses: paid access only after confirmation; outline public; previews; progress; organizer tools.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(25);
+select plan(27);
 
 create temp table ids (name text primary key, id text);
 grant select, insert on ids to authenticated, anon;
@@ -95,6 +95,17 @@ select pg_temp.act_as('org');
 select public.cancel_enrollment(pg_temp.id('enr'), 'Vračilo po dogovoru');
 select pg_temp.act_as('ana');
 select is((select count(*)::int from public.course_lessons where course_id = pg_temp.id('course')), 1, 'access revoked after cancel');
+
+-- Free course: immediate access
+select pg_temp.act_as('org');
+with c as (insert into public.courses (space_id, slug, title, created_by)
+  values (pg_temp.id('space'), 'brezplacen-pgtap', 'Brezplačen', auth.uid()) returning id)
+insert into ids select 'free', id::text from c;
+select public.add_lesson(pg_temp.id('free'), 'Edina', 'ccccccccccc', null, false);
+update public.courses set status = 'published' where id = pg_temp.id('free');
+select pg_temp.act_as('bor');
+select is(public.enroll_course(pg_temp.id('free')), 'active', 'free course opens immediately');
+select is((select count(*)::int from public.course_lessons where course_id = pg_temp.id('free')), 1, 'free course lessons visible after enrolling');
 
 select * from finish();
 rollback;
