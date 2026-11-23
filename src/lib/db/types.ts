@@ -306,6 +306,184 @@ export type Database = {
           },
         ];
       };
+      course_enrollments: {
+        Row: {
+          cancel_reason: string | null;
+          confirmed_at: string | null;
+          confirmed_by: string | null;
+          course_id: string;
+          created_at: string;
+          id: string;
+          price_cents: number | null;
+          profile_id: string;
+          status: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          cancel_reason?: string | null;
+          confirmed_at?: string | null;
+          confirmed_by?: string | null;
+          course_id: string;
+          created_at?: string;
+          id?: string;
+          price_cents?: number | null;
+          profile_id: string;
+          status: string;
+        };
+        Update: {
+          cancel_reason?: string | null;
+          confirmed_at?: string | null;
+          confirmed_by?: string | null;
+          course_id?: string;
+          created_at?: string;
+          id?: string;
+          price_cents?: number | null;
+          profile_id?: string;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_confirmed_by_fkey";
+            columns: ["confirmed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_enrollments_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      course_lessons: {
+        Row: {
+          course_id: string;
+          created_at: string;
+          id: string;
+          is_preview: boolean;
+          notes: string | null;
+          position: number;
+          title: string;
+          youtube_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          course_id: string;
+          created_at?: string;
+          id?: string;
+          is_preview?: boolean;
+          notes?: string | null;
+          position: number;
+          title: string;
+          youtube_id?: string | null;
+        };
+        Update: {
+          course_id?: string;
+          created_at?: string;
+          id?: string;
+          is_preview?: boolean;
+          notes?: string | null;
+          position?: number;
+          title?: string;
+          youtube_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "course_lessons_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      courses: {
+        Row: {
+          cover: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          interest_id: number | null;
+          payment_instructions: string | null;
+          payment_link: string | null;
+          price_cents: number | null;
+          published_at: string | null;
+          slug: string;
+          space_id: string;
+          status: string;
+          summary: string | null;
+          title: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          cover?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          interest_id?: number | null;
+          payment_instructions?: string | null;
+          payment_link?: string | null;
+          price_cents?: number | null;
+          published_at?: string | null;
+          slug: string;
+          space_id: string;
+          status?: string;
+          summary?: string | null;
+          title: string;
+        };
+        Update: {
+          cover?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          interest_id?: number | null;
+          payment_instructions?: string | null;
+          payment_link?: string | null;
+          price_cents?: number | null;
+          published_at?: string | null;
+          slug?: string;
+          space_id?: string;
+          status?: string;
+          summary?: string | null;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "courses_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "courses_interest_id_fkey";
+            columns: ["interest_id"];
+            isOneToOne: false;
+            referencedRelation: "interests";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "courses_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       data_requests: {
         Row: {
           created_at: string;
@@ -866,6 +1044,40 @@ export type Database = {
           sort?: number;
         };
         Relationships: [];
+      };
+      lesson_progress: {
+        Row: {
+          completed_at: string;
+          lesson_id: string;
+          profile_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          completed_at?: string;
+          lesson_id: string;
+          profile_id: string;
+        };
+        Update: {
+          completed_at?: string;
+          lesson_id?: string;
+          profile_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lesson_progress_lesson_id_fkey";
+            columns: ["lesson_id"];
+            isOneToOne: false;
+            referencedRelation: "course_lessons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lesson_progress_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       messages: {
         Row: {
@@ -1820,6 +2032,16 @@ export type Database = {
     Functions: {
       add_comment: { Args: { p_body: string; p_post: string }; Returns: number };
       add_idea_comment: { Args: { p_body: string; p_idea: string }; Returns: number };
+      add_lesson: {
+        Args: {
+          p_course: string;
+          p_notes: string;
+          p_preview: boolean;
+          p_title: string;
+          p_youtube_id: string;
+        };
+        Returns: string;
+      };
       admin_remove_message: { Args: { p_message: number; p_reason: string }; Returns: undefined };
       admin_resolve_data_request: {
         Args: {
@@ -1872,12 +2094,25 @@ export type Database = {
       can_view_post: { Args: { p_post: string }; Returns: boolean };
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
+      cancel_enrollment: { Args: { p_enrollment: string; p_reason: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
       cancel_occurrence: { Args: { p_occ: string; p_reason: string }; Returns: number };
       cancel_pass: { Args: { p_pass: string; p_reason: string }; Returns: undefined };
       confirm_booking_payment: { Args: { p_booking: string }; Returns: undefined };
+      confirm_enrollment: { Args: { p_enrollment: string }; Returns: undefined };
       confirm_pass: { Args: { p_pass: string }; Returns: undefined };
       contact_space: { Args: { p_body: string; p_space: string }; Returns: string };
+      course_outline: {
+        Args: { p_course: string };
+        Returns: {
+          has_video: boolean;
+          id: string;
+          is_preview: boolean;
+          position_no: number;
+          title: string;
+        }[];
+      };
+      course_space: { Args: { p_course: string }; Returns: string };
       create_post: {
         Args: {
           p_caption: string;
@@ -1901,6 +2136,7 @@ export type Database = {
       };
       create_space_post: { Args: { p_body: string; p_space: string }; Returns: string };
       dm_open_after: { Args: Record<PropertyKey, never>; Returns: string };
+      enroll_course: { Args: { p_course: string }; Returns: string };
       event_online_url: { Args: { p_event: string }; Returns: string };
       event_space: { Args: { p_event: string }; Returns: string };
       extend_pass: { Args: { p_pass: string; p_until: string }; Returns: undefined };
@@ -1941,6 +2177,7 @@ export type Database = {
         }[];
       };
       follow_user: { Args: { p_profile: string }; Returns: string };
+      has_course_access: { Args: { p_course: string }; Returns: boolean };
       has_platform_role: {
         Args: { roles: Database["public"]["Enums"]["platform_role"][] };
         Returns: boolean;
@@ -2002,6 +2239,7 @@ export type Database = {
       leave_waitlist: { Args: { p_event: string; p_occurrence: string }; Returns: undefined };
       mark_conversation_read: { Args: { p_conversation: string }; Returns: undefined };
       mark_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
+      move_lesson: { Args: { p_lesson: string; p_up: boolean }; Returns: undefined };
       notify: {
         Args: { p_body: string; p_kind: string; p_link: string; p_recipient: string; p_title: string };
         Returns: undefined;
@@ -2028,6 +2266,7 @@ export type Database = {
       release_unpaid_booking: { Args: { p_booking: string; p_reason: string }; Returns: undefined };
       remove_comment: { Args: { p_comment: number }; Returns: undefined };
       remove_idea_comment: { Args: { p_comment: number }; Returns: undefined };
+      remove_lesson: { Args: { p_lesson: string }; Returns: undefined };
       remove_post: { Args: { p_post: string }; Returns: undefined };
       remove_space_member: { Args: { p_profile: string; p_space: string }; Returns: undefined };
       remove_space_post: { Args: { p_post: string }; Returns: undefined };
@@ -2075,6 +2314,7 @@ export type Database = {
         Args: { p_booking: string; p_occurrence: string; p_present: boolean };
         Returns: undefined;
       };
+      set_lesson_done: { Args: { p_done: boolean; p_lesson: string }; Returns: undefined };
       set_my_interests: { Args: { p_interest_ids: number[] }; Returns: undefined };
       set_space_legal_info:
         | {
@@ -2112,6 +2352,7 @@ export type Database = {
       unblock_user: { Args: { p_profile: string }; Returns: undefined };
       unfollow_user: { Args: { p_profile: string }; Returns: undefined };
       unread_conversations: { Args: Record<PropertyKey, never>; Returns: number };
+      withdraw_enrollment: { Args: { p_course: string }; Returns: undefined };
       withdraw_pass: { Args: { p_pass: string }; Returns: undefined };
       write_audit: {
         Args: {
