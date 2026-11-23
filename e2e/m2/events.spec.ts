@@ -12,6 +12,8 @@ test("app opens on Odkrivanje with test events; guests see a preview only", asyn
   await expect(page.getByTestId("feed").locator(":scope > li").first()).toBeVisible();
   await checkPage(page);
 
+  // Discovery is paged (24); find the seeded event by search so local test data cannot push it off page 1.
+  await page.goto("/odkrivanje?q=Keramika");
   await page
     .getByRole("link", { name: /Keramika za začetnike/ })
     .first()
