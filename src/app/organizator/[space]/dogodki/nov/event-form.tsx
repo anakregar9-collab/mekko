@@ -41,6 +41,7 @@ export function EventForm({
   const [beginner, setBeginner] = useState(v.beginner_friendly === "true");
   const [family, setFamily] = useState(v.family_friendly === "true");
   const [membersOnly, setMembersOnly] = useState(v.members_only === "true");
+  const [passes, setPasses] = useState(v.accepts_passes === "true");
   const [sessions, setSessions] = useState([{ k: 0 }]);
   const echoed = parseSessions(v.sessions_json);
   // Changes on every server response: re-mounts radio groups so they match state after React's form reset.
@@ -294,6 +295,26 @@ export function EventForm({
           </>
         )}
         {e.members_only && <p className="text-sm text-brand-strong">{e.members_only}</p>}
+        {schedule === "one_off" && mode === "native" && (
+          <>
+            <input type="hidden" name="accepts_passes" value={passes ? "on" : ""} />
+            <label className="flex min-h-11 items-center gap-3">
+              <input
+                key={`pass-${formKey}`}
+                type="checkbox"
+                checked={passes}
+                onChange={(ev) => setPasses(ev.target.checked)}
+                className="size-5 accent-[var(--color-brand)]"
+              />
+              <span>
+                <span className="block font-medium">Prijava s karto</span>
+                <span className="block text-sm text-ink-muted">
+                  Imetniki tvojih kart se prijavijo brez plačila in porabijo obisk.
+                </span>
+              </span>
+            </label>
+          </>
+        )}
       </Card>
 
       <Card title="Prijave">
@@ -431,6 +452,23 @@ export function EventForm({
                     defaultValue={v.payment_instructions}
                     className={inputCls}
                     {...describedBy("payment_instructions", e.payment_instructions, true)}
+                  />
+                </Field>
+                <Field
+                  label="Povezava za spletno plačilo (neobvezno)"
+                  htmlFor="payment_link"
+                  hint="Npr. tvoja Stripe plačilna povezava. Denar gre neposredno tebi, ne prek Mekka."
+                  error={e.payment_link}
+                >
+                  <input
+                    id="payment_link"
+                    name="payment_link"
+                    type="url"
+                    maxLength={500}
+                    placeholder="https://buy.stripe.com/…"
+                    defaultValue={v.payment_link}
+                    className={inputCls}
+                    {...describedBy("payment_link", e.payment_link, true)}
                   />
                 </Field>
                 <Field

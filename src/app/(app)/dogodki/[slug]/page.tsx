@@ -30,6 +30,8 @@ import { coverUrl } from "@/lib/media";
 import { spaceKindLabel } from "@/lib/spaces";
 import { BookingForm, CancelBookingForm } from "./booking-forms";
 import { WaitlistForm } from "./waitlist-form";
+import { PassBookingForm } from "@/components/passes/pass-forms";
+import { PaymentDetails } from "@/components/passes/payment-details";
 import { leaveWaitlist } from "@/lib/actions/community";
 import { ReportForm, StartConversationForm } from "@/components/messages/forms";
 import { ProviderInfo } from "@/components/spaces/provider-info";
@@ -73,7 +75,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   const profile = await getMyProfile();
   const supabase = await createClient();
   const columns = profile
-    ? `${PREVIEW_COLUMNS}, description, address, materials, payment_instructions`
+    ? `${PREVIEW_COLUMNS}, description, address, materials, payment_instructions, payment_link`
     : PREVIEW_COLUMNS;
   const { data: raw } = await supabase.from("events").select(columns).eq("slug", slug).maybeSingle();
   if (!raw) notFound();
@@ -102,6 +104,8 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
     payment_mode: "free" | "manual";
     price_cents: number | null;
     payment_instructions?: string | null;
+    payment_link?: string | null;
+    accepts_passes: boolean;
     payment_deadline_hours: number | null;
     beginner_friendly: boolean;
     family_friendly: boolean;
@@ -171,6 +175,35 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
   const cancelled = event.status === "cancelled";
   const paid = event.payment_mode === "manual" && event.registration_mode === "native";
   const bookable = !cancelled && event.registration_mode === "native" && upcoming.length > 0;
+  const { data: myPassRows } =
+    profile && event.accepts_passes && event.booking_scope === "occurrence"
+      ? await supabase
+          .from("passes")
+          .select("id, name, visits, valid_until")
+          .eq("holder_id", profile.id)
+          .eq("space_id", event.space_id)
+          .eq("status", "active")
+          .gt("valid_until", new Date(now).toISOString())
+      : { data: [] as { id: string; name: string; visits: number; valid_until: string | null }[] };
+  const passIds = (myPassRows ?? []).map((p) => p.id);
+  const { data: passUse } = passIds.length
+    ? await supabase
+        .from("bookings")
+        .select("pass_id, quantity")
+        .in("pass_id", passIds)
+        .eq("status", "confirmed")
+    : { data: [] as { pass_id: string | null; quantity: number }[] };
+  const usablePasses = (myPassRows ?? [])
+    .map((p) => {
+      const left =
+        p.visits - (passUse ?? []).filter((b) => b.pass_id === p.id).reduce((n, b) => n + b.quantity, 0);
+      return { ...p, left };
+    })
+    .filter((p) => p.left > 0);
+  const latestPassEnd = Math.max(0, ...usablePasses.map((p) => Date.parse(p.valid_until ?? "")));
+  const passSessions = upcoming.filter(
+    (o) => !bookedOcc.has(o.id) && seatsByOcc.get(o.id) !== 0 && Date.parse(o.starts_at) <= latestPassEnd,
+  );
   const waiting = myWaitlist ?? [];
   const waitingOcc = new Set(waiting.map((w) => w.occurrence_id));
   const fullSessions = series
@@ -205,6 +238,7 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
             {event.beginner_friendly && <Badge tone="sage">Za začetnike</Badge>}
             {event.family_friendly && <Badge tone="sun">Za otroke in družine</Badge>}
             {event.visibility === "members" && <Badge tone="lilac">Samo za člane</Badge>}
+            {event.accepts_passes && <Badge tone="sage">Možna prijava s karto</Badge>}
             {event.is_demo && <Badge>Testni dogodek</Badge>}
             {cancelled && <Badge tone="brand">Odpovedano</Badge>}
           </div>
@@ -324,6 +358,9 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
               <Section title="Plačilo" icon={<Wallet aria-hidden="true" className="size-5 text-ink-muted" />}>
                 <div className="space-y-1" data-testid="payment-instructions">
                   <p className="whitespace-pre-line">{event.payment_instructions}</p>
+                  {event.payment_link && (
+                    <PaymentDetails instructions={null} link={event.payment_link} label="Spletno plačilo" />
+                  )}
                   {event.payment_deadline_hours && (
                     <p className="font-semibold" data-testid="payment-deadline">
                       Rok za plačilo: {deadlineLabel(event.payment_deadline_hours)} po prijavi. Neplačana
@@ -471,6 +508,20 @@ async function EventContent({ params }: { params: PageProps<"/dogodki/[slug]">["
                 Prijavi se za udeležbo
               </Link>
             ))}
+
+          {bookable && profile && usablePasses.length > 0 && passSessions.length > 0 && (
+            <PassBookingForm
+              slug={event.slug}
+              eventId={event.id}
+              maxPerBooking={event.max_per_booking}
+              passes={usablePasses.map((p) => ({
+                id: p.id,
+                left: p.left,
+                label: `${p.name} · ostane ${p.left} · velja do ${p.valid_until ? formatDate(p.valid_until) : "–"}`,
+              }))}
+              sessions={passSessions.map((o) => ({ id: o.id, label: formatSlot(o.starts_at, o.ends_at) }))}
+            />
+          )}
 
           {bookable && profile && waiting.length > 0 && (
             <ul className="space-y-2" data-testid="my-waitlist">

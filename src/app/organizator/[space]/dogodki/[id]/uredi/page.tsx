@@ -32,7 +32,7 @@ async function Content({
   const { data: ev } = await supabase
     .from("events")
     .select(
-      "id, space_id, status, title, summary, description, interest_id, is_online, registration_mode, city, address, external_url, capacity, max_per_booking, materials, cover, cover_image_path, beginner_friendly, family_friendly, visibility",
+      "id, space_id, status, title, summary, description, interest_id, is_online, registration_mode, city, address, external_url, capacity, max_per_booking, materials, cover, cover_image_path, beginner_friendly, family_friendly, visibility, booking_scope, payment_mode, payment_link, accepts_passes",
     )
     .eq("id", id)
     .maybeSingle();
@@ -59,6 +59,8 @@ async function Content({
         eventId={id}
         interests={interests}
         membersAllowed={space.membership_mode !== "none" || ev.visibility === "members"}
+        passesAllowed={ev.booking_scope === "occurrence" && ev.registration_mode === "native"}
+        paid={ev.payment_mode === "manual"}
         initial={{
           isOnline: ev.is_online,
           external: ev.registration_mode === "external",
@@ -80,6 +82,8 @@ async function Content({
             beginner_friendly: String(ev.beginner_friendly),
             family_friendly: String(ev.family_friendly),
             members_only: String(ev.visibility === "members"),
+            accepts_passes: String(ev.accepts_passes),
+            payment_link: ev.payment_link ?? "",
           },
         }}
       />

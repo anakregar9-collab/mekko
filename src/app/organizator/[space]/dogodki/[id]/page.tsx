@@ -41,6 +41,7 @@ interface AttendeeRow {
   payment_state: "none" | "awaiting" | "organizer_confirmed";
   amount_cents: number | null;
   payment_due_at: string | null;
+  pass_id: string | null;
   booker: { display_name: string; handle: string } | null;
 }
 
@@ -65,7 +66,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
     supabase
       .from("bookings")
       .select(
-        "id, booker_id, occurrence_id, quantity, note, status, payment_state, amount_cents, payment_due_at, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
+        "id, booker_id, occurrence_id, quantity, note, status, payment_state, amount_cents, payment_due_at, pass_id, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
       )
       .eq("event_id", id)
       .order("created_at"),
@@ -195,6 +196,11 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
                                 <span className="tabular-nums">× {b.quantity}</span>
                               </span>
                             </p>
+                            {b.pass_id && (
+                              <p className="mt-1 text-sm">
+                                <Badge tone="sage">Karta</Badge>
+                              </p>
+                            )}
                             {b.note && <p className="text-sm text-ink-muted">„{b.note}“</p>}
                             {b.payment_state === "awaiting" && (
                               <>

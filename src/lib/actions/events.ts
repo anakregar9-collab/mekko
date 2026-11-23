@@ -38,6 +38,8 @@ const eventSchema = z
     payment_mode: z.enum(["free", "manual"]),
     price: z.string().trim().optional().default(""),
     payment_instructions: z.string().trim().max(1000, "Največ 1000 znakov.").optional().default(""),
+    payment_link: z.string().trim().max(500).optional().default(""),
+    accepts_passes: z.boolean(),
     payment_deadline_hours: z.enum(["", "24", "48", "72", "168"]).optional().default(""),
   })
   .superRefine((d, ctx) => {
@@ -55,6 +57,8 @@ const eventSchema = z
       const cents = priceToCents(d.price);
       if (cents === null || cents < 50 || cents > 100000)
         ctx.addIssue({ code: "custom", path: ["price"], message: "Vpiši ceno med 0,50 in 1000 €." });
+      if (d.payment_link && !/^https:\/\/\S+$/.test(d.payment_link))
+        ctx.addIssue({ code: "custom", path: ["payment_link"], message: "Povezava mora začeti s https://" });
       if (d.payment_instructions.length < 5)
         ctx.addIssue({
           code: "custom",
@@ -92,6 +96,8 @@ function readEvent(fd: FormData) {
     payment_mode: str(fd, "payment_mode") || "free",
     price: str(fd, "price"),
     payment_instructions: str(fd, "payment_instructions"),
+    payment_link: str(fd, "payment_link"),
+    accepts_passes: fd.get("accepts_passes") === "on",
     payment_deadline_hours: str(fd, "payment_deadline_hours"),
   };
 }
@@ -175,6 +181,8 @@ export async function createEvent(
       beginner_friendly: d.beginner_friendly,
       family_friendly: d.family_friendly,
       visibility: d.members_only ? "members" : "public",
+      // Passes work per session (one-off/drop-in events), not for whole courses.
+      accepts_passes: d.accepts_passes && d.schedule === "one_off" && d.registration_mode === "native",
       city: d.is_online ? null : d.city,
       address: d.is_online ? null : d.address || null,
       online_url: d.is_online && d.online_url ? d.online_url : null,
@@ -189,12 +197,14 @@ export async function createEvent(
             payment_mode: "manual",
             price_cents: priceToCents(d.price),
             payment_instructions: d.payment_instructions,
+            payment_link: d.payment_link || null,
             payment_deadline_hours: d.payment_deadline_hours ? Number(d.payment_deadline_hours) : null,
           }
         : {
             payment_mode: "free",
             price_cents: null,
             payment_instructions: null,
+            payment_link: null,
             payment_deadline_hours: null,
           }),
     })
@@ -328,6 +338,12 @@ const editSchema = z
     beginner_friendly: z.boolean(),
     family_friendly: z.boolean(),
     members_only: z.boolean(),
+    accepts_passes: z.boolean(),
+    payment_link: z
+      .string()
+      .trim()
+      .max(500)
+      .refine((v) => v === "" || /^https:\/\/\S+$/.test(v), "Povezava mora začeti s https://"),
   })
   .superRefine((d, ctx) => {
     if (
@@ -364,6 +380,8 @@ export async function updateEvent(
     beginner_friendly: fd.get("beginner_friendly") === "on",
     family_friendly: fd.get("family_friendly") === "on",
     members_only: fd.get("members_only") === "on",
+    accepts_passes: fd.get("accepts_passes") === "on",
+    payment_link: str(fd, "payment_link"),
   };
   const echo: Record<string, string> = Object.fromEntries(
     Object.entries(raw).map(([k, v]) => [k, String(v ?? "")]),
@@ -378,7 +396,7 @@ export async function updateEvent(
   const { data: current } = await supabase
     .from("events")
     .select(
-      "id, slug, status, is_online, registration_mode, address, city, cover_image_path, visibility, space_id",
+      "id, slug, status, is_online, registration_mode, address, city, cover_image_path, visibility, space_id, booking_scope, payment_mode",
     )
     .eq("id", eventId)
     .maybeSingle();
@@ -427,6 +445,9 @@ export async function updateEvent(
       beginner_friendly: d.beginner_friendly,
       family_friendly: d.family_friendly,
       visibility,
+      accepts_passes:
+        d.accepts_passes && current.booking_scope === "occurrence" && current.registration_mode === "native",
+      ...(current.payment_mode === "manual" ? { payment_link: d.payment_link || null } : {}),
     })
     .eq("id", eventId);
   if (error) return { message: friendlyDbError(error), values: echo };

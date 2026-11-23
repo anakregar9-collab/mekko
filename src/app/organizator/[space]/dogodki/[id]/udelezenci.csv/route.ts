@@ -42,7 +42,7 @@ export async function GET(
     supabase
       .from("bookings")
       .select(
-        "id, occurrence_id, quantity, note, payment_state, amount_cents, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
+        "id, occurrence_id, quantity, note, payment_state, amount_cents, pass_id, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
       )
       .eq("event_id", id)
       .eq("status", "confirmed")
@@ -69,6 +69,7 @@ export async function GET(
     note: string | null;
     payment_state: string;
     amount_cents: number | null;
+    pass_id: string | null;
     booker: { display_name: string; handle: string } | null;
   }[]) {
     rows.push([
@@ -77,7 +78,7 @@ export async function GET(
       b.booker ? `@${b.booker.handle}` : "",
       b.quantity,
       b.note,
-      paymentLabel[b.payment_state] ?? "",
+      b.pass_id ? "Karta" : (paymentLabel[b.payment_state] ?? ""),
       b.amount_cents ? (b.amount_cents / 100).toFixed(2).replace(".", ",") : "",
       event.booking_scope === "series"
         ? `${presentCount(b.id)} od ${sessions.filter((s) => s.status === "scheduled").length}`

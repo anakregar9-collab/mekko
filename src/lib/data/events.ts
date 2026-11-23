@@ -10,7 +10,7 @@ export type CoverTone = "coral" | "sun" | "sage" | "lilac" | "sky" | "clay";
 
 /** Columns guests are allowed to read (see grants in the M2 migration). */
 export const PREVIEW_COLUMNS =
-  "id, space_id, slug, title, summary, interest_id, schedule, booking_scope, is_online, visibility, registration_mode, external_url, city, capacity, max_per_booking, cancellation_policy, cover, status, cancel_reason, is_demo, published_at, payment_mode, price_cents, payment_deadline_hours, beginner_friendly, family_friendly, cover_image_path";
+  "id, space_id, slug, title, summary, interest_id, schedule, booking_scope, is_online, visibility, registration_mode, external_url, city, capacity, max_per_booking, cancellation_policy, cover, status, cancel_reason, is_demo, published_at, payment_mode, price_cents, payment_deadline_hours, beginner_friendly, family_friendly, cover_image_path, accepts_passes";
 
 export interface EventCardData {
   id: string;

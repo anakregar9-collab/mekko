@@ -29,12 +29,16 @@ export function EventEditForm({
   interests,
   initial,
   membersAllowed = false,
+  passesAllowed = false,
+  paid = false,
 }: {
   spaceSlug: string;
   eventId: string;
   interests: { id: number; label_sl: string }[];
   initial: EventEditInitial;
   membersAllowed?: boolean;
+  passesAllowed?: boolean;
+  paid?: boolean;
 }) {
   const [state, action] = useActionState<FormState, FormData>(updateEvent.bind(null, spaceSlug, eventId), {});
   const v = state.values ?? initial.values;
@@ -42,6 +46,7 @@ export function EventEditForm({
   const [beginner, setBeginner] = useState(v.beginner_friendly === "true");
   const [family, setFamily] = useState(v.family_friendly === "true");
   const [membersOnly, setMembersOnly] = useState(v.members_only === "true");
+  const [passes, setPasses] = useState(v.accepts_passes === "true");
   const formKey = v.nonce ?? "0";
 
   return (
@@ -222,6 +227,39 @@ export function EventEditForm({
           </>
         )}
         {e.members_only && <p className="text-sm text-brand-strong">{e.members_only}</p>}
+        {passesAllowed && (
+          <>
+            <input type="hidden" name="accepts_passes" value={passes ? "on" : ""} />
+            <label className="flex min-h-11 items-center gap-3">
+              <input
+                key={`pass-${formKey}`}
+                type="checkbox"
+                checked={passes}
+                onChange={(ev) => setPasses(ev.target.checked)}
+                className="size-5 accent-[var(--color-brand)]"
+              />
+              <span className="font-medium">Prijava s karto</span>
+            </label>
+          </>
+        )}
+        {paid && (
+          <Field
+            label="Povezava za spletno plačilo (neobvezno)"
+            htmlFor="payment_link"
+            hint="Npr. tvoja Stripe plačilna povezava. Denar gre neposredno tebi."
+            error={e.payment_link}
+          >
+            <input
+              id="payment_link"
+              name="payment_link"
+              type="url"
+              maxLength={500}
+              defaultValue={v.payment_link}
+              placeholder="https://buy.stripe.com/…"
+              className={inputCls}
+            />
+          </Field>
+        )}
       </fieldset>
 
       {initial.photoUrl && (

@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Sparkles,
+  Ticket,
 } from "lucide-react";
 import { getMyPlatformRoles, getMySpaces, requireUser } from "@/lib/auth/dal";
 import { PageSkeleton } from "@/components/page-skeleton";
@@ -87,6 +88,12 @@ async function Content() {
           icon={<Bookmark aria-hidden="true" className="size-6" />}
           title="Shranjeno"
           desc="Dogodki in ideje, ki si jih shranil/-a"
+        />
+        <Row
+          href="/moj-mekko/karte"
+          icon={<Ticket aria-hidden="true" className="size-6" />}
+          title="Moje karte"
+          desc="Karte za več obiskov in koliko obiskov ti še ostane"
         />
         <Row
           href={`/u/${profile.handle}`}

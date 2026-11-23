@@ -11,10 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { getAuthUserId } from "@/lib/auth/dal";
 import { ReportForm, StartConversationForm } from "@/components/messages/forms";
 import { ProviderInfo } from "@/components/spaces/provider-info";
+import { BuyPassForm } from "@/components/passes/pass-forms";
+import { PaymentDetails } from "@/components/passes/payment-details";
+import { withdrawPass } from "@/lib/actions/passes";
 import { spaceKindLabel } from "@/lib/spaces";
 import { joinSpace, leaveSpace } from "@/lib/actions/community";
 import { buttonClasses } from "@/components/ui/button";
-import { formatDate, formatTime, pluralSl } from "@/lib/format";
+import { formatAmount, formatDate, formatTime, pluralSl } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Prostor" };
 
@@ -67,6 +70,38 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
         .limit(20)
     : { data: [] as { id: string; body: string; created_at: string }[] };
   const count = memberCount ?? 0;
+  const [{ data: passTypes }, { data: myPasses }] = await Promise.all([
+    supabase
+      .from("pass_types")
+      .select(
+        me
+          ? "id, name, description, visits, price_cents, validity_days, payment_instructions, payment_link"
+          : "id, name, description, visits, price_cents, validity_days",
+      )
+      .eq("space_id", space.id)
+      .eq("active", true)
+      .order("price_cents"),
+    me
+      ? supabase
+          .from("passes")
+          .select("id, pass_type_id, status, valid_until")
+          .eq("space_id", space.id)
+          .eq("holder_id", me)
+          .neq("status", "cancelled")
+      : Promise.resolve({
+          data: [] as { id: string; pass_type_id: string; status: string; valid_until: string | null }[],
+        }),
+  ]);
+  const types = (passTypes ?? []) as unknown as {
+    id: string;
+    name: string;
+    description: string | null;
+    visits: number;
+    price_cents: number;
+    validity_days: number;
+    payment_instructions?: string;
+    payment_link?: string | null;
+  }[];
 
   return (
     <div className="space-y-6">
@@ -159,6 +194,66 @@ async function Content({ params }: { params: PageProps<"/prostori/[slug]">["para
                 </p>
               </li>
             ))}
+          </ul>
+        </section>
+      )}
+
+      {types.length > 0 && (
+        <section className="space-y-3" data-testid="space-passes">
+          <h2 className="font-display text-xl font-bold">Karte</h2>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {types.map((t) => {
+              const mine = (myPasses ?? []).find((p) => p.pass_type_id === t.id && p.status === "awaiting");
+              const owned = (myPasses ?? []).some((p) => p.pass_type_id === t.id && p.status === "active");
+              return (
+                <li
+                  key={t.id}
+                  className="space-y-2 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)]"
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="font-semibold break-words">{t.name}</h3>
+                    <span className="font-semibold tabular-nums">{formatAmount(t.price_cents)}</span>
+                  </div>
+                  <p className="text-sm text-ink-muted">
+                    {t.visits} {pluralSl(t.visits, ["obisk", "obiska", "obiski", "obiskov"])} · velja{" "}
+                    {t.validity_days} dni od plačila
+                  </p>
+                  {t.description && <p className="text-sm whitespace-pre-line">{t.description}</p>}
+                  {!me ? (
+                    <a
+                      href={`/prijava?naprej=${encodeURIComponent(`/prostori/${slug}`)}`}
+                      className={buttonClasses("secondary", "sm")}
+                    >
+                      Prijavi se za nakup
+                    </a>
+                  ) : mine ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold">
+                        Naročeno – čaka na tvoje plačilo in potrditev organizatorja.
+                      </p>
+                      <PaymentDetails
+                        instructions={t.payment_instructions ?? null}
+                        link={t.payment_link ?? null}
+                      />
+                      <form action={withdrawPass}>
+                        <input type="hidden" name="pass_id" value={mine.id} />
+                        <input type="hidden" name="back" value={`/prostori/${slug}`} />
+                        <button type="submit" className={buttonClasses("ghost", "sm")}>
+                          Prekliči naročilo
+                        </button>
+                      </form>
+                    </div>
+                  ) : (
+                    <>
+                      {owned && (
+                        <p className="text-sm text-sage-ink">To karto že imaš (Moj Mekko → Moje karte).</p>
+                      )}
+                      <BuyPassForm spaceSlug={slug} typeId={t.id} name={t.name} />
+                    </>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

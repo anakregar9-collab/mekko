@@ -49,24 +49,32 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/pla
     .neq("status", "draft")
     .order("created_at", { ascending: false });
   const list = events ?? [];
-  if (list.length === 0) {
+  const { data: passRows } = await supabase
+    .from("passes")
+    .select("price_cents, status, confirmed_at")
+    .eq("space_id", space.id)
+    .neq("status", "cancelled");
+  const passes = passRows ?? [];
+  if (list.length === 0 && passes.length === 0) {
     return (
       <EmptyState title="Še ni plačljivih dogodkov">
         <p>Ko objaviš dogodek z ročnim plačilom, se tu prikažejo potrjena in čakajoča plačila.</p>
       </EmptyState>
     );
   }
-  const { data: raw } = await supabase
-    .from("bookings")
-    .select(
-      "id, event_id, quantity, payment_state, amount_cents, payment_due_at, payment_confirmed_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
-    )
-    .in(
-      "event_id",
-      list.map((e) => e.id),
-    )
-    .eq("status", "confirmed")
-    .neq("payment_state", "none");
+  const { data: raw } = list.length
+    ? await supabase
+        .from("bookings")
+        .select(
+          "id, event_id, quantity, payment_state, amount_cents, payment_due_at, payment_confirmed_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
+        )
+        .in(
+          "event_id",
+          list.map((e) => e.id),
+        )
+        .eq("status", "confirmed")
+        .neq("payment_state", "none")
+    : { data: [] };
   const bookings = (raw ?? []) as unknown as BookingRow[];
   const now = nowMs();
   const thisMonth = localDateKey(new Date(now).toISOString()).slice(0, 7);
@@ -78,6 +86,12 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/pla
   const overdue = awaiting.filter((b) => b.payment_due_at && Date.parse(b.payment_due_at) < now);
   const confirmedThisMonth = confirmed.filter(
     (b) => b.payment_confirmed_at && localDateKey(b.payment_confirmed_at).slice(0, 7) === thisMonth,
+  );
+  const passConfirmed = passes.filter((p) => p.status === "active");
+  const passAwaiting = passes.filter((p) => p.status === "awaiting");
+  const passSum = (rows: typeof passes) => rows.reduce((n, p) => n + p.price_cents, 0);
+  const passThisMonth = passConfirmed.filter(
+    (p) => p.confirmed_at && localDateKey(p.confirmed_at).slice(0, 7) === thisMonth,
   );
   const title = (id: string) => list.find((e) => e.id === id)?.title ?? "Dogodek";
 
@@ -91,13 +105,13 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/pla
         />
         <StatTile
           label="Potrjeno ta mesec"
-          value={formatAmount(sum(confirmedThisMonth))}
-          hint={`${confirmedThisMonth.length} prijav`}
+          value={formatAmount(sum(confirmedThisMonth) + passSum(passThisMonth))}
+          hint={`${confirmedThisMonth.length} prijav, ${passThisMonth.length} kart`}
         />
         <StatTile
           label="Čaka plačilo"
-          value={formatAmount(sum(awaiting))}
-          hint={`${awaiting.length} prijav`}
+          value={formatAmount(sum(awaiting) + passSum(passAwaiting))}
+          hint={`${awaiting.length} prijav, ${passAwaiting.length} kart`}
         />
         <StatTile label="Po roku" value={String(overdue.length)} hint="Čakajoče prijave s pretečenim rokom" />
       </div>

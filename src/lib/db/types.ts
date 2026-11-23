@@ -159,6 +159,7 @@ export type Database = {
           id: string;
           note: string | null;
           occurrence_id: string | null;
+          pass_id: string | null;
           payment_confirmed_at: string | null;
           payment_confirmed_by: string | null;
           payment_due_at: string | null;
@@ -176,6 +177,7 @@ export type Database = {
           id?: string;
           note?: string | null;
           occurrence_id?: string | null;
+          pass_id?: string | null;
           payment_confirmed_at?: string | null;
           payment_confirmed_by?: string | null;
           payment_due_at?: string | null;
@@ -192,6 +194,7 @@ export type Database = {
           id?: string;
           note?: string | null;
           occurrence_id?: string | null;
+          pass_id?: string | null;
           payment_confirmed_at?: string | null;
           payment_confirmed_by?: string | null;
           payment_due_at?: string | null;
@@ -219,6 +222,13 @@ export type Database = {
             columns: ["occurrence_id"];
             isOneToOne: false;
             referencedRelation: "event_occurrences";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookings_pass_id_fkey";
+            columns: ["pass_id"];
+            isOneToOne: false;
+            referencedRelation: "passes";
             referencedColumns: ["id"];
           },
           {
@@ -433,6 +443,7 @@ export type Database = {
       };
       events: {
         Row: {
+          accepts_passes: boolean;
           address: string | null;
           beginner_friendly: boolean;
           booking_scope: Database["public"]["Enums"]["booking_scope"];
@@ -456,6 +467,7 @@ export type Database = {
           online_url: string | null;
           payment_deadline_hours: number | null;
           payment_instructions: string | null;
+          payment_link: string | null;
           payment_mode: string;
           price_cents: number | null;
           published_at: string | null;
@@ -471,6 +483,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          accepts_passes?: boolean;
           address?: string | null;
           beginner_friendly?: boolean;
           booking_scope?: Database["public"]["Enums"]["booking_scope"];
@@ -494,6 +507,7 @@ export type Database = {
           online_url?: string | null;
           payment_deadline_hours?: number | null;
           payment_instructions?: string | null;
+          payment_link?: string | null;
           payment_mode?: string;
           price_cents?: number | null;
           published_at?: string | null;
@@ -508,6 +522,7 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["event_visibility"];
         };
         Update: {
+          accepts_passes?: boolean;
           address?: string | null;
           beginner_friendly?: boolean;
           booking_scope?: Database["public"]["Enums"]["booking_scope"];
@@ -531,6 +546,7 @@ export type Database = {
           online_url?: string | null;
           payment_deadline_hours?: number | null;
           payment_instructions?: string | null;
+          payment_link?: string | null;
           payment_mode?: string;
           price_cents?: number | null;
           published_at?: string | null;
@@ -942,6 +958,151 @@ export type Database = {
             columns: ["recipient_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pass_types: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          payment_instructions: string;
+          payment_link: string | null;
+          price_cents: number;
+          space_id: string;
+          validity_days: number;
+          visits: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          payment_instructions: string;
+          payment_link?: string | null;
+          price_cents: number;
+          space_id: string;
+          validity_days: number;
+          visits: number;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          payment_instructions?: string;
+          payment_link?: string | null;
+          price_cents?: number;
+          space_id?: string;
+          validity_days?: number;
+          visits?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pass_types_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pass_types_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      passes: {
+        Row: {
+          cancel_reason: string | null;
+          confirmed_at: string | null;
+          confirmed_by: string | null;
+          created_at: string;
+          holder_id: string;
+          id: string;
+          name: string;
+          pass_type_id: string;
+          price_cents: number;
+          space_id: string;
+          status: string;
+          valid_from: string | null;
+          valid_until: string | null;
+          validity_days: number;
+          visits: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          cancel_reason?: string | null;
+          confirmed_at?: string | null;
+          confirmed_by?: string | null;
+          created_at?: string;
+          holder_id: string;
+          id?: string;
+          name: string;
+          pass_type_id: string;
+          price_cents: number;
+          space_id: string;
+          status?: string;
+          valid_from?: string | null;
+          valid_until?: string | null;
+          validity_days: number;
+          visits: number;
+        };
+        Update: {
+          cancel_reason?: string | null;
+          confirmed_at?: string | null;
+          confirmed_by?: string | null;
+          created_at?: string;
+          holder_id?: string;
+          id?: string;
+          name?: string;
+          pass_type_id?: string;
+          price_cents?: number;
+          space_id?: string;
+          status?: string;
+          valid_from?: string | null;
+          valid_until?: string | null;
+          validity_days?: number;
+          visits?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "passes_confirmed_by_fkey";
+            columns: ["confirmed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "passes_holder_id_fkey";
+            columns: ["holder_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "passes_pass_type_id_fkey";
+            columns: ["pass_type_id"];
+            isOneToOne: false;
+            referencedRelation: "pass_types";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "passes_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
             referencedColumns: ["id"];
           },
         ];
@@ -1702,6 +1863,10 @@ export type Database = {
         Args: { p_event: string; p_note?: string; p_occurrence: string; p_quantity: number };
         Returns: string;
       };
+      book_with_pass: {
+        Args: { p_event: string; p_occurrence: string; p_pass: string; p_quantity: number };
+        Returns: string;
+      };
       can_engage_idea: { Args: { p_idea: string }; Returns: boolean };
       can_message: { Args: { p_to: string }; Returns: boolean };
       can_view_post: { Args: { p_post: string }; Returns: boolean };
@@ -1709,7 +1874,9 @@ export type Database = {
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
       cancel_occurrence: { Args: { p_occ: string; p_reason: string }; Returns: number };
+      cancel_pass: { Args: { p_pass: string; p_reason: string }; Returns: undefined };
       confirm_booking_payment: { Args: { p_booking: string }; Returns: undefined };
+      confirm_pass: { Args: { p_pass: string }; Returns: undefined };
       contact_space: { Args: { p_body: string; p_space: string }; Returns: string };
       create_post: {
         Args: {
@@ -1736,6 +1903,7 @@ export type Database = {
       dm_open_after: { Args: Record<PropertyKey, never>; Returns: string };
       event_online_url: { Args: { p_event: string }; Returns: string };
       event_space: { Args: { p_event: string }; Returns: string };
+      extend_pass: { Args: { p_pass: string; p_until: string }; Returns: undefined };
       feed_posts: {
         Args: { p_author?: string; p_before?: string; p_limit?: number; p_scope: string };
         Returns: {
@@ -1840,6 +2008,7 @@ export type Database = {
       };
       notify_attendees: { Args: { p_event: string; p_message: string }; Returns: number };
       notify_waitlist: { Args: { p_event: string; p_occurrence: string }; Returns: undefined };
+      pass_visits_used: { Args: { p_pass: string }; Returns: number };
       post_comments_for: {
         Args: { p_post: string };
         Returns: {
@@ -1871,6 +2040,7 @@ export type Database = {
         };
         Returns: string;
       };
+      request_pass: { Args: { p_type: string }; Returns: string };
       request_space_verification: { Args: { p_space: string }; Returns: undefined };
       reschedule_occurrence: { Args: { p_ends: string; p_occ: string; p_starts: string }; Returns: number };
       respond_follow: { Args: { p_accept: boolean; p_follower: string }; Returns: undefined };
@@ -1942,6 +2112,7 @@ export type Database = {
       unblock_user: { Args: { p_profile: string }; Returns: undefined };
       unfollow_user: { Args: { p_profile: string }; Returns: undefined };
       unread_conversations: { Args: Record<PropertyKey, never>; Returns: number };
+      withdraw_pass: { Args: { p_pass: string }; Returns: undefined };
       write_audit: {
         Args: {
           p_action: string;

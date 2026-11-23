@@ -210,3 +210,17 @@ Consequences: PRODUCT_SPEC §2 "not a general infinite social network" and "no f
 ## 2026-11-23 — Odkrivanje: faster and paged
 - Seat counts for all discovery cards come from one call (`seats_taken_many`, aggregate counts only, members-only events hidden from outsiders) instead of one call per card.
 - Events and ideas show 24 at a time with "Pokaži več" (URL keeps the total, e.g. `?vec=48`, together with search and filters; at most 192). Ordinary search still covers everything (no personalization filter).
+
+## 2026-11-23 — Founder decisions: passes, courses, payments (CONFIRMED)
+Founder answers: "Organizator sam / Ročno ali pa poveže svoj Stripe… nič ne gre skozi mene! / Obisk se vrne oz. denar rabijo vrniti na svoj način, to je njihova skrb / Zapadejo in organizator lahko podaljša / [tečaji] naj bodo plačljivi (IBAN podatki, potrdi organizator oz. ima povezan svoj Stripe) / YouTube / Ne bi zaenkrat provizije".
+1. **Passes (karte):** the organizer defines visits, price and validity. Payment is manual (organizer's instructions) or the organizer's own payment link. A cancelled session returns the visit to the pass; any money refund is between organizer and buyer. Unused visits expire; the organizer may extend.
+2. **Recorded courses:** may be paid; same payment model (instructions/IBAN or organizer's own link, organizer confirms → access). Videos are YouTube links (unlisted), not hosted by Mekko.
+3. **No Mekko commission** for now. **No money through Mekko.**
+- Interpretation (flagged to founder): "poveže svoj Stripe" is implemented as the organizer pasting their own **Stripe Payment Link** (or any https checkout link). Mekko only shows the link; the organizer confirms receipt manually. Automatic confirmation would require Mekko to become a Stripe Connect platform — a separate legal/compliance step, not done.
+
+## 2026-11-23 — Passes built (M7a)
+- Organizer → Karte: create pass types (name, visits 1–100, price, validity 7–730 days, payment instructions, optional https payment link; legal status required), hide/show, confirm payment ("Plačilo prejeto – aktiviraj"), cancel with reason (future pass bookings are cancelled), extend validity.
+- Space page: "Karte" with "Kupi karto" → shows the organizer's payment details/link; Moj Mekko → Moje karte shows status, visits left, expiry.
+- Events: "Prijava s karto" for one-off/drop-in events (not whole courses). Booking with a pass skips payment, respects capacity, expiry (session must start before valid_until) and remaining visits. Visits are counted from confirmed bookings, so cancellations (by the visitor or a cancelled session) return them automatically.
+- Paid events can also show the organizer's own payment link.
+- Payments overview includes pass sales; attendee list and CSV mark pass bookings "Karta".
