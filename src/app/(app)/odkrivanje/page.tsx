@@ -18,6 +18,10 @@ export const metadata: Metadata = { title: "Odkrivanje" };
 
 type Tab = "dogodki" | "ideje";
 
+/** Cards per "Pokaži več" step; the URL keeps the total (?vec=48) so the view can be shared and reloaded. */
+const PAGE = 24;
+const MAX_SHOWN = 192;
+
 export default function OdkrivanjePage({ searchParams }: PageProps<"/odkrivanje">) {
   return (
     <div className="space-y-4">
@@ -41,11 +45,15 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
   const q = typeof sp.q === "string" ? sp.q : "";
   const cat = typeof sp.kategorija === "string" ? sp.kategorija : "";
   const quick = readQuick(sp.f);
+  const vecRaw = Number(typeof sp.vec === "string" ? sp.vec : PAGE);
+  const shown = Number.isInteger(vecRaw)
+    ? Math.min(Math.max(Math.ceil(vecRaw / PAGE) * PAGE, PAGE), MAX_SHOWN)
+    : PAGE;
   const interests = await listInterestsForFilter();
   const interest = interests.find((i) => i.slug === cat);
 
   /** Same search, categories and quick filters on both tabs; each link changes one thing. */
-  const href = (change: { tab?: Tab; kategorija?: string | null; toggle?: QuickFilter }) => {
+  const href = (change: { tab?: Tab; kategorija?: string | null; toggle?: QuickFilter; vec?: number }) => {
     const p = new URLSearchParams();
     const t = change.tab ?? tab;
     if (t === "ideje") p.set("pogled", "ideje");
@@ -58,22 +66,42 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
         : [...quick, change.toggle]
       : quick;
     for (const f of nextQuick) p.append("f", f);
+    if (change.vec) p.set("vec", String(change.vec));
     const s = p.toString();
     return `/odkrivanje${s ? `?${s}` : ""}`;
   };
 
   const filtered = !!(q || interest || quick.length);
-  const events = tab === "dogodki" ? await listUpcomingEvents({ q, interestId: interest?.id, quick }) : [];
+  const eventsPlus =
+    tab === "dogodki"
+      ? await listUpcomingEvents({ q, interestId: interest?.id, quick, limit: shown + 1 })
+      : [];
   // Ideas use the filters that make sense for them ("Online" / "Ta vikend" are event-only and kept in the URL).
-  const ideas =
+  const ideasPlus =
     tab === "ideje"
       ? await listIdeas({
           q,
           interestId: interest?.id,
           beginner: quick.includes("zacetniki"),
           family: quick.includes("otroci"),
+          limit: shown + 1,
         })
       : [];
+  const events = eventsPlus.slice(0, shown);
+  const ideas = ideasPlus.slice(0, shown);
+  const hasMore = (tab === "dogodki" ? eventsPlus.length : ideasPlus.length) > shown && shown < MAX_SHOWN;
+  const more = hasMore ? (
+    <div className="flex justify-center pt-2">
+      <Link
+        href={href({ vec: shown + PAGE })}
+        scroll={false}
+        className="inline-flex min-h-11 items-center rounded-full bg-surface px-6 font-semibold ring-1 ring-line hover:bg-brand-soft"
+        data-testid="show-more"
+      >
+        Pokaži več
+      </Link>
+    </div>
+  ) : null;
 
   return (
     <div className="space-y-4">
@@ -182,13 +210,16 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
             </EmptyState>
           </div>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2" data-testid="ideas-feed">
-            {ideas.map((i) => (
-              <li key={i.id}>
-                <LiveIdeaCard idea={i} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="grid gap-4 sm:grid-cols-2" data-testid="ideas-feed">
+              {ideas.map((i) => (
+                <li key={i.id}>
+                  <LiveIdeaCard idea={i} />
+                </li>
+              ))}
+            </ul>
+            {more}
+          </>
         )
       ) : events.length === 0 ? (
         <EmptyState title={filtered ? "Ni zadetkov" : "Kmalu novi dogodki"}>
@@ -206,13 +237,16 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
           )}
         </EmptyState>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2" data-testid="feed">
-          {events.map((e) => (
-            <li key={e.id}>
-              <LiveEventCard event={e} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="grid gap-4 sm:grid-cols-2" data-testid="feed">
+            {events.map((e) => (
+              <li key={e.id}>
+                <LiveEventCard event={e} />
+              </li>
+            ))}
+          </ul>
+          {more}
+        </>
       )}
     </div>
   );

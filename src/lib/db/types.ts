@@ -1890,6 +1890,14 @@ export type Database = {
         }[];
       };
       seats_taken: { Args: { p_event: string; p_occurrence: string }; Returns: number };
+      seats_taken_many: {
+        Args: { p_events: string[] };
+        Returns: {
+          event_id: string;
+          occurrence_id: string;
+          taken: number;
+        }[];
+      };
       send_event_reminders: { Args: Record<PropertyKey, never>; Returns: number };
       send_message: { Args: { p_body: string; p_conversation: string }; Returns: undefined };
       session_bookers: { Args: { p_occ: string }; Returns: string[] };

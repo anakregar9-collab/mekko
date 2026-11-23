@@ -122,40 +122,42 @@ export async function listUpcomingEvents(
     .sort((a, b) => a.upcoming[0].starts_at.localeCompare(b.upcoming[0].starts_at))
     .slice(0, opts.limit ?? 60);
 
-  return Promise.all(
-    cards.map(async ({ e, upcoming }): Promise<EventCardData> => {
-      const next = upcoming[0];
-      let seatsLeft: number | null = null;
-      if (e.capacity !== null && e.registration_mode === "native") {
-        const { data: taken } = await supabase.rpc("seats_taken", {
-          p_event: e.id,
-          p_occurrence: (e.booking_scope === "series" ? null : next.id) as string,
-        });
-        seatsLeft = Math.max(e.capacity - (taken ?? 0), 0);
-      }
-      return {
-        id: e.id,
-        slug: e.slug,
-        title: e.title,
-        summary: e.summary,
-        city: e.city,
-        cover: e.cover as CoverTone,
-        isOnline: e.is_online,
-        schedule: e.schedule,
-        registrationMode: e.registration_mode,
-        priceCents: e.payment_mode === "manual" ? e.price_cents : null,
-        coverImageUrl: coverUrl(e.cover_image_path),
-        capacity: e.capacity,
-        isDemo: e.is_demo,
-        membersOnly: e.visibility === "members",
-        interestId: e.interest_id,
-        space: e.space,
-        next: { id: next.id, startsAt: next.starts_at, endsAt: next.ends_at },
-        sessions: e.occurrences.length,
-        seatsLeft,
-      };
-    }),
-  );
+  // One query for every card's seats (was one RPC per card).
+  const withSeats = cards.filter(({ e }) => e.capacity !== null && e.registration_mode === "native");
+  const { data: seatRows } = withSeats.length
+    ? await supabase.rpc("seats_taken_many", { p_events: withSeats.map(({ e }) => e.id) })
+    : { data: [] as { event_id: string; occurrence_id: string | null; taken: number }[] };
+  const takenFor = (eventId: string, occurrenceId: string | null) =>
+    (seatRows ?? []).find((r) => r.event_id === eventId && r.occurrence_id === occurrenceId)?.taken ?? 0;
+
+  return cards.map(({ e, upcoming }): EventCardData => {
+    const next = upcoming[0];
+    const seatsLeft =
+      e.capacity !== null && e.registration_mode === "native"
+        ? Math.max(e.capacity - takenFor(e.id, e.booking_scope === "series" ? null : next.id), 0)
+        : null;
+    return {
+      id: e.id,
+      slug: e.slug,
+      title: e.title,
+      summary: e.summary,
+      city: e.city,
+      cover: e.cover as CoverTone,
+      isOnline: e.is_online,
+      schedule: e.schedule,
+      registrationMode: e.registration_mode,
+      priceCents: e.payment_mode === "manual" ? e.price_cents : null,
+      coverImageUrl: coverUrl(e.cover_image_path),
+      capacity: e.capacity,
+      isDemo: e.is_demo,
+      membersOnly: e.visibility === "members",
+      interestId: e.interest_id,
+      space: e.space,
+      next: { id: next.id, startsAt: next.starts_at, endsAt: next.ends_at },
+      sessions: e.occurrences.length,
+      seatsLeft,
+    };
+  });
 }
 
 export async function listInterestsForFilter() {
