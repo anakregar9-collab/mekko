@@ -70,7 +70,7 @@ test("publish an idea, find it, save it; a moderator hides it after a report", a
 });
 
 test("guests see an idea preview but not the instructions", async ({ page }) => {
-  await page.goto("/odkrivanje?pogled=ideje");
+  await page.goto("/odkrivanje?pogled=ideje&q=Akvarelne");
   await page.getByRole("link", { name: /Akvarelne voščilnice/ }).click();
   await expect(page.getByText("Testna ideja").filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByTestId("login-gate")).toBeVisible();
