@@ -416,6 +416,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           description: string | null;
+          hidden_reason: string | null;
           id: string;
           interest_id: number | null;
           payment_instructions: string | null;
@@ -434,6 +435,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           description?: string | null;
+          hidden_reason?: string | null;
           id?: string;
           interest_id?: number | null;
           payment_instructions?: string | null;
@@ -451,6 +453,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           description?: string | null;
+          hidden_reason?: string | null;
           id?: string;
           interest_id?: number | null;
           payment_instructions?: string | null;
@@ -2061,6 +2064,10 @@ export type Database = {
         Args: { p_note: string; p_report: string; p_status: Database["public"]["Enums"]["report_status"] };
         Returns: undefined;
       };
+      admin_set_course_status: {
+        Args: { p_course: string; p_reason: string; p_status: string };
+        Returns: undefined;
+      };
       admin_set_idea_status: {
         Args: { p_idea: string; p_reason: string; p_status: string };
         Returns: undefined;
@@ -2391,7 +2398,8 @@ export type Database = {
       registration_mode: "native" | "external";
       report_reason: "spam" | "harassment" | "inappropriate" | "scam" | "copyright" | "other";
       report_status: "open" | "actioned" | "dismissed";
-      report_target: "profile" | "message" | "event" | "space" | "idea" | "post" | "comment" | "idea_comment";
+      report_target:
+        "profile" | "message" | "event" | "space" | "idea" | "post" | "comment" | "idea_comment" | "course";
       space_kind: "solo_creator" | "community" | "studio" | "association";
       space_role: "owner" | "admin" | "staff" | "member";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
@@ -2526,7 +2534,17 @@ export const Constants = {
       registration_mode: ["native", "external"],
       report_reason: ["spam", "harassment", "inappropriate", "scam", "copyright", "other"],
       report_status: ["open", "actioned", "dismissed"],
-      report_target: ["profile", "message", "event", "space", "idea", "post", "comment", "idea_comment"],
+      report_target: [
+        "profile",
+        "message",
+        "event",
+        "space",
+        "idea",
+        "post",
+        "comment",
+        "idea_comment",
+        "course",
+      ],
       space_kind: ["solo_creator", "community", "studio", "association"],
       space_role: ["owner", "admin", "staff", "member"],
       verification_status: ["unverified", "pending", "verified", "rejected"],

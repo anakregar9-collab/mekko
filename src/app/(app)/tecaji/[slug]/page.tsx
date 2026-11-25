@@ -12,6 +12,7 @@ import { Cover } from "@/components/ui/cover";
 import { buttonClasses } from "@/components/ui/button";
 import { PaymentDetails } from "@/components/passes/payment-details";
 import { EnrollForm } from "@/components/courses/course-forms";
+import { ReportForm } from "@/components/messages/forms";
 import { formatAmount, pluralSl } from "@/lib/format";
 import { youTubeEmbedUrl } from "@/lib/youtube";
 import { setLessonDone, withdrawEnrollment } from "@/lib/actions/courses";
@@ -99,6 +100,9 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
   const currentIndex = lessons.findIndex((l) => l.id === currentId);
   const next = lessons.slice(currentIndex + 1).find((l) => playable.has(l.id));
   const paid = course.price_cents !== null;
+  // The team can always open its own course; they do not report it.
+  const isTeam =
+    !!profile && !enrolled && !!(await supabase.rpc("has_course_access", { p_course: course.id })).data;
   const markDone = setLessonDone.bind(null, course.slug);
 
   return (
@@ -261,6 +265,9 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
             })}
           </ol>
         </nav>
+        {profile && course.status === "published" && !isTeam && (
+          <ReportForm targetType="course" targetId={course.id} label="Prijavi tečaj" />
+        )}
       </aside>
     </div>
   );

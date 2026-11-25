@@ -21,6 +21,7 @@ const errors: Record<string, string> = {
   invalid_status: "Tega trenutno ni mogoče spremeniti.",
   reason_required: "Vpiši razlog.",
   too_many_lessons: "Tečaj ima lahko največ 100 lekcij.",
+  hidden_by_moderator: "Tečaj so skrili moderatorji Mekka. Za ponovno objavo jim piši.",
   not_allowed: "Za to nimaš dovoljenja.",
 };
 const friendly = (m?: string) => (m && errors[m]) || "Nekaj je šlo narobe. Poskusi znova.";
@@ -177,6 +178,37 @@ export async function addLesson(
   if (error) return { message: friendly(error.message), values };
   revalidatePath(`/organizator/${spaceSlug}/tecaji/${courseId}`);
   return { ok: true, message: "Lekcija je dodana." };
+}
+
+export async function updateLesson(
+  spaceSlug: string,
+  courseId: string,
+  _prev: FormState,
+  fd: FormData,
+): Promise<FormState> {
+  await requireSpaceRole(spaceSlug, "admin");
+  const lessonId = String(fd.get("lesson_id"));
+  if (!uuid.safeParse(lessonId).success) return { message: "Lekcije ni bilo mogoče najti." };
+  const title = String(fd.get("title") ?? "").trim();
+  const video = String(fd.get("video") ?? "").trim();
+  const notes = String(fd.get("notes") ?? "").trim();
+  const values = { title, video, notes };
+  const errs: Record<string, string> = {};
+  if (title.length < 2 || title.length > 120) errs.title = "Naslov lekcije: 2–120 znakov.";
+  const id = video ? parseYouTubeId(video) : null;
+  if (video && !id) errs.video = "Prilepi povezavo do YouTube videa (npr. https://youtu.be/…).";
+  if (notes.length > 5000) errs.notes = "Največ 5000 znakov.";
+  if (Object.keys(errs).length) return { errors: errs, values };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("course_lessons")
+    .update({ title, youtube_id: id, notes: notes || null, is_preview: fd.get("is_preview") === "on" })
+    .eq("id", lessonId)
+    .eq("course_id", courseId)
+    .select("id");
+  if (error || !data?.length) return { message: friendly(error?.message), values };
+  revalidatePath(`/organizator/${spaceSlug}/tecaji/${courseId}`);
+  return { ok: true, message: "Lekcija je shranjena.", values };
 }
 
 export async function moveLesson(spaceSlug: string, courseId: string, fd: FormData): Promise<void> {

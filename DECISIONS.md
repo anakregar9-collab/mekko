@@ -232,3 +232,7 @@ Founder answers: "Organizator sam / Ročno ali pa poveže svoj Stripe… nič ne
 - **Known limitation (call-out vs. roadmap "video assets secured"):** YouTube videos are protected only by Mekko hiding the video id from non-buyers. Anyone who has bought the course can copy the YouTube link and share it; "unlisted" videos are not private. Founder chose YouTube; real protection would need private hosting with signed URLs (cost) — open for a later decision.
 - Migration has no row deletes (Supabase asks for a confirmation the founder never receives): removed lessons get `removed_at`, undone progress `done = false`.
 - Not yet: courses in Odkrivanje (the confirmed tabs are Dogodki | Ideje — adding a "Tečaji" tab needs a founder decision), course reviews, certificates, PDF attachments.
+
+## 2026-11-25 — Courses: reports, moderation, lesson editing
+- Signed-in users (not the course team) can report a course ("Prijavi tečaj"); reports appear in Admin → Prijave vsebin with "Skrij tečaj". Hiding is audited, stores the reason and notifies the space owner; the organizer sees the reason and cannot re-publish (only moderators can restore).
+- Organizers can edit an existing lesson (title, YouTube link, notes, free preview).

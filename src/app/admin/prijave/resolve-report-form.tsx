@@ -11,6 +11,7 @@ export function ResolveReportForm({
   postId,
   commentId,
   ideaCommentId,
+  courseId,
 }: {
   reportId: string;
   messageId?: number;
@@ -18,6 +19,7 @@ export function ResolveReportForm({
   postId?: string;
   commentId?: number;
   ideaCommentId?: number;
+  courseId?: string;
 }) {
   const [state, action] = useActionState<FormState, FormData>(resolveReport, {});
   if (state.ok) return <FormMessage state={state} />;
@@ -27,6 +29,7 @@ export function ResolveReportForm({
       <input type="hidden" name="report_id" value={reportId} />
       {messageId !== undefined && <input type="hidden" name="message_id" value={messageId} />}
       {ideaId && <input type="hidden" name="idea_id" value={ideaId} />}
+      {courseId && <input type="hidden" name="course_id" value={courseId} />}
       {postId && <input type="hidden" name="post_id" value={postId} />}
       {commentId !== undefined && <input type="hidden" name="comment_id" value={commentId} />}
       {ideaCommentId !== undefined && <input type="hidden" name="idea_comment_id" value={ideaCommentId} />}
@@ -43,6 +46,11 @@ export function ResolveReportForm({
       {ideaId && (
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="hide_idea" value="1" className="size-5" /> Skrij idejo
+        </label>
+      )}
+      {courseId && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="hide_course" value="1" className="size-5" /> Skrij tečaj
         </label>
       )}
       {postId && (

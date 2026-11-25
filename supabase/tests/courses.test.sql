@@ -1,7 +1,7 @@
 -- M7b courses: paid access only after confirmation; outline public; previews; progress; organizer tools.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(37);
 
 create temp table ids (name text primary key, id text);
 grant select, insert on ids to authenticated, anon;
@@ -106,6 +106,26 @@ select pg_temp.act_as('org');
 select public.cancel_enrollment(pg_temp.id('enr'), 'Vračilo po dogovoru');
 select pg_temp.act_as('ana');
 select is((select count(*)::int from public.course_lessons where course_id = pg_temp.id('course')), 1, 'access revoked after cancel');
+
+-- Reports + moderation
+select pg_temp.act_as('org');
+select throws_ok($$ select public.report_content('course', pg_temp.id('course')::text, 'spam', null) $$,
+  'P0001', 'report_target_not_found', 'the team cannot report its own course');
+select pg_temp.act_as('bor');
+select lives_ok($$ select public.report_content('course', pg_temp.id('course')::text, 'scam', 'Ni vsebine') $$,
+  'others can report a course');
+select throws_ok($$ select public.admin_set_course_status(pg_temp.id('course'), 'hidden', 'x') $$,
+  '42501', 'not_allowed', 'only moderators hide courses');
+select pg_temp.act_root();
+insert into ids values ('mod', pg_temp.mk_user('crs_mod')::text);
+insert into public.platform_roles (profile_id, role) values (pg_temp.id('mod'), 'moderator');
+select pg_temp.act_as('mod');
+select lives_ok($$ select public.admin_set_course_status(pg_temp.id('course'), 'hidden', 'Zavajajoča vsebina') $$,
+  'moderator hides the course');
+select pg_temp.act_as('org');
+select throws_ok($$ update public.courses set status = 'published' where id = pg_temp.id('course') $$,
+  'P0001', 'hidden_by_moderator', 'organizer cannot re-publish a moderator-hidden course');
+select is((select count(*)::int from public.notifications where title = 'Tečaj je skrit'), 1, 'owner told why');
 
 -- Free course: immediate access
 select pg_temp.act_as('org');

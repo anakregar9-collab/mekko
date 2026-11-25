@@ -17,6 +17,7 @@ import {
   CancelEnrollmentForm,
   CourseForm,
   CourseStatusForm,
+  LessonEditForm,
   LessonForm,
   RemoveLessonForm,
 } from "@/components/courses/course-forms";
@@ -49,7 +50,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
   const { data: course } = await supabase
     .from("courses")
     .select(
-      "id, slug, title, summary, description, interest_id, price_cents, payment_instructions, payment_link, status, space_id",
+      "id, slug, title, summary, description, interest_id, price_cents, payment_instructions, payment_link, status, space_id, hidden_reason",
     )
     .eq("id", id)
     .maybeSingle();
@@ -57,7 +58,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
   const [{ data: lessons }, { data: raw }, interests] = await Promise.all([
     supabase
       .from("course_lessons")
-      .select("id, position, title, youtube_id, is_preview")
+      .select("id, position, title, youtube_id, notes, is_preview")
       .eq("course_id", id)
       .order("position"),
     supabase
@@ -112,9 +113,21 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
               Javna stran <ExternalLink aria-hidden="true" className="size-4" />
             </Link>
           )}
-          {isAdmin && <CourseStatusForm spaceSlug={slug} courseId={id} status={status} />}
+          {isAdmin && !course.hidden_reason && (
+            <CourseStatusForm spaceSlug={slug} courseId={id} status={status} />
+          )}
         </div>
       </div>
+
+      {course.hidden_reason && (
+        <p
+          role="status"
+          className="rounded-2xl bg-brand-soft p-3 text-brand-strong"
+          data-testid="course-hidden-notice"
+        >
+          Moderatorji Mekka so tečaj skrili: {course.hidden_reason}. Za ponovno objavo jim piši.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
         <div className="min-w-0 space-y-4">
@@ -164,6 +177,19 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
                         </form>
                         <RemoveLessonForm spaceSlug={slug} courseId={id} lessonId={l.id} title={l.title} />
                       </div>
+                    )}
+                    {isAdmin && (
+                      <LessonEditForm
+                        spaceSlug={slug}
+                        courseId={id}
+                        lesson={{
+                          id: l.id,
+                          title: l.title,
+                          video: l.youtube_id ? `https://youtu.be/${l.youtube_id}` : "",
+                          notes: l.notes ?? "",
+                          is_preview: l.is_preview,
+                        }}
+                      />
                     )}
                   </li>
                 ))}

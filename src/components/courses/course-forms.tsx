@@ -10,6 +10,7 @@ import {
   removeLesson,
   setCourseStatus,
   updateCourse,
+  updateLesson,
 } from "@/lib/actions/courses";
 
 export function CourseForm({
@@ -296,5 +297,62 @@ export function EnrollForm({ slug, courseId, paid }: { slug: string; courseId: s
         {paid ? "Kupi tečaj" : "Začni brezplačno"}
       </SubmitButton>
     </form>
+  );
+}
+
+export function LessonEditForm({
+  spaceSlug,
+  courseId,
+  lesson,
+}: {
+  spaceSlug: string;
+  courseId: string;
+  lesson: { id: string; title: string; video: string; notes: string; is_preview: boolean };
+}) {
+  const [state, action] = useActionState<FormState, FormData>(
+    updateLesson.bind(null, spaceSlug, courseId),
+    {},
+  );
+  const v = state.values ?? { title: lesson.title, video: lesson.video, notes: lesson.notes };
+  const e = state.errors ?? {};
+  const id = `le-${lesson.id}`;
+  return (
+    <details className="w-full text-sm">
+      <summary className="inline-flex min-h-9 cursor-pointer items-center font-semibold text-brand-strong">
+        Uredi<span className="sr-only"> lekcijo {lesson.title}</span>
+      </summary>
+      <form action={action} className="mt-2 space-y-2" noValidate>
+        <FormMessage state={state} />
+        <input type="hidden" name="lesson_id" value={lesson.id} />
+        <Field label="Naslov lekcije" htmlFor={`${id}-t`} error={e.title}>
+          <input id={`${id}-t`} name="title" maxLength={120} defaultValue={v.title} className={inputCls} />
+        </Field>
+        <Field label="YouTube povezava" htmlFor={`${id}-v`} error={e.video}>
+          <input id={`${id}-v`} name="video" type="url" defaultValue={v.video} className={inputCls} />
+        </Field>
+        <Field label="Zapiski (neobvezno)" htmlFor={`${id}-n`} error={e.notes}>
+          <textarea
+            id={`${id}-n`}
+            name="notes"
+            rows={3}
+            maxLength={5000}
+            defaultValue={v.notes}
+            className={inputCls}
+          />
+        </Field>
+        <label className="flex min-h-11 items-center gap-3">
+          <input
+            type="checkbox"
+            name="is_preview"
+            defaultChecked={lesson.is_preview}
+            className="size-5 accent-[var(--color-brand)]"
+          />
+          <span className="font-medium">Brezplačen predogled</span>
+        </label>
+        <SubmitButton size="sm" pendingText="Shranjujem …">
+          Shrani lekcijo
+        </SubmitButton>
+      </form>
+    </details>
   );
 }

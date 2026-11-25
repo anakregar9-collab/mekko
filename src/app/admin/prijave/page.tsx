@@ -27,6 +27,7 @@ const typeLabel: Record<string, string> = {
   post: "Objava v feedu",
   comment: "Komentar",
   idea_comment: "Komentar pri ideji",
+  course: "Posnet tečaj",
 };
 
 export default function Page() {
@@ -70,6 +71,10 @@ async function Content() {
   const { data: ideaCommentsRep } = ideaCommentIds.length
     ? await supabase.from("idea_comments").select("id, idea_id, body, removed_at").in("id", ideaCommentIds)
     : { data: [] as { id: number; idea_id: string; body: string; removed_at: string | null }[] };
+  const { data: coursesRep } = await supabase
+    .from("courses")
+    .select("id, slug, title, status")
+    .in("id", ids("course"));
   const { data: postsRep } = await supabase.from("posts").select("id, caption, status").in("id", ids("post"));
   const commentIds = ids("comment").map(Number).filter(Number.isFinite);
   const { data: commentsRep } = commentIds.length
@@ -102,6 +107,7 @@ async function Content() {
         let postId: string | undefined;
         let commentId: number | undefined;
         let ideaCommentId: number | undefined;
+        let courseId: string | undefined;
         if (r.target_type === "message") {
           const m = (msgs ?? []).find((x) => String(x.id) === r.target_id);
           if (m) {
@@ -171,6 +177,17 @@ async function Content() {
               </span>
             );
           }
+        } else if (r.target_type === "course") {
+          const c = (coursesRep ?? []).find((x) => x.id === r.target_id);
+          if (c) {
+            courseId = c.status === "published" ? c.id : undefined;
+            target = (
+              <Link href={`/tecaji/${c.slug}`} className="font-semibold underline">
+                {c.title}
+                {c.status === "hidden" ? " (skrit)" : ""}
+              </Link>
+            );
+          }
         } else if (r.target_type === "idea") {
           const i = (ideas ?? []).find((x) => x.id === r.target_id);
           if (i) {
@@ -212,6 +229,7 @@ async function Content() {
               postId={postId}
               commentId={commentId}
               ideaCommentId={ideaCommentId}
+              courseId={courseId}
             />
           </li>
         );

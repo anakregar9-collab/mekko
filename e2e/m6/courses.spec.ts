@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { checkPage, signUp, uid } from "../helpers";
+import { checkPage, grantPlatformRole, signUp, uid } from "../helpers";
 
 test("recorded course: preview for everyone, paid lessons unlock after the organizer confirms payment", async ({
   browser,
@@ -112,4 +112,35 @@ test("recorded course: preview for everyone, paid lessons unlock after the organ
   await ana.goto("/moj-mekko/tecaji");
   await expect(ana.getByTestId("my-courses")).toContainText("Opravljenih 1 od 2 lekcij");
   await checkPage(ana);
+
+  // Organizer fixes a lesson title
+  await org.goto(manageUrl);
+  const second = org.getByTestId("lesson-list").locator("li").filter({ hasText: "Mešanje barv" });
+  await second.getByText("Uredi").click();
+  await second.getByLabel("Naslov lekcije").fill("Mešanje barv in vode");
+  await second.getByRole("button", { name: "Shrani lekcijo" }).click();
+  await expect(org.getByTestId("lesson-list")).toContainText("Mešanje barv in vode");
+
+  // A learner reports the course; a moderator hides it; the organizer cannot re-publish
+  await ana.goto(courseUrl);
+  await ana.getByText("Prijavi tečaj").click();
+  await ana.getByLabel("Razlog prijave").selectOption("scam");
+  await ana.getByRole("button", { name: "Pošlji prijavo" }).click();
+  await expect(ana.getByText("Hvala. Prijavo smo prejeli")).toBeVisible();
+  await org.goto(courseUrl);
+  await expect(org.getByText("Prijavi tečaj")).toHaveCount(0);
+
+  const mod = await (await browser.newContext()).newPage();
+  const { handle } = await signUp(mod, "Moderatorka Tečajev");
+  await grantPlatformRole(handle, "moderator");
+  await mod.goto("/admin/prijave");
+  const report = mod.getByTestId("admin-reports").locator("li").filter({ hasText: title });
+  await report.getByLabel("Opomba moderatorja").fill("Preverjeno, zavajajoče.");
+  await report.getByLabel("Skrij tečaj").check();
+  await report.getByRole("button", { name: "Ukrepano" }).click();
+  await expect(report).toHaveCount(0, { timeout: 15_000 });
+
+  await org.goto(manageUrl);
+  await expect(org.getByTestId("course-hidden-notice")).toContainText("Preverjeno, zavajajoče.");
+  await expect(org.getByRole("button", { name: "Objavi tečaj" })).toHaveCount(0);
 });
