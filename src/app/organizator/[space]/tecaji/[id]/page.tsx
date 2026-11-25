@@ -73,7 +73,11 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
   const enrollments = (raw ?? []) as unknown as EnrollmentRow[];
   const lessonIds = (lessons ?? []).map((l) => l.id);
   const { data: progress } = lessonIds.length
-    ? await supabase.from("lesson_progress").select("profile_id, lesson_id").in("lesson_id", lessonIds)
+    ? await supabase
+        .from("lesson_progress")
+        .select("profile_id, lesson_id")
+        .eq("done", true)
+        .in("lesson_id", lessonIds)
     : { data: [] as { profile_id: string; lesson_id: string }[] };
   const doneBy = (pid: string) => (progress ?? []).filter((p) => p.profile_id === pid).length;
   const awaiting = enrollments.filter((e) => e.status === "awaiting");

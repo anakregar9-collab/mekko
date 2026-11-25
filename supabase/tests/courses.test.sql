@@ -1,7 +1,7 @@
 -- M7b courses: paid access only after confirmation; outline public; previews; progress; organizer tools.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(31);
 
 create temp table ids (name text primary key, id text);
 grant select, insert on ids to authenticated, anon;
@@ -81,7 +81,10 @@ select pg_temp.act_as('ana');
 select is((select count(*)::int from public.course_lessons where course_id = pg_temp.id('course')), 3, 'all lessons after confirmation');
 select is((select notes from public.course_lessons where id = pg_temp.id('l2')), 'Skrivne beležke', 'notes visible with access');
 select lives_ok($$ select public.set_lesson_done(pg_temp.id('l2'), true) $$, 'mark lesson done');
-select is((select count(*)::int from public.lesson_progress), 1, 'progress stored');
+select is((select count(*)::int from public.lesson_progress where done), 1, 'progress stored');
+select public.set_lesson_done(pg_temp.id('l2'), false);
+select is((select count(*)::int from public.lesson_progress where done), 0, 'undo marks not done (no delete)');
+select public.set_lesson_done(pg_temp.id('l2'), true);
 select is((select count(*)::int from public.notifications where kind = 'course' and title like 'Tečaj je odklenjen%'), 1, 'buyer notified');
 
 -- Another user cannot see Ana's data or locked lessons
@@ -89,6 +92,14 @@ select pg_temp.act_as('bor');
 select is((select count(*)::int from public.course_enrollments), 0, 'others cannot see enrollments');
 select is((select count(*)::int from public.lesson_progress), 0, 'others cannot see progress');
 select throws_ok($$ select public.add_lesson(pg_temp.id('course'), 'Vdor', null, null, false) $$, '42501', 'not_allowed', 'outsider cannot add lessons');
+
+-- Removing a lesson hides it everywhere (soft remove)
+select pg_temp.act_as('org');
+select public.remove_lesson(pg_temp.id('l3'));
+select is((select count(*)::int from public.course_outline(pg_temp.id('course'))), 2, 'removed lesson leaves the outline');
+select pg_temp.act_as('ana');
+select is((select count(*)::int from public.course_lessons where course_id = pg_temp.id('course')), 2, 'removed lesson not readable');
+select throws_ok($$ select public.set_lesson_done(pg_temp.id('l3'), true) $$, '42501', 'not_allowed', 'no progress on a removed lesson');
 
 -- Cancel removes access
 select pg_temp.act_as('org');

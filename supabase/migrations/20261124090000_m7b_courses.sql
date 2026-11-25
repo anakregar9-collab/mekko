@@ -1,7 +1,8 @@
 -- M7b: recorded courses (founder 2026-11-23): may be paid; payment like passes (organizer's instructions or own
 -- payment link, organizer confirms → access). Videos are YouTube links (Mekko stores only the video id).
 -- Lesson video ids and notes are readable only with access (enrolled + confirmed, the space team, or a free
--- preview lesson); the outline (titles) is public through course_outline(). Additive only.
+-- preview lesson); the outline (titles) is public through course_outline(). Additive only; no row deletes
+-- (removed lessons are marked removed_at, undone progress is marked done = false).
 
 create table public.courses (
   id uuid primary key default gen_random_uuid(),
@@ -31,6 +32,7 @@ create table public.course_lessons (
   youtube_id text check (youtube_id is null or youtube_id ~ '^[A-Za-z0-9_-]{11}$'),
   notes text check (notes is null or char_length(notes) <= 5000),
   is_preview boolean not null default false,
+  removed_at timestamptz,
   created_at timestamptz not null default now()
 );
 create index course_lessons_course_idx on public.course_lessons (course_id, position);
@@ -53,6 +55,7 @@ create index course_enrollments_profile_idx on public.course_enrollments (profil
 create table public.lesson_progress (
   profile_id uuid not null references public.profiles (id) on delete cascade,
   lesson_id uuid not null references public.course_lessons (id) on delete cascade,
+  done boolean not null default true,
   completed_at timestamptz not null default now(),
   primary key (profile_id, lesson_id)
 );
@@ -91,7 +94,8 @@ begin
     raise exception 'legal_info_required' using errcode = 'P0001';
   end if;
   if new.status = 'published' and (tg_op = 'INSERT' or old.status <> 'published') then
-    if not exists (select 1 from public.course_lessons where course_id = new.id and youtube_id is not null) then
+    if not exists (select 1 from public.course_lessons where course_id = new.id and youtube_id is not null
+                   and removed_at is null) then
       raise exception 'course_needs_lessons' using errcode = 'P0001';
     end if;
     new.published_at := coalesce(new.published_at, now());
@@ -107,7 +111,7 @@ returns table (id uuid, position_no int, title text, is_preview boolean, has_vid
 language sql stable security definer set search_path = '' as $$
   select l.id, l.position, l.title, l.is_preview, l.youtube_id is not null
   from public.course_lessons l join public.courses c on c.id = l.course_id
-  where l.course_id = p_course
+  where l.course_id = p_course and l.removed_at is null
     and (c.status = 'published' or public.is_space_role(c.space_id, 'staff'))
   order by l.position, l.created_at;
 $$;
@@ -209,16 +213,13 @@ language plpgsql security definer set search_path = '' as $$
 declare
   v_course uuid;
 begin
-  select course_id into v_course from public.course_lessons where id = p_lesson;
+  select course_id into v_course from public.course_lessons where id = p_lesson and removed_at is null;
   if v_course is null or auth.uid() is null or not exists (
     select 1 from public.course_enrollments where course_id = v_course and profile_id = auth.uid() and status = 'active') then
     raise exception 'not_allowed' using errcode = '42501';
   end if;
-  if p_done then
-    insert into public.lesson_progress (profile_id, lesson_id) values (auth.uid(), p_lesson) on conflict do nothing;
-  else
-    delete from public.lesson_progress where profile_id = auth.uid() and lesson_id = p_lesson;
-  end if;
+  insert into public.lesson_progress (profile_id, lesson_id, done) values (auth.uid(), p_lesson, p_done)
+  on conflict (profile_id, lesson_id) do update set done = excluded.done, completed_at = now();
 end $$;
 
 -- ---------------------------------------------------------------------------
@@ -233,7 +234,7 @@ begin
   if not public.is_space_role(public.course_space(p_course), 'admin') then
     raise exception 'not_allowed' using errcode = '42501';
   end if;
-  if (select count(*) from public.course_lessons where course_id = p_course) >= 100 then
+  if (select count(*) from public.course_lessons where course_id = p_course and removed_at is null) >= 100 then
     raise exception 'too_many_lessons' using errcode = 'P0001';
   end if;
   insert into public.course_lessons (course_id, position, title, youtube_id, notes, is_preview)
@@ -249,16 +250,16 @@ declare
   v_l public.course_lessons;
   v_other public.course_lessons;
 begin
-  select * into v_l from public.course_lessons where id = p_lesson;
+  select * into v_l from public.course_lessons where id = p_lesson and removed_at is null;
   if v_l.id is null or not public.is_space_role(public.course_space(v_l.course_id), 'admin') then
     raise exception 'not_allowed' using errcode = '42501';
   end if;
   if p_up then
-    select * into v_other from public.course_lessons where course_id = v_l.course_id and position < v_l.position
-      order by position desc limit 1;
+    select * into v_other from public.course_lessons where course_id = v_l.course_id and removed_at is null
+      and position < v_l.position order by position desc limit 1;
   else
-    select * into v_other from public.course_lessons where course_id = v_l.course_id and position > v_l.position
-      order by position asc limit 1;
+    select * into v_other from public.course_lessons where course_id = v_l.course_id and removed_at is null
+      and position > v_l.position order by position asc limit 1;
   end if;
   if v_other.id is null then
     return;
@@ -272,16 +273,16 @@ language plpgsql security definer set search_path = '' as $$
 declare
   v_l public.course_lessons;
 begin
-  select * into v_l from public.course_lessons where id = p_lesson;
+  select * into v_l from public.course_lessons where id = p_lesson and removed_at is null;
   if v_l.id is null or not public.is_space_role(public.course_space(v_l.course_id), 'admin') then
     raise exception 'not_allowed' using errcode = '42501';
   end if;
   if (select status from public.courses where id = v_l.course_id) = 'published'
      and not exists (select 1 from public.course_lessons where course_id = v_l.course_id and id <> p_lesson
-                     and youtube_id is not null) then
+                     and youtube_id is not null and removed_at is null) then
     raise exception 'course_needs_lessons' using errcode = 'P0001';
   end if;
-  delete from public.course_lessons where id = p_lesson;
+  update public.course_lessons set removed_at = now() where id = p_lesson;
 end $$;
 
 -- ---------------------------------------------------------------------------
@@ -297,8 +298,8 @@ create policy courses_update on public.courses for update
 
 alter table public.course_lessons enable row level security;
 create policy course_lessons_select on public.course_lessons for select
-  using (public.has_course_access(course_id)
-         or (is_preview and exists (select 1 from public.courses c where c.id = course_id and c.status = 'published')));
+  using (removed_at is null and (public.has_course_access(course_id)
+         or (is_preview and exists (select 1 from public.courses c where c.id = course_id and c.status = 'published'))));
 create policy course_lessons_update on public.course_lessons for update
   using (public.is_space_role(public.course_space(course_id), 'admin'))
   with check (public.is_space_role(public.course_space(course_id), 'admin'));

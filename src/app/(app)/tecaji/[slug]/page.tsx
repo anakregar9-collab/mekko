@@ -84,6 +84,7 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
           .from("lesson_progress")
           .select("lesson_id")
           .eq("profile_id", profile.id)
+          .eq("done", true)
           .in(
             "lesson_id",
             lessons.map((l) => l.id),

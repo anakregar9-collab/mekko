@@ -373,6 +373,7 @@ export type Database = {
           is_preview: boolean;
           notes: string | null;
           position: number;
+          removed_at: string | null;
           title: string;
           youtube_id: string | null;
         };
@@ -384,6 +385,7 @@ export type Database = {
           is_preview?: boolean;
           notes?: string | null;
           position: number;
+          removed_at?: string | null;
           title: string;
           youtube_id?: string | null;
         };
@@ -394,6 +396,7 @@ export type Database = {
           is_preview?: boolean;
           notes?: string | null;
           position?: number;
+          removed_at?: string | null;
           title?: string;
           youtube_id?: string | null;
         };
@@ -1048,17 +1051,20 @@ export type Database = {
       lesson_progress: {
         Row: {
           completed_at: string;
+          done: boolean;
           lesson_id: string;
           profile_id: string;
         };
         ComputedFields: never;
         Insert: {
           completed_at?: string;
+          done?: boolean;
           lesson_id: string;
           profile_id: string;
         };
         Update: {
           completed_at?: string;
+          done?: boolean;
           lesson_id?: string;
           profile_id?: string;
         };

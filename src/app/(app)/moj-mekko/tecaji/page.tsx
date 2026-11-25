@@ -49,7 +49,7 @@ async function Content() {
     courseIds.length
       ? supabase.from("course_lessons").select("id, course_id").in("course_id", courseIds)
       : Promise.resolve({ data: [] as { id: string; course_id: string }[] }),
-    supabase.from("lesson_progress").select("lesson_id").eq("profile_id", profile.id),
+    supabase.from("lesson_progress").select("lesson_id").eq("profile_id", profile.id).eq("done", true),
   ]);
   const done = new Set((progress ?? []).map((p) => p.lesson_id));
   return (
