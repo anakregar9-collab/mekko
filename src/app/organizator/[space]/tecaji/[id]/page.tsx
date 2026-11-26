@@ -58,7 +58,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
   const [{ data: lessons }, { data: raw }, interests] = await Promise.all([
     supabase
       .from("course_lessons")
-      .select("id, position, title, youtube_id, notes, is_preview")
+      .select("id, position, title, youtube_id, video_path, notes, is_preview")
       .eq("course_id", id)
       .order("position"),
     supabase
@@ -145,7 +145,13 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
                         {i + 1}. {l.title}
                       </p>
                       <p className="flex flex-wrap gap-1.5 text-sm text-ink-muted">
-                        {l.youtube_id ? <span>YouTube video</span> : <Badge tone="sun">Brez videa</Badge>}
+                        {l.video_path ? (
+                          <Badge tone="sage">Naložen video</Badge>
+                        ) : l.youtube_id ? (
+                          <span>YouTube video</span>
+                        ) : (
+                          <Badge tone="sun">Brez videa</Badge>
+                        )}
                         {l.is_preview && <Badge tone="sky">Brezplačen predogled</Badge>}
                       </p>
                     </div>
@@ -188,6 +194,7 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/tec
                           video: l.youtube_id ? `https://youtu.be/${l.youtube_id}` : "",
                           notes: l.notes ?? "",
                           is_preview: l.is_preview,
+                          uploaded: !!l.video_path,
                         }}
                       />
                     )}

@@ -11,12 +11,14 @@ import {
 import { LiveEventCard } from "@/components/events/event-card";
 import { LiveIdeaCard } from "@/components/ideas/idea-card";
 import { listIdeas } from "@/lib/data/ideas";
+import { listCourses } from "@/lib/data/courses";
+import { CourseCard } from "@/components/courses/course-card";
 import { EmptyState, PageSkeleton } from "@/components/page-skeleton";
 import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = { title: "Odkrivanje" };
 
-type Tab = "dogodki" | "ideje";
+type Tab = "dogodki" | "ideje" | "tecaji";
 
 /** Cards per "Pokaži več" step; the URL keeps the total (?vec=48) so the view can be shared and reloaded. */
 const PAGE = 24;
@@ -41,7 +43,7 @@ function readQuick(v: string | string[] | undefined): QuickFilter[] {
 
 async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["searchParams"] }) {
   const sp = await searchParams;
-  const tab: Tab = sp.pogled === "ideje" ? "ideje" : "dogodki";
+  const tab: Tab = sp.pogled === "ideje" ? "ideje" : sp.pogled === "tecaji" ? "tecaji" : "dogodki";
   const q = typeof sp.q === "string" ? sp.q : "";
   const cat = typeof sp.kategorija === "string" ? sp.kategorija : "";
   const quick = readQuick(sp.f);
@@ -56,7 +58,7 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
   const href = (change: { tab?: Tab; kategorija?: string | null; toggle?: QuickFilter; vec?: number }) => {
     const p = new URLSearchParams();
     const t = change.tab ?? tab;
-    if (t === "ideje") p.set("pogled", "ideje");
+    if (t !== "dogodki") p.set("pogled", t);
     if (q) p.set("q", q);
     const k = change.kategorija === undefined ? interest?.slug : change.kategorija;
     if (k) p.set("kategorija", k);
@@ -87,9 +89,14 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
           limit: shown + 1,
         })
       : [];
+  const coursesPlus =
+    tab === "tecaji" ? await listCourses({ q, interestId: interest?.id, limit: shown + 1 }) : [];
+  const courses = coursesPlus.slice(0, shown);
   const events = eventsPlus.slice(0, shown);
   const ideas = ideasPlus.slice(0, shown);
-  const hasMore = (tab === "dogodki" ? eventsPlus.length : ideasPlus.length) > shown && shown < MAX_SHOWN;
+  const hasMore =
+    (tab === "dogodki" ? eventsPlus.length : tab === "ideje" ? ideasPlus.length : coursesPlus.length) >
+      shown && shown < MAX_SHOWN;
   const more = hasMore ? (
     <div className="flex justify-center pt-2">
       <Link
@@ -107,9 +114,9 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
     <div className="space-y-4">
       <nav
         aria-label="Vrsta vsebine"
-        className="grid grid-cols-2 gap-1 rounded-full bg-surface p-1 ring-1 ring-line"
+        className="grid grid-cols-3 gap-1 rounded-full bg-surface p-1 ring-1 ring-line"
       >
-        {(["dogodki", "ideje"] as const).map((t) => (
+        {(["dogodki", "ideje", "tecaji"] as const).map((t) => (
           <Link
             key={t}
             href={href({ tab: t })}
@@ -120,19 +127,19 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
               tab === t ? "bg-brand text-white" : "text-ink-muted hover:text-ink",
             )}
           >
-            {t === "dogodki" ? "Dogodki" : "Ideje"}
+            {t === "dogodki" ? "Dogodki" : t === "ideje" ? "Ideje" : "Tečaji"}
           </Link>
         ))}
       </nav>
 
       <form role="search" action="/odkrivanje" className="relative">
-        {tab === "ideje" && <input type="hidden" name="pogled" value="ideje" />}
+        {tab !== "dogodki" && <input type="hidden" name="pogled" value={tab} />}
         {interest && <input type="hidden" name="kategorija" value={interest.slug} />}
         {quick.map((f) => (
           <input key={f} type="hidden" name="f" value={f} />
         ))}
         <label htmlFor="q" className="sr-only">
-          {tab === "dogodki" ? "Išči dogodke" : "Išči ideje"}
+          {tab === "dogodki" ? "Išči dogodke" : tab === "ideje" ? "Išči ideje" : "Išči tečaje"}
         </label>
         <Search
           aria-hidden="true"
@@ -143,36 +150,44 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
           name="q"
           type="search"
           defaultValue={q}
-          placeholder={tab === "dogodki" ? "Išči delavnice, kraje …" : "Išči ideje in navodila …"}
+          placeholder={
+            tab === "dogodki"
+              ? "Išči delavnice, kraje …"
+              : tab === "ideje"
+                ? "Išči ideje in navodila …"
+                : "Išči posnete tečaje …"
+          }
           className="min-h-12 w-full rounded-full border border-line bg-surface pr-4 pl-12 text-base placeholder:text-ink-muted"
         />
       </form>
 
-      <nav
-        aria-label="Hitri filtri"
-        className="scroll-row -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0"
-      >
-        {QUICK_FILTERS.filter((f) => tab === "dogodki" || f.key === "zacetniki" || f.key === "otroci").map(
-          (f) => {
-            const on = quick.includes(f.key);
-            return (
-              <Link
-                key={f.key}
-                href={href({ toggle: f.key })}
-                aria-pressed={on}
-                role="button"
-                className={cn(
-                  "inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full px-4 text-sm font-semibold whitespace-nowrap ring-1",
-                  on ? "bg-ink text-white ring-ink" : "bg-surface text-ink ring-line hover:bg-brand-soft",
-                )}
-              >
-                {on && <Check aria-hidden="true" className="size-4" />}
-                {f.label}
-              </Link>
-            );
-          },
-        )}
-      </nav>
+      {tab !== "tecaji" && (
+        <nav
+          aria-label="Hitri filtri"
+          className="scroll-row -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0"
+        >
+          {QUICK_FILTERS.filter((f) => tab === "dogodki" || f.key === "zacetniki" || f.key === "otroci").map(
+            (f) => {
+              const on = quick.includes(f.key);
+              return (
+                <Link
+                  key={f.key}
+                  href={href({ toggle: f.key })}
+                  aria-pressed={on}
+                  role="button"
+                  className={cn(
+                    "inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full px-4 text-sm font-semibold whitespace-nowrap ring-1",
+                    on ? "bg-ink text-white ring-ink" : "bg-surface text-ink ring-line hover:bg-brand-soft",
+                  )}
+                >
+                  {on && <Check aria-hidden="true" className="size-4" />}
+                  {f.label}
+                </Link>
+              );
+            },
+          )}
+        </nav>
+      )}
 
       <nav
         aria-label="Kategorije"
@@ -188,7 +203,32 @@ async function Feed({ searchParams }: { searchParams: PageProps<"/odkrivanje">["
         ))}
       </nav>
 
-      {tab === "ideje" ? (
+      {tab === "tecaji" ? (
+        courses.length === 0 ? (
+          <div data-testid="courses-empty">
+            <EmptyState title={q || interest ? "Ni zadetkov" : "Še ni posnetih tečajev"}>
+              {q || interest ? (
+                <Link href="/odkrivanje?pogled=tecaji" className="font-semibold text-brand-strong underline">
+                  Počisti iskanje
+                </Link>
+              ) : (
+                <p>Ustvarjalci lahko objavijo posnete tečaje v organizatorskem delu.</p>
+              )}
+            </EmptyState>
+          </div>
+        ) : (
+          <>
+            <ul className="grid gap-4 sm:grid-cols-2" data-testid="courses-feed">
+              {courses.map((c) => (
+                <li key={c.id}>
+                  <CourseCard course={c} />
+                </li>
+              ))}
+            </ul>
+            {more}
+          </>
+        )
+      ) : tab === "ideje" ? (
         ideas.length === 0 ? (
           <div data-testid="ideas-empty">
             <EmptyState title={filtered ? "Ni zadetkov" : "Še ni idej"}>

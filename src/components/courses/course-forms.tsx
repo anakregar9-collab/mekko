@@ -12,6 +12,8 @@ import {
   updateCourse,
   updateLesson,
 } from "@/lib/actions/courses";
+import { createBrowserSupabase } from "@/lib/supabase/browser";
+import { VIDEO_MAX_BYTES, VIDEO_TYPES, videoPathFor } from "@/lib/video";
 
 export function CourseForm({
   spaceSlug,
@@ -159,11 +161,88 @@ export function CourseStatusForm({
   );
 }
 
+const YOUTUBE_WARNING =
+  "Pozor: kdor kupi tečaj, lahko YouTube povezavo kopira in deli naprej – video si lahko potem ogleda kdorkoli, tudi brez nakupa (tudi če je na YouTubu »Neuvrščen«). Če tega ne želiš, video naloži v Mekko.";
+
+function VideoUploader({
+  courseId,
+  onUploaded,
+}: {
+  courseId: string;
+  onUploaded: (path: string | null) => void;
+}) {
+  const [status, setStatus] = useState<{ kind: "idle" | "uploading" | "done" | "error"; text?: string }>({
+    kind: "idle",
+  });
+  return (
+    <div className="space-y-2">
+      <label htmlFor={`vu-${courseId}`} className="block text-sm font-semibold">
+        Video datoteka (MP4, WebM ali MOV)
+      </label>
+      <input
+        id={`vu-${courseId}`}
+        type="file"
+        accept={Object.keys(VIDEO_TYPES).join(",")}
+        className="block w-full text-sm file:mr-3 file:min-h-11 file:rounded-full file:border-0 file:bg-brand-soft file:px-4 file:font-semibold"
+        onChange={async (ev) => {
+          const file = ev.target.files?.[0];
+          onUploaded(null);
+          if (!file) return setStatus({ kind: "idle" });
+          if (!VIDEO_TYPES[file.type])
+            return setStatus({ kind: "error", text: "Izberi video MP4, WebM ali MOV." });
+          if (file.size > VIDEO_MAX_BYTES)
+            return setStatus({ kind: "error", text: "Video je večji od 500 MB." });
+          const random = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) =>
+            (b % 36).toString(36),
+          ).join("");
+          const path = videoPathFor(courseId, file.type, random);
+          if (!path) return setStatus({ kind: "error", text: "Neveljavna datoteka." });
+          setStatus({ kind: "uploading", text: `Nalagam ${Math.round(file.size / 1024 / 1024)} MB …` });
+          const { error } = await createBrowserSupabase()
+            .storage.from("course-videos")
+            .upload(path, file, { contentType: file.type, upsert: false });
+          if (error) {
+            const tooBig = /size|large|exceed/i.test(error.message);
+            return setStatus({
+              kind: "error",
+              text: tooBig
+                ? "Video je prevelik za trenutni paket shrambe. Skrajšaj ali stisni video, ali uporabi YouTube."
+                : "Nalaganje ni uspelo. Poskusi znova.",
+            });
+          }
+          onUploaded(path);
+          setStatus({ kind: "done", text: "Video je naložen. Zdaj shrani lekcijo." });
+        }}
+      />
+      {status.text && (
+        <p
+          role="status"
+          className={status.kind === "error" ? "text-sm text-brand-strong" : "text-sm text-ink-muted"}
+          data-testid="video-upload-status"
+        >
+          {status.text}
+        </p>
+      )}
+      <p className="text-xs text-ink-muted">
+        Video je shranjen zasebno; vidijo ga samo kupci (in vsi, če je lekcija brezplačen predogled), prek
+        povezave, ki velja 2 uri. Velikost do 500 MB (na brezplačnem paketu shrambe je lahko meja nižja).
+      </p>
+    </div>
+  );
+}
+
 export function LessonForm({ spaceSlug, courseId }: { spaceSlug: string; courseId: string }) {
   const [state, action] = useActionState<FormState, FormData>(addLesson.bind(null, spaceSlug, courseId), {});
   const ref = useRef<HTMLFormElement>(null);
+  const [source, setSource] = useState<"youtube" | "upload">("youtube");
+  const [videoPath, setVideoPath] = useState<string | null>(null);
+  const [uploaderKey, setUploaderKey] = useState(0);
   useEffect(() => {
-    if (state.ok) ref.current?.reset();
+    if (state.ok) {
+      ref.current?.reset();
+      setVideoPath(null);
+      setUploaderKey((k) => k + 1);
+    }
   }, [state]);
   const v = state.ok ? {} : (state.values ?? {});
   const e = state.errors ?? {};
@@ -180,22 +259,51 @@ export function LessonForm({ spaceSlug, courseId }: { spaceSlug: string; courseI
           {...describedBy("l-title", e.title)}
         />
       </Field>
-      <Field
-        label="YouTube povezava"
-        htmlFor="l-video"
-        error={e.video}
-        hint="Na YouTubu nastavi video kot »Neuvrščeno« (unlisted), da ga ne najde vsak."
-      >
-        <input
-          id="l-video"
-          name="video"
-          type="url"
-          defaultValue={v.video}
-          placeholder="https://youtu.be/…"
-          className={inputCls}
-          {...describedBy("l-video", e.video)}
-        />
-      </Field>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-semibold">Vir videa</legend>
+        <input type="hidden" name="source" value={source} />
+        {(
+          [
+            ["youtube", "YouTube povezava"],
+            ["upload", "Naloži video v Mekko (zaščiteno)"],
+          ] as const
+        ).map(([value, label]) => (
+          <label key={value} className="flex min-h-11 items-center gap-3">
+            <input
+              type="radio"
+              name="source_choice"
+              checked={source === value}
+              onChange={() => setSource(value)}
+              className="size-5 accent-[var(--color-brand)]"
+            />
+            <span className="font-medium">{label}</span>
+          </label>
+        ))}
+      </fieldset>
+      {source === "youtube" ? (
+        <>
+          <Field label="YouTube povezava" htmlFor="l-video" error={e.video}>
+            <input
+              id="l-video"
+              name="video"
+              type="url"
+              defaultValue={v.video}
+              placeholder="https://youtu.be/…"
+              className={inputCls}
+              {...describedBy("l-video", e.video)}
+            />
+          </Field>
+          <p className="rounded-2xl bg-sun-soft p-3 text-sm text-sun-ink" data-testid="youtube-warning">
+            {YOUTUBE_WARNING}
+          </p>
+        </>
+      ) : (
+        <>
+          <input type="hidden" name="video_path" value={videoPath ?? ""} />
+          <VideoUploader key={uploaderKey} courseId={courseId} onUploaded={setVideoPath} />
+          {e.video && <p className="text-sm text-brand-strong">{e.video}</p>}
+        </>
+      )}
       <Field label="Zapiski (neobvezno)" htmlFor="l-notes" error={e.notes}>
         <textarea
           id="l-notes"
@@ -307,7 +415,7 @@ export function LessonEditForm({
 }: {
   spaceSlug: string;
   courseId: string;
-  lesson: { id: string; title: string; video: string; notes: string; is_preview: boolean };
+  lesson: { id: string; title: string; video: string; notes: string; is_preview: boolean; uploaded: boolean };
 }) {
   const [state, action] = useActionState<FormState, FormData>(
     updateLesson.bind(null, spaceSlug, courseId),
@@ -327,9 +435,19 @@ export function LessonEditForm({
         <Field label="Naslov lekcije" htmlFor={`${id}-t`} error={e.title}>
           <input id={`${id}-t`} name="title" maxLength={120} defaultValue={v.title} className={inputCls} />
         </Field>
-        <Field label="YouTube povezava" htmlFor={`${id}-v`} error={e.video}>
-          <input id={`${id}-v`} name="video" type="url" defaultValue={v.video} className={inputCls} />
-        </Field>
+        {lesson.uploaded ? (
+          <p className="text-sm text-ink-muted">
+            Video je naložen v Mekko. Za zamenjavo videa lekcijo odstrani in dodaj novo.
+          </p>
+        ) : (
+          <>
+            <input type="hidden" name="has_video_field" value="1" />
+            <Field label="YouTube povezava" htmlFor={`${id}-v`} error={e.video}>
+              <input id={`${id}-v`} name="video" type="url" defaultValue={v.video} className={inputCls} />
+            </Field>
+            <p className="text-xs text-sun-ink">{YOUTUBE_WARNING}</p>
+          </>
+        )}
         <Field label="Zapiski (neobvezno)" htmlFor={`${id}-n`} error={e.notes}>
           <textarea
             id={`${id}-n`}
