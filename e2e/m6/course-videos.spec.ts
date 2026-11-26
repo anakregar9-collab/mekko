@@ -25,7 +25,9 @@ test("courses: uploaded videos are private, YouTube shows a warning, courses app
 
   const form = org.getByTestId("lesson-form");
   // YouTube is the default and shows the warning
-  await expect(form.getByTestId("youtube-warning")).toContainText("lahko YouTube povezavo kopira in deli naprej");
+  await expect(form.getByTestId("youtube-warning")).toContainText(
+    "lahko YouTube povezavo kopira in deli naprej",
+  );
 
   // Uploaded preview lesson
   await form.getByLabel("Naslov lekcije").fill("Predogled: priprava gline");
@@ -59,8 +61,14 @@ test("courses: uploaded videos are private, YouTube shows a warning, courses app
   await guest.goto(`/odkrivanje?pogled=tecaji&q=${encodeURIComponent(title)}`);
   await expect(guest.getByTestId("tab-tecaji")).toHaveAttribute("aria-current", "page");
   await checkPage(guest);
-  await guest.getByTestId("courses-feed").getByRole("link", { name: new RegExp(title) }).click();
-  await expect(guest.getByTestId("uploaded-video")).toHaveAttribute("src", /\/storage\/v1\/object\/sign\/course-videos\//);
+  await guest
+    .getByTestId("courses-feed")
+    .getByRole("link", { name: new RegExp(title) })
+    .click();
+  await expect(guest.getByTestId("uploaded-video")).toHaveAttribute(
+    "src",
+    /\/storage\/v1\/object\/sign\/course-videos\//,
+  );
   await expect(guest.getByTestId("course-outline").getByRole("link")).toHaveCount(1);
   const courseUrl = guest.url().split("?")[0];
 
@@ -68,6 +76,9 @@ test("courses: uploaded videos are private, YouTube shows a warning, courses app
   await learner.goto(courseUrl);
   await learner.getByRole("button", { name: "Začni brezplačno" }).click();
   await expect(learner.getByTestId("course-access")).toContainText("Tečaj je tvoj");
-  await learner.getByTestId("course-outline").getByRole("link", { name: /Vrtenje na kolesu/ }).click();
+  await learner
+    .getByTestId("course-outline")
+    .getByRole("link", { name: /Vrtenje na kolesu/ })
+    .click();
   await expect(learner.getByTestId("uploaded-video")).toHaveAttribute("src", /course-videos\/.+token=/);
 });

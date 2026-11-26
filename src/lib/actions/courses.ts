@@ -184,7 +184,7 @@ export async function addLesson(
   });
   if (error) return { message: friendly(error.message), values };
   revalidatePath(`/organizator/${spaceSlug}/tecaji/${courseId}`);
-  return { ok: true, message: "Lekcija je dodana." };
+  return { ok: true, message: "Lekcija je dodana.", values: { nonce: values.nonce } };
 }
 
 export async function updateLesson(

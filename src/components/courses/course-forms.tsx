@@ -231,19 +231,25 @@ function VideoUploader({
   );
 }
 
+function UploadField({ courseId }: { courseId: string }) {
+  const [videoPath, setVideoPath] = useState<string | null>(null);
+  return (
+    <>
+      <input type="hidden" name="video_path" value={videoPath ?? ""} />
+      <VideoUploader courseId={courseId} onUploaded={setVideoPath} />
+    </>
+  );
+}
+
 export function LessonForm({ spaceSlug, courseId }: { spaceSlug: string; courseId: string }) {
   const [state, action] = useActionState<FormState, FormData>(addLesson.bind(null, spaceSlug, courseId), {});
   const ref = useRef<HTMLFormElement>(null);
   const [source, setSource] = useState<"youtube" | "upload">("youtube");
-  const [videoPath, setVideoPath] = useState<string | null>(null);
-  const [uploaderKey, setUploaderKey] = useState(0);
   useEffect(() => {
-    if (state.ok) {
-      ref.current?.reset();
-      setVideoPath(null);
-      setUploaderKey((k) => k + 1);
-    }
+    if (state.ok) ref.current?.reset();
   }, [state]);
+  // A fresh uploader (and empty hidden path) after every added lesson.
+  const uploaderKey = state.ok ? (state.values?.nonce ?? "ok") : "draft";
   const v = state.ok ? {} : (state.values ?? {});
   const e = state.errors ?? {};
   return (
@@ -264,7 +270,7 @@ export function LessonForm({ spaceSlug, courseId }: { spaceSlug: string; courseI
         <input type="hidden" name="source" value={source} />
         {(
           [
-            ["youtube", "YouTube povezava"],
+            ["youtube", "Video z YouTuba"],
             ["upload", "Naloži video v Mekko (zaščiteno)"],
           ] as const
         ).map(([value, label]) => (
@@ -299,8 +305,7 @@ export function LessonForm({ spaceSlug, courseId }: { spaceSlug: string; courseI
         </>
       ) : (
         <>
-          <input type="hidden" name="video_path" value={videoPath ?? ""} />
-          <VideoUploader key={uploaderKey} courseId={courseId} onUploaded={setVideoPath} />
+          <UploadField key={uploaderKey} courseId={courseId} />
           {e.video && <p className="text-sm text-brand-strong">{e.video}</p>}
         </>
       )}

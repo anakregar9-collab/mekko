@@ -187,6 +187,7 @@ test("every page fits the screen and has no serious accessibility issues", async
     [
       "/odkrivanje",
       "/odkrivanje?pogled=ideje",
+      "/odkrivanje?pogled=tecaji",
       eventSlug,
       ideaPath,
       `${ideaPath}/uredi`,

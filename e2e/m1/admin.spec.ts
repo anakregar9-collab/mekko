@@ -25,7 +25,7 @@ test("admin area: hidden from users; admin suspends with reason, audited; suspen
   await user.getByRole("button", { name: "Zahtevaj izbris" }).click();
   await expect(user.getByText("Zahteva za izbris je oddana.")).toBeVisible();
 
-  await admin.getByRole("link", { name: "Zahteve GDPR" }).click();
+  await admin.getByTestId("workspace-nav").getByRole("link", { name: "Zahteve GDPR" }).click();
   const req = admin
     .getByTestId("admin-requests")
     .getByRole("listitem")
@@ -37,7 +37,7 @@ test("admin area: hidden from users; admin suspends with reason, audited; suspen
   await expect(req).toContainText("V obdelavi");
 
   // Suspend: reason is required.
-  await admin.getByRole("link", { name: "Uporabniki" }).click();
+  await admin.getByTestId("workspace-nav").getByRole("link", { name: "Uporabniki" }).click();
   await admin.getByLabel("Išči po imenu ali uporabniškem imenu").fill(userHandle);
   await admin.getByRole("button", { name: "Išči" }).click();
   const row = admin
@@ -51,7 +51,7 @@ test("admin area: hidden from users; admin suspends with reason, audited; suspen
   await row.getByRole("button", { name: "Omeji račun" }).click();
   await expect(row.getByText("Omejen", { exact: true })).toBeVisible();
 
-  await admin.getByRole("link", { name: "Revizijska sled" }).click();
+  await admin.getByTestId("workspace-nav").getByRole("link", { name: "Revizijska sled" }).click();
   await expect(admin.getByTestId("audit-log")).toContainText("Testna omejitev");
   await expect(admin.getByTestId("audit-log")).toContainText(`@${adminHandle}`);
   await checkPage(admin);
