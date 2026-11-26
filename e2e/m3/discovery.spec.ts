@@ -11,24 +11,33 @@ test("Odkrivanje: Dogodki/Ideje tabs share categories; quick filters narrow the 
 
   const feed = page.getByTestId("feed");
   const quick = page.getByRole("navigation", { name: "Hitri filtri" });
+  // Discovery is paged (24); look for a seeded item with search + the active filter so local test data
+  // cannot push it to page 2.
+  const findWithFilter = async (word: string, text: string) => {
+    const url = new URL(page.url());
+    url.searchParams.set("q", word);
+    await page.goto(url.pathname + url.search);
+    await expect(feed).toContainText(text);
+    await page.goBack();
+  };
 
   await quick.getByRole("button", { name: "Online" }).click();
   await expect(page).toHaveURL(/f=online/);
-  await expect(feed).toContainText("Online: osnove kaligrafije");
+  await findWithFilter("kaligrafije", "Online: osnove kaligrafije");
   await expect(feed).not.toContainText("Keramika za začetnike");
   await quick.getByRole("button", { name: "Online" }).click();
   await expect(page).not.toHaveURL(/f=online/);
 
   await quick.getByRole("button", { name: "Za otroke" }).click();
   await expect(page).toHaveURL(/f=otroci/);
-  await expect(feed).toContainText("Jutranja joga na Krasu");
+  await findWithFilter("joga", "Jutranja joga na Krasu");
   await expect(feed).not.toContainText("Keramika za začetnike");
   await quick.getByRole("button", { name: "Za otroke" }).click();
   await expect(page).not.toHaveURL(/f=otroci/);
 
   await quick.getByRole("button", { name: "Za začetnike" }).click();
   await expect(page).toHaveURL(/f=zacetniki/);
-  await expect(feed).toContainText("Keramika za začetnike");
+  await findWithFilter("Keramika", "Keramika za začetnike");
   await expect(feed).not.toContainText("Jutranja joga na Krasu");
   await expect(feed).not.toContainText("Vretenje – nadaljevalni tečaj");
   await checkPage(page);
