@@ -236,3 +236,9 @@ Founder answers: "Organizator sam / Ročno ali pa poveže svoj Stripe… nič ne
 ## 2026-11-25 — Courses: reports, moderation, lesson editing
 - Signed-in users (not the course team) can report a course ("Prijavi tečaj"); reports appear in Admin → Prijave vsebin with "Skrij tečaj". Hiding is audited, stores the reason and notifies the space owner; the organizer sees the reason and cannot re-publish (only moderators can restore).
 - Organizers can edit an existing lesson (title, YouTube link, notes, free preview).
+
+## 2026-11-26 — Self-service data export (GDPR)
+- Moj Mekko → Moji podatki → "Prenesi moje podatke" downloads a JSON file with the person's own data: profile, e-mail, interests, consents, bookings (incl. notes and attendance), waitlist, saved items, passes, courses and lessons done, space memberships, ideas, comments, likes/ratings, posts (photo paths), followers/following and blocks (handles only), messages they sent (recipient handle), reports they made, notifications, data requests.
+- Other people appear only by handle where needed; no other person's e-mail or private content. Each export is written to the audit log; at most 5 exports per hour.
+- The request to the team stays available ("Oddaj zahtevo ekipi"); account deletion is still handled by the team within 30 days.
+- Privacy policy draft already promises access/portability; no change to its wording needed (to confirm with the lawyer review).

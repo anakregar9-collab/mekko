@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage, SubmitButton, type FormState } from "@/components/forms";
 import { requestData } from "@/lib/actions/profile";
+import { buttonClasses } from "@/components/ui/button";
 
 export function DataRequestForms({
   exportOpen,
@@ -22,16 +23,28 @@ export function DataRequestForms({
       >
         <h2 className="font-display text-lg font-bold">Izvoz podatkov</h2>
         <p className="text-sm text-ink-muted">
-          Prejmeš datoteko s profilom, zanimanji, soglasji in prostori.
+          Takoj prenesi datoteko z vsemi svojimi podatki: profil, soglasja, prijave, karte, tečaji, ideje,
+          objave, komentarji, poslana sporočila, sledenja in obvestila.
         </p>
+        <a
+          href="/moj-mekko/podatki/izvoz.json"
+          download
+          className={buttonClasses("primary", "md")}
+          data-testid="export-download"
+        >
+          Prenesi moje podatke
+        </a>
         <FormMessage state={exportState} />
         <input type="hidden" name="kind" value="export" />
         {exportOpen ? (
           <p className="text-sm font-semibold">Zahteva za izvoz je že oddana.</p>
         ) : (
-          <SubmitButton variant="secondary" pendingText="Oddajam …">
-            Zahtevaj izvoz
-          </SubmitButton>
+          <p className="text-sm text-ink-muted">
+            Potrebuješ pomoč ali drugačno obliko?{" "}
+            <SubmitButton variant="ghost" size="sm" pendingText="Oddajam …">
+              Oddaj zahtevo ekipi
+            </SubmitButton>
+          </p>
         )}
       </form>
 

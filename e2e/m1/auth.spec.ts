@@ -88,9 +88,16 @@ test("sign-up, onboarding, profile privacy and data request", async ({ page }) =
   await expect(card).toContainText("Zaseben profil");
   await expect(card).not.toContainText("Celje");
 
-  // GDPR export request.
+  // GDPR: self-service download of one's own data, plus the request to the team.
   await page.getByRole("link", { name: /Moji podatki/ }).click();
-  await page.getByRole("button", { name: "Zahtevaj izvoz" }).click();
+  const exported = await page.request.get("/moj-mekko/podatki/izvoz.json");
+  expect(exported.status()).toBe(200);
+  expect(exported.headers()["content-disposition"]).toContain("mekko-moji-podatki-");
+  const data = await exported.json();
+  expect(data.profile.handle).toBe(handle);
+  expect(data.profile.display_name).toBe("Nina Test");
+  expect(Array.isArray(data.bookings)).toBe(true);
+  await page.getByRole("button", { name: "Oddaj zahtevo ekipi" }).click();
   await expect(page.getByText("Zahteva za izvoz je oddana.")).toBeVisible();
   await expect(page.getByTestId("my-data-requests")).toContainText("Izvoz podatkov");
   await checkPage(page);

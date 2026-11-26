@@ -2152,6 +2152,8 @@ export type Database = {
       enroll_course: { Args: { p_course: string }; Returns: string };
       event_online_url: { Args: { p_event: string }; Returns: string };
       event_space: { Args: { p_event: string }; Returns: string };
+      export_my_data: { Args: Record<PropertyKey, never>; Returns: Json };
+      export_my_data_logged: { Args: Record<PropertyKey, never>; Returns: Json };
       extend_pass: { Args: { p_pass: string; p_until: string }; Returns: undefined };
       feed_posts: {
         Args: { p_author?: string; p_before?: string; p_limit?: number; p_scope: string };

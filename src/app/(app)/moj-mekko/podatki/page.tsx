@@ -45,8 +45,8 @@ async function Content() {
   return (
     <div className="space-y-5">
       <p className="text-ink-muted">
-        Po GDPR lahko zahtevaš kopijo svojih podatkov ali izbris računa. Zahtevo obdela ekipa Mekka v največ
-        30 dneh.
+        Po GDPR lahko kadarkoli preneseš kopijo svojih podatkov ali zahtevaš izbris računa. Zahtevo za izbris
+        obdela ekipa Mekka v največ 30 dneh.
       </p>
       <DataRequestForms exportOpen={open.has("export")} deletionOpen={open.has("deletion")} />
       {requests && requests.length > 0 && (
