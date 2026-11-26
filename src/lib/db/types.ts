@@ -1898,6 +1898,8 @@ export type Database = {
           name: string;
           slug: string;
           social_links: NonNullable<Json>;
+          suspended_at: string | null;
+          suspended_reason: string | null;
           tagline: string | null;
           updated_at: string;
           verification_status: Database["public"]["Enums"]["verification_status"];
@@ -1921,6 +1923,8 @@ export type Database = {
           name: string;
           slug: string;
           social_links?: NonNullable<Json>;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           tagline?: string | null;
           updated_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
@@ -1943,6 +1947,8 @@ export type Database = {
           name?: string;
           slug?: string;
           social_links?: NonNullable<Json>;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           tagline?: string | null;
           updated_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
@@ -2084,6 +2090,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_set_space_suspension: {
+        Args: { p_reason: string; p_space: string; p_suspend: boolean };
+        Returns: undefined;
+      };
       admin_set_space_verification: {
         Args: {
           p_reason: string;
@@ -2092,6 +2102,8 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_space_overview: { Args: { p_space: string }; Returns: Json };
+      admin_user_overview: { Args: { p_profile: string }; Returns: Json };
       assert_message_rate: { Args: Record<PropertyKey, never>; Returns: undefined };
       block_user: { Args: { p_profile: string }; Returns: undefined };
       book_event: {
@@ -2241,6 +2253,7 @@ export type Database = {
       is_following: { Args: { p_followee: string }; Returns: boolean };
       is_moderator: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_platform_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_space_live: { Args: { p_space: string }; Returns: boolean };
       is_space_role: {
         Args: { min_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: boolean;

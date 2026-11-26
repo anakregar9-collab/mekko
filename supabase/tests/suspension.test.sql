@@ -1,7 +1,7 @@
 -- M9: space suspension hides the space and its content from the public and blocks new orders.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(14);
+select plan(18);
 
 create temp table ids (name text primary key, id text);
 grant select, insert on ids to authenticated, anon;
@@ -84,6 +84,14 @@ select public.admin_set_space_suspension(pg_temp.id('space'), false, 'Urejeno');
 select pg_temp.act_as('ana');
 select is((select count(*)::int from public.events where id = pg_temp.id('event')), 1, 'events visible again');
 select lives_ok($$ select public.book_event(pg_temp.id('event'), pg_temp.id('occ'), 1) $$, 'booking works again');
+
+-- Overviews: staff only; user overview audited
+select pg_temp.act_as('ana');
+select throws_ok($$ select public.admin_user_overview(pg_temp.id('org')) $$, '42501', 'not_allowed', 'users cannot read overviews');
+select throws_ok($$ select public.admin_space_overview(pg_temp.id('space')) $$, '42501', 'not_allowed', 'users cannot read space overview');
+select pg_temp.act_as('adm');
+select is((select public.admin_user_overview(pg_temp.id('org'))->>'email'), 'sus_org@example.test', 'admin sees e-mail');
+select is((select (public.admin_space_overview(pg_temp.id('space'))->>'events_published')::int), 1, 'space overview counts');
 
 select * from finish();
 rollback;

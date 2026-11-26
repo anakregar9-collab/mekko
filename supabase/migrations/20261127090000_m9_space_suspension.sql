@@ -90,3 +90,62 @@ end $$;
 revoke execute on function public.guard_space_live(), public.admin_set_space_suspension(uuid, boolean, text)
   from public, anon, authenticated;
 grant execute on function public.admin_set_space_suspension(uuid, boolean, text) to authenticated, service_role;
+
+-- Admin overview of one person (incl. e-mail, which is otherwise not readable): admins and support only, audited.
+create function public.admin_user_overview(p_profile uuid) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_out jsonb;
+begin
+  if not public.has_platform_role(array['super_admin', 'admin', 'support']::public.platform_role[]) then
+    raise exception 'not_allowed' using errcode = '42501';
+  end if;
+  select jsonb_build_object(
+    'email', (select email from auth.users where id = p_profile),
+    'last_sign_in_at', (select last_sign_in_at from auth.users where id = p_profile),
+    'bookings', (select count(*) from public.bookings where booker_id = p_profile),
+    'bookings_cancelled', (select count(*) from public.bookings where booker_id = p_profile and status <> 'confirmed'),
+    'posts', (select count(*) from public.posts where author_id = p_profile),
+    'ideas', (select count(*) from public.ideas where author_id = p_profile),
+    'comments', (select count(*) from public.post_comments where author_id = p_profile)
+               + (select count(*) from public.idea_comments where author_id = p_profile),
+    'messages_sent', (select count(*) from public.messages where sender_id = p_profile),
+    'reports_against', (select count(*) from public.reports where target_type = 'profile' and target_id = p_profile::text),
+    'reports_made', (select count(*) from public.reports where reporter_id = p_profile),
+    'blocked_by', (select count(*) from public.user_blocks where blocked_id = p_profile),
+    'spaces', coalesce((select jsonb_agg(jsonb_build_object('id', s.id, 'name', s.name, 'slug', s.slug, 'role', m.role,
+      'status', m.status) order by s.name) from public.space_members m join public.spaces s on s.id = m.space_id
+      where m.profile_id = p_profile and m.status <> 'removed'), '[]'),
+    'platform_roles', coalesce((select jsonb_agg(role) from public.platform_roles where profile_id = p_profile), '[]')
+  ) into v_out;
+  perform public.write_audit('admin.view_user', 'profile', p_profile::text, 'Ogled pregleda osebe', null, null);
+  return v_out;
+end $$;
+
+-- Admin overview of one space: counts and reports (no personal data beyond what staff already sees).
+create function public.admin_space_overview(p_space uuid) returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not public.is_platform_staff() then
+    raise exception 'not_allowed' using errcode = '42501';
+  end if;
+  return jsonb_build_object(
+    'events_published', (select count(*) from public.events where space_id = p_space and status = 'published'),
+    'events_total', (select count(*) from public.events where space_id = p_space),
+    'courses', (select count(*) from public.courses where space_id = p_space),
+    'pass_types', (select count(*) from public.pass_types where space_id = p_space),
+    'team', (select count(*) from public.space_members where space_id = p_space and status = 'active' and role <> 'member'),
+    'members', (select count(*) from public.space_members where space_id = p_space and status = 'active' and role = 'member'),
+    'bookings', (select count(*) from public.bookings b join public.events e on e.id = b.event_id
+                 where e.space_id = p_space and b.status = 'confirmed'),
+    'reports_against', (select count(*) from public.reports where target_type = 'space' and target_id = p_space::text)
+      + (select count(*) from public.reports r join public.events e on r.target_type = 'event' and r.target_id = e.id::text
+         where e.space_id = p_space),
+    'owner', (select jsonb_build_object('id', p.id, 'handle', p.handle, 'name', p.display_name)
+              from public.space_members m join public.profiles p on p.id = m.profile_id
+              where m.space_id = p_space and m.role = 'owner' and m.status = 'active')
+  );
+end $$;
+
+revoke execute on function public.admin_user_overview(uuid), public.admin_space_overview(uuid) from public, anon, authenticated;
+grant execute on function public.admin_user_overview(uuid), public.admin_space_overview(uuid) to authenticated, service_role;

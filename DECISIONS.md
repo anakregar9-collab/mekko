@@ -242,3 +242,9 @@ Founder answers: "Organizator sam / Ročno ali pa poveže svoj Stripe… nič ne
 - Other people appear only by handle where needed; no other person's e-mail or private content. Each export is written to the audit log; at most 5 exports per hour.
 - The request to the team stays available ("Oddaj zahtevo ekipi"); account deletion is still handled by the team within 30 days.
 - Privacy policy draft already promises access/portability; no change to its wording needed (to confirm with the lawyer review).
+
+## 2026-11-27 — Founder: merge to main, admin tools, testers, courses
+- All work merged into `main` (anakregar9-collab/mekko#3); work continues on branch `m9-admin-courses`.
+- No Stripe Connect platform for now (confirmed); organizers keep manual confirmation or their own payment link.
+- **Admin:** platform admins can suspend a space (studio/community/creator) with a reason: the space, its events, courses and passes disappear for the public; new bookings, pass and course orders are refused; existing participants keep their bookings and paid course access; the owner is notified and sees the reason; everything is audited; unsuspend restores it. Person suspension already existed ("Omeji račun").
+- Admin dashboard redesigned: one search for people and spaces, "Čaka na ukrep" tiles (open reports, verification requests, GDPR), community counts incl. new users (7 days), suspended accounts/spaces. New detail pages for a person (incl. e-mail and last sign-in for admins/support — every view audited, counts, spaces, reports against, action history) and for a space (counts, owner, suspend/verify, history).
