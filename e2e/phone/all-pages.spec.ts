@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mkdirSync } from "node:fs";
-import { grantPlatformRole, signUp, uid } from "../helpers";
+import { grantPlatformRole, serviceClient, signUp, uid } from "../helpers";
 
 /**
  * Whole-app sweep: every real page (visitor, organizer, admin, guest) at every phone width and desktop.
@@ -105,6 +105,81 @@ test("every page fits the screen and has no serious accessibility issues", async
   await expect(page).toHaveURL(/\/objave\/[0-9a-f-]{36}$/);
   const postPath = new URL(page.url()).pathname;
 
+  // Test setup through the local service key: a pass, a course with lessons, so pages show real content.
+  const sb = serviceClient();
+  const { data: me } = await sb.from("profiles").select("id").eq("handle", handle).single();
+  const { data: sp } = await sb.from("spaces").select("id").eq("slug", slug).single();
+  await sb.from("spaces").update({ legal_form: "sole_trader" }).eq("id", sp!.id);
+  await sb.from("events").update({ accepts_passes: true }).eq("id", eventId);
+  const later = Date.now() + 9 * 86_400_000;
+  await sb.from("event_occurrences").insert({
+    event_id: eventId,
+    starts_at: new Date(later).toISOString(),
+    ends_at: new Date(later + 7_200_000).toISOString(),
+  });
+  const { data: pt } = await sb
+    .from("pass_types")
+    .insert({
+      space_id: sp!.id,
+      name: "10 obiskov ustvarjalnice",
+      visits: 10,
+      price_cents: 9000,
+      validity_days: 90,
+      payment_instructions: "IBAN SI56 0000 TEST, sklic: ime in priimek",
+      payment_link: "https://buy.stripe.com/test_pregled",
+      created_by: me!.id,
+    })
+    .select("id")
+    .single();
+  await sb.from("passes").insert({
+    pass_type_id: pt!.id,
+    space_id: sp!.id,
+    holder_id: me!.id,
+    name: "10 obiskov ustvarjalnice",
+    visits: 10,
+    price_cents: 9000,
+    validity_days: 90,
+    status: "active",
+    valid_from: new Date().toISOString(),
+    valid_until: new Date(Date.now() + 90 * 86_400_000).toISOString(),
+  });
+  const courseSlug = `pregledni-tecaj-${uid("").toLowerCase()}`;
+  const { data: course } = await sb
+    .from("courses")
+    .insert({
+      space_id: sp!.id,
+      slug: courseSlug,
+      title: "Pregledni tečaj z dolgim imenom za preizkus prelamljanja",
+      summary: "Od prvih potez do končnega izdelka.",
+      description: "Opis tečaja za pregled strani na telefonu.",
+      price_cents: 2900,
+      payment_instructions: "IBAN SI56 0000 TEST",
+      created_by: me!.id,
+    })
+    .select("id")
+    .single();
+  const { error: lessonErr } = await sb.from("course_lessons").insert([
+    {
+      course_id: course!.id,
+      position: 1,
+      title: "Uvod in pripomočki",
+      youtube_id: "dQw4w9WgXcQ",
+      notes: null,
+      is_preview: true,
+    },
+    {
+      course_id: course!.id,
+      position: 2,
+      title: "Druga lekcija z daljšim naslovom",
+      youtube_id: "aaaaaaaaaaa",
+      notes: "Zapiski.",
+      is_preview: false,
+    },
+  ]);
+  expect(lessonErr, "test setup: lessons").toBeNull();
+  const { error: pubErr } = await sb.from("courses").update({ status: "published" }).eq("id", course!.id);
+  expect(pubErr, "test setup: course must publish").toBeNull();
+
   const issues: string[] = [];
   const project = info.project.name;
   await audit(
@@ -151,6 +226,8 @@ test("every page fits the screen and has no serious accessibility issues", async
       `/organizator/${slug}/placila`,
       `/organizator/${slug}/karte`,
       `/organizator/${slug}/tecaji`,
+      `/organizator/${slug}/tecaji/${course!.id}`,
+      `/tecaji/${courseSlug}`,
       `/organizator/${slug}/ekipa`,
       `/organizator/${slug}/clani`,
       `/organizator/${slug}/nastavitve`,
@@ -168,7 +245,7 @@ test("every page fits the screen and has no serious accessibility issues", async
   const guest = await (await browser.newContext()).newPage();
   await audit(
     guest,
-    ["/", eventSlug, ideaPath, `/prostori/${slug}`, "/prijava", "/pogoji"],
+    ["/", eventSlug, ideaPath, `/prostori/${slug}`, `/tecaji/${courseSlug}`, "/prijava", "/pogoji"],
     issues,
     `${project}-guest`,
   );

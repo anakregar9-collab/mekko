@@ -106,8 +106,9 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
   const markDone = setLessonDone.bind(null, course.slug);
 
   return (
-    <div className="grid gap-6 md:grid-cols-[1fr_20rem]">
-      <div className="min-w-0 space-y-4">
+    <div className="grid gap-6 md:grid-cols-[1fr_20rem] md:grid-rows-[auto_1fr]">
+      {/* Phone order: title + player, then access + lessons, then the description. */}
+      <div className="min-w-0 space-y-4 md:col-start-1 md:row-start-1">
         {space && <BackLink href={`/prostori/${space.slug}`}>{space.name}</BackLink>}
         <div className="flex flex-wrap gap-1.5">
           <Badge tone="lilac">Posnet tečaj</Badge>
@@ -164,16 +165,9 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
         ) : (
           <Cover tone={course.cover as CoverTone} className="h-48 rounded-[var(--radius-card)]" />
         )}
-        {course.summary && <p className="text-lg text-ink-muted">{course.summary}</p>}
-        {course.description && (
-          <section className="space-y-2">
-            <h2 className="font-display text-lg font-bold">O tečaju</h2>
-            <p className="leading-relaxed whitespace-pre-line">{course.description}</p>
-          </section>
-        )}
       </div>
 
-      <aside className="space-y-4">
+      <aside className="space-y-4 md:col-start-2 md:row-span-2 md:row-start-1">
         <div
           className="space-y-3 rounded-[var(--radius-card)] bg-surface p-5 shadow-[var(--shadow-card)]"
           data-testid="course-access"
@@ -202,6 +196,16 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
                 </button>
               </form>
             </div>
+          ) : isTeam && space ? (
+            <p className="text-sm">
+              Si v ekipi tega tečaja.{" "}
+              <Link
+                href={`/organizator/${space.slug}/tecaji/${course.id}`}
+                className="font-semibold underline"
+              >
+                Uredi tečaj
+              </Link>
+            </p>
           ) : profile ? (
             course.status === "published" && (
               <EnrollForm slug={course.slug} courseId={course.id} paid={paid} />
@@ -214,7 +218,7 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
               Prijavi se za dostop
             </Link>
           )}
-          {paid && !enrolled && (
+          {paid && !enrolled && !isTeam && (
             <p className="text-xs text-ink-muted">Plačilo gre neposredno organizatorju, ne prek Mekka.</p>
           )}
         </div>
@@ -269,6 +273,16 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
           <ReportForm targetType="course" targetId={course.id} label="Prijavi tečaj" />
         )}
       </aside>
+
+      <div className="min-w-0 space-y-4 md:col-start-1 md:row-start-2">
+        {course.summary && <p className="text-lg text-ink-muted">{course.summary}</p>}
+        {course.description && (
+          <section className="space-y-2">
+            <h2 className="font-display text-lg font-bold">O tečaju</h2>
+            <p className="leading-relaxed whitespace-pre-line">{course.description}</p>
+          </section>
+        )}
+      </div>
     </div>
   );
 }
