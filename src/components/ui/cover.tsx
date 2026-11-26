@@ -1,0 +1,64 @@
+import type { CoverTone } from "@/lib/domain/types";
+import Image from "next/image";
+import { cn } from "@/lib/cn";
+
+/**
+ * Cover: an uploaded photo when there is one, otherwise decorative CSS shapes (aria-hidden).
+ */
+const palettes: Record<CoverTone, { bg: string; a: string; b: string }> = {
+  coral: { bg: "#fde6dc", a: "#f08a6e", b: "#f6b53b" },
+  sun: { bg: "#fef0cf", a: "#f6b53b", b: "#f08a6e" },
+  sage: { bg: "#ddefe3", a: "#7fb894", b: "#f6b53b" },
+  lilac: { bg: "#ece5fa", a: "#a98bd6", b: "#f08a6e" },
+  sky: { bg: "#dcebf8", a: "#7fb0e0", b: "#a98bd6" },
+  clay: { bg: "#f6e2d3", a: "#d49a73", b: "#7fb894" },
+};
+
+export function Cover({
+  tone,
+  className,
+  imageUrl,
+  alt = "",
+  priority = false,
+}: {
+  tone: CoverTone;
+  className?: string;
+  /** Public photo URL; when set the photo replaces the colour shapes. */
+  imageUrl?: string | null;
+  alt?: string;
+  priority?: boolean;
+}) {
+  const p = palettes[tone];
+  if (imageUrl) {
+    return (
+      <div className={cn("relative overflow-hidden", className)} style={{ background: p.bg }}>
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          unoptimized
+          priority={priority}
+          sizes="(min-width: 768px) 50vw, 100vw"
+          className="object-cover"
+        />
+      </div>
+    );
+  }
+  return (
+    <div
+      aria-hidden="true"
+      className={cn("relative overflow-hidden", className)}
+      style={{ background: p.bg }}
+    >
+      <div className="absolute -top-6 -left-4 size-28 rounded-full opacity-90" style={{ background: p.a }} />
+      <div
+        className="absolute right-6 bottom-[-2.5rem] size-36 rounded-[2.5rem] rotate-12 opacity-80"
+        style={{ background: p.b }}
+      />
+      <div
+        className="absolute top-1/3 right-1/3 size-10 rounded-full border-4 opacity-70"
+        style={{ borderColor: p.a }}
+      />
+    </div>
+  );
+}

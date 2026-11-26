@@ -37,9 +37,21 @@ Exit: test-mode transactions pass success/failure/retry/refund/dispute/multi-tic
 - Community open/approval membership, member-only posts, events and shared schedules; paid member dues later.
 Exit: purchase grants exactly the correct content access; private membership rules tested.
 
+### M4b — Ustvarjalni feed (founder request 2026-11-17, CONFIRMED — see DECISIONS)
+Founder wish: a simplified Instagram for creative work — post photos of your own creations, like, comment, share with friends ("kolegi") and message them; the feed takes the place of the current Sporočila tab, messages stay reachable from the feed.
+- Conflicts with confirmed items, to be changed only on founder decision: PRODUCT_SPEC §2 "NOT a general infinite social network" and DECISIONS "no follower system yet".
+- Proposed scope: post = 1–5 photos + caption + optional link to an idea/event/category; likes; comments (report/block/moderation, rate limits); "kolegi" connections; feed of kolegi + optional public "Navdih" stream; share a post into a private message; profile grid of own posts.
+- Open questions: (1) kolegi = mutual request/accept vs follow; (2) default visibility (kolegi only vs public); (3) does the tab replace Sporočila (messages icon inside the feed header) — yes per founder; (4) minimum age / photos of children; (5) do posts count toward the posting quota.
+Exit: post/like/comment/share journeys tested on phone + desktop; RLS tests for visibility (kolegi vs public vs blocked); moderation queue covers posts and comments.
+
+### M4c — Sessions, waitlist, communities, reminders (DONE 2026-11-18 — see DECISIONS)
+- Move/cancel/add sessions with attendee notifications; waitlist with "spot free" notifications; community membership (open/approval), members-only events, announcements; in-app reminders 24 h before.
+
 ### M5 — Recorded courses + studio improvements
 - Single video and multi-lesson course, PDF attachments, lesson completion; creator/space library.
 - Studio calendar and attendance management, financial reports, staff roles; passes/cards after core booking behavior stable.
+  - DONE 2026-11-19: month calendar, attendance per session, attendee CSV export, manual-payments overview (see DECISIONS).
+  - DONE 2026-11-23/24: passes (karte) and recorded courses with YouTube lessons, manual payment confirmation or organizer's own payment link (see DECISIONS). Open: secured video hosting, courses in discovery.
 Exit: video assets secured, progress persistent, accounts with different permissions cannot access others' paid course content.
 
 ### M6 — Growth + advanced commerce

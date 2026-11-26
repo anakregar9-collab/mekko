@@ -14,9 +14,9 @@ Mekko is a Slovenia-first discovery platform for creative and lifestyle activiti
 - Personal profile privacy chosen by user. Private data never shown as part of public profile.
 
 ## 2. Navigation, home, UX
-- Main mobile navigation exactly four: Odkrivanje, Moje aktivnosti, Ustvari, Moj Mekko.
-- Header has TWO separate icons: private messages and notifications (later instruction overrides older combined icon concept).
-- Home is a dynamic social-feed-style discovery of events, ideas and relevant content, NOT a general infinite social network. Events are the core conversion action; clear filters and CTAs.
+- Main mobile navigation exactly five: Odkrivanje, Moje aktivnosti, Ustvari, Feed, Moj Mekko (founder 2026-11-17; Sporočila moved to a header icon next to notifications).
+- Header has two separate icons: messages and notifications (founder 2026-11-17).
+- Home is a dynamic social-feed-style discovery of events, ideas and relevant content. Since 2026-11-17 (founder) there is also a simplified creative feed (own creations, likes, comments, follows) — see DECISIONS; it is not a general-purpose social network. Events are the core conversion action; clear filters and CTAs.
 - Personalization inputs: onboarding interests, favorites/saves, approximate location. Provide controls to change interests/location, with search to browse everything. No requirement for AI recommender at launch.
 - Moje aktivnosti: registrations, history, calendar. Moj Mekko: personal profile, settings, saved items, purchased library and switch into organizer workspace.
 - Ustvari: centralized creation menu. Organizer mode has its own dashboard/navigation while remaining responsive on mobile.
@@ -70,6 +70,7 @@ Mekko is a Slovenia-first discovery platform for creative and lifestyle activiti
 - Founder admin initially, later scoped additional admins. Audit all sensitive admin actions; do not expose financial/private fields to ordinary users.
 
 ## 9. Open decisions — DO NOT silently assume these are confirmed
+(2026-11-11: items 3 and parts of 1, 2, 5, 6 and 9 were resolved by the founder, see DECISIONS.md "Founder decisions on M0 review". Still open: exact commission %, processor fee allocation, subscriptions, map/geo provider, push provider, video hosting, PWA vs native confirmation, KYC/tax details.)
 1. Exact commission, processor fee allocation, subscriptions, free post limits and whether affiliate/off-platform sales affect monetization.
 2. MVP selection from broad confirmed vision: especially recorded courses, pass/card system, messages, comments, waitlists and refunds.
 3. Community membership pricing on public page even though dues postponed: display free membership or remove pricing until activated.

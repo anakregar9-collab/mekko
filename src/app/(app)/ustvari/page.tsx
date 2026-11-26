@@ -1,0 +1,115 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import Link from "next/link";
+import { CalendarPlus, ChevronRight, Lightbulb, Store, Clapperboard } from "lucide-react";
+import { getMySpaces, requireUser } from "@/lib/auth/dal";
+import { PageSkeleton } from "@/components/page-skeleton";
+
+export const metadata: Metadata = { title: "Ustvari" };
+
+export default function Page() {
+  return (
+    <Suspense fallback={<PageSkeleton title="Ustvari" />}>
+      <Content />
+    </Suspense>
+  );
+}
+
+async function Content() {
+  await requireUser({ next: "/ustvari" });
+  const spaces = (await getMySpaces()).filter(
+    (s) => s.status === "active" && (s.role === "owner" || s.role === "admin"),
+  );
+  return (
+    <div className="space-y-5">
+      <div>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Ustvari</h1>
+        <p className="mt-1 text-ink-muted">Kaj želiš deliti s skupnostjo?</p>
+      </div>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        <li>
+          <Link
+            href="/organizator/nov-prostor"
+            className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] hover:ring-2 hover:ring-brand"
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-sage-soft text-sage-ink">
+              <Store aria-hidden="true" className="size-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-lg font-bold">Prostor</span>
+              <span className="block text-sm text-ink-muted">Ustvarjalec, skupnost, studio ali društvo</span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={
+              spaces.length === 1
+                ? `/organizator/${spaces[0].space.slug}/dogodki/nov`
+                : spaces.length > 1
+                  ? "/organizator"
+                  : "/organizator/nov-prostor"
+            }
+            className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] hover:ring-2 hover:ring-brand"
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand-strong">
+              <CalendarPlus aria-hidden="true" className="size-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-lg font-bold">Dogodek ali delavnica</span>
+              <span className="block text-sm text-ink-muted">
+                {spaces.length === 0
+                  ? "Najprej ustvariš prostor (brezplačno)"
+                  : "Enkratni dogodek ali tečaj z več srečanji"}
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={
+              spaces.length === 1
+                ? `/organizator/${spaces[0].space.slug}/tecaji`
+                : spaces.length > 1
+                  ? "/organizator"
+                  : "/organizator/nov-prostor"
+            }
+            className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] hover:ring-2 hover:ring-brand"
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-lilac-soft text-lilac-ink">
+              <Clapperboard aria-hidden="true" className="size-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-lg font-bold">Posnet tečaj</span>
+              <span className="block text-sm text-ink-muted">
+                {spaces.length === 0
+                  ? "Najprej ustvariš prostor (brezplačno)"
+                  : "Video lekcije z YouTuba, brezplačno ali plačljivo"}
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/ustvari/ideja"
+            className="flex items-center gap-4 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] hover:ring-2 hover:ring-brand"
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-sun-soft text-sun-ink">
+              <Lightbulb aria-hidden="true" className="size-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-lg font-bold">Ideja</span>
+              <span className="block text-sm text-ink-muted">
+                Navodila, vzorec ali navdih za ustvarjanje doma
+              </span>
+            </span>
+            <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
+          </Link>
+        </li>
+      </ul>
+    </div>
+  );
+}

@@ -1,0 +1,205 @@
+-- TEST CONTENT for development / testing environments only (never production data).
+-- Every row is flagged is_demo = true and shown with a "Testni" badge in the app.
+-- Idempotent: safe to run more than once. Dates are relative to now(), so events stay upcoming.
+-- Demo organizer accounts have no password and cannot sign in.
+
+insert into auth.users (id, email, aud, role, raw_user_meta_data, created_at)
+values
+  ('a1000000-0000-4000-8000-000000000000', 'glinena.hisa@demo.mekko.invalid', 'authenticated', 'authenticated', '{"full_name":"Glinena hiša"}', now()),
+  ('a2000000-0000-4000-8000-000000000000', 'krozek.nitka@demo.mekko.invalid', 'authenticated', 'authenticated', '{"full_name":"Krožek Nitka"}', now()),
+  ('a3000000-0000-4000-8000-000000000000', 'ana.rise@demo.mekko.invalid', 'authenticated', 'authenticated', '{"full_name":"Ana Riše"}', now()),
+  ('a4000000-0000-4000-8000-000000000000', 'ustvarjalni.kras@demo.mekko.invalid', 'authenticated', 'authenticated', '{"full_name":"Društvo Ustvarjalni Kras"}', now())
+on conflict (id) do nothing;
+
+update public.profiles set
+  handle = case id
+    when 'a1000000-0000-4000-8000-000000000000' then 'glinena.hisa'
+    when 'a2000000-0000-4000-8000-000000000000' then 'krozek.nitka'
+    when 'a3000000-0000-4000-8000-000000000000' then 'ana.rise'
+    else 'ustvarjalni.kras' end,
+  visibility = 'public',
+  onboarded_at = coalesce(onboarded_at, now())
+where id in ('a1000000-0000-4000-8000-000000000000', 'a2000000-0000-4000-8000-000000000000',
+             'a3000000-0000-4000-8000-000000000000', 'a4000000-0000-4000-8000-000000000000');
+
+insert into public.spaces (id, slug, kind, name, tagline, bio, city, membership_mode, verification_status, created_by, is_demo)
+values
+  ('b1000000-0000-4000-8000-000000000000', 'glinena-hisa', 'studio', 'Glinena hiša',
+   'Keramični studio za začetnike in vse, ki radi umažejo roke.',
+   'Majhen studio v središču Ljubljane z dvema lončarskima vretenoma in pečjo. Delavnice vodimo v skupinah do osem ljudi.',
+   'Ljubljana', 'none', 'verified', 'a1000000-0000-4000-8000-000000000000', true),
+  ('b2000000-0000-4000-8000-000000000000', 'krozek-nitka', 'community', 'Krožek Nitka',
+   'Skupnost pletilk in kvačkarjev vseh starosti.',
+   'Srečujemo se ob torkih v celjski knjižnici. Začetniki so vedno dobrodošli.',
+   'Celje', 'open', 'unverified', 'a2000000-0000-4000-8000-000000000000', true),
+  ('b3000000-0000-4000-8000-000000000000', 'ana-rise', 'solo_creator', 'Ana Riše',
+   'Akvarel, kaligrafija in počasni ustvarjalni večeri.',
+   'Ilustratorka iz Maribora. Delavnice v živo in online.',
+   'Maribor', 'none', 'verified', 'a3000000-0000-4000-8000-000000000000', true),
+  ('b4000000-0000-4000-8000-000000000000', 'drustvo-ustvarjalni-kras', 'association', 'Društvo Ustvarjalni Kras',
+   'Delavnice, gibanje in druženje na Krasu.',
+   'Neprofitno društvo, ki povezuje ustvarjalce s Krasa in Brkinov.',
+   'Sežana', 'open', 'verified', 'a4000000-0000-4000-8000-000000000000', true)
+on conflict (id) do nothing;
+
+insert into public.space_members (space_id, profile_id, role, status, invited_by)
+select s.id, s.created_by, 'owner', 'active', s.created_by
+from public.spaces s where s.is_demo
+on conflict (space_id, profile_id) do nothing;
+
+-- Events -------------------------------------------------------------------------
+with ev(id, space, slug, title, summary, description, interest, schedule, online, mode, ext, city, address, cap, maxp, materials, policy, cover) as (
+  values
+  ('c1000000-0000-4000-8000-000000000000'::uuid, 'b1000000-0000-4000-8000-000000000000'::uuid, 'keramika-za-zacetnike',
+   'Keramika za začetnike', 'Spoznaj vretenje in oblikuj svojo prvo skodelico.',
+   E'Na triurni delavnici se naučiš osnov centriranja gline in vretenja.\nIzdelke po žganju prevzameš v studiu čez dva tedna.',
+   'keramika', 'one_off', false, 'native', null, 'Ljubljana', 'Trubarjeva cesta 12, 1000 Ljubljana', 8, 2,
+   E'Predpasnik ali stara oblačila\nGlina in orodje sta vključena', 'moderate', 'clay'),
+  ('c2000000-0000-4000-8000-000000000000'::uuid, 'b3000000-0000-4000-8000-000000000000'::uuid, 'vecer-akvarela-ob-caju',
+   'Večer akvarela ob čaju', 'Sproščen večer slikanja jesenskih motivov.',
+   'Vodeno slikanje za vse ravni. Pripravimo papir, barve in čopiče, ti prineseš dobro voljo.',
+   'umetnost', 'one_off', false, 'native', null, 'Maribor', 'Poštna ulica 3, 2000 Maribor', 12, 2,
+   'Vse potrebščine so vključene', 'flexible', 'sky'),
+  ('c3000000-0000-4000-8000-000000000000'::uuid, 'b2000000-0000-4000-8000-000000000000'::uuid, 'tecaj-pletenja-4-srecanja',
+   'Tečaj pletenja – 4 srečanja', 'Od prve zanke do lastne kape v štirih tednih.',
+   'Večkratni tečaj: z eno prijavo se udeležiš vseh štirih srečanj. Vsa srečanja se ti prikažejo v koledarju.',
+   'rocna-dela', 'multi_session', false, 'native', null, 'Celje', 'Knjižnica Celje, Muzejski trg 1a, 3000 Celje', 10, 1,
+   E'Volna srednje debeline\nPletilki št. 5', 'strict', 'lilac'),
+  ('c4000000-0000-4000-8000-000000000000'::uuid, 'b4000000-0000-4000-8000-000000000000'::uuid, 'jutranja-joga-na-krasu',
+   'Jutranja joga na Krasu', 'Jutranja vadba enkrat na teden – prijava za posamezen termin.',
+   'Ob slabem vremenu vadimo v dvorani društva. Primerno za vse starosti.',
+   'gibanje', 'one_off', false, 'native', null, 'Sežana', 'Park pri gradu, 6210 Sežana', 20, 2,
+   E'Lastna podloga\nTopla oblačila', 'flexible', 'sage'),
+  ('c5000000-0000-4000-8000-000000000000'::uuid, 'b3000000-0000-4000-8000-000000000000'::uuid, 'online-osnove-kaligrafije',
+   'Online: osnove kaligrafije', 'Živa spletna delavnica za popolne začetnike.',
+   'Povezavo do spletne sobe vidiš po prijavi. Potrebuješ le flomaster s čopičasto konico in papir.',
+   'umetnost', 'one_off', true, 'native', null, null, null, null, 1,
+   E'Čopičasti flomaster\nGladek papir A4', 'flexible', 'sun'),
+  ('c6000000-0000-4000-8000-000000000000'::uuid, 'b4000000-0000-4000-8000-000000000000'::uuid, 'svece-iz-sojinega-voska',
+   'Sveče iz sojinega voska', 'Izdelaj dve dišeči sveči za darilo.',
+   'Prijava poteka na spletni strani društva.',
+   'dom-in-deko', 'one_off', false, 'external', 'https://example.org/prijava-svece', 'Sežana', null, null, 1,
+   null, 'flexible', 'coral'),
+  ('c7000000-0000-4000-8000-000000000000'::uuid, 'b1000000-0000-4000-8000-000000000000'::uuid, 'vretenje-nadaljevalni',
+   'Vretenje – nadaljevalni tečaj', 'Tri srečanja za tiste, ki že poznajo osnove.',
+   'Delamo višje oblike, ročaje in glaziranje. Ena prijava velja za vsa tri srečanja.',
+   'keramika', 'multi_session', false, 'native', null, 'Ljubljana', 'Trubarjeva cesta 12, 1000 Ljubljana', 6, 1,
+   'Predpasnik', 'moderate', 'clay'),
+  ('c8000000-0000-4000-8000-000000000000'::uuid, 'b2000000-0000-4000-8000-000000000000'::uuid, 'kvackanje-ob-kavi',
+   'Kvačkanje ob kavi', 'Druženje in pomoč pri tvojem projektu.',
+   'Neformalno srečanje: prinesi svoj projekt ali začni novega. Pomagamo pri vzorcih.',
+   'rocna-dela', 'one_off', false, 'native', null, 'Celje', 'Kavarna Pod lipo, Glavni trg 4, 3000 Celje', null, 3,
+   'Kvačka in preja (nekaj imamo za izposojo)', 'flexible', 'lilac')
+)
+insert into public.events (id, space_id, created_by, slug, title, summary, description, interest_id, schedule, booking_scope,
+  is_online, registration_mode, external_url, city, address, online_url, capacity, max_per_booking, materials,
+  cancellation_policy, cover, status, is_demo, published_at)
+select ev.id, ev.space, s.created_by, ev.slug, ev.title, ev.summary, ev.description,
+  (select id from public.interests i where i.slug = ev.interest),
+  ev.schedule::public.event_schedule,
+  case when ev.schedule = 'multi_session' then 'series' else 'occurrence' end::public.booking_scope,
+  ev.online, ev.mode::public.registration_mode, ev.ext, ev.city, ev.address,
+  case when ev.online then 'https://meet.example.org/mekko-test' end,
+  ev.cap, ev.maxp, ev.materials, ev.policy::public.cancellation_policy, ev.cover, 'published', true, now()
+from ev join public.spaces s on s.id = ev.space
+on conflict (id) do nothing;
+
+-- Occurrences (only if the event has none yet) --------------------------------------
+with occ(event_id, day_offset, start_time, minutes) as (
+  values
+  ('c1000000-0000-4000-8000-000000000000'::uuid, 5, '10:00', 180),
+  ('c1000000-0000-4000-8000-000000000000'::uuid, 19, '10:00', 180),
+  ('c2000000-0000-4000-8000-000000000000'::uuid, 9, '18:00', 150),
+  ('c3000000-0000-4000-8000-000000000000'::uuid, 7, '17:00', 120),
+  ('c3000000-0000-4000-8000-000000000000'::uuid, 14, '17:00', 120),
+  ('c3000000-0000-4000-8000-000000000000'::uuid, 21, '17:00', 120),
+  ('c3000000-0000-4000-8000-000000000000'::uuid, 28, '17:00', 120),
+  ('c4000000-0000-4000-8000-000000000000'::uuid, 3, '08:00', 60),
+  ('c4000000-0000-4000-8000-000000000000'::uuid, 10, '08:00', 60),
+  ('c4000000-0000-4000-8000-000000000000'::uuid, 17, '08:00', 60),
+  ('c5000000-0000-4000-8000-000000000000'::uuid, 12, '19:00', 90),
+  ('c6000000-0000-4000-8000-000000000000'::uuid, 16, '16:00', 120),
+  ('c7000000-0000-4000-8000-000000000000'::uuid, 11, '18:00', 150),
+  ('c7000000-0000-4000-8000-000000000000'::uuid, 18, '18:00', 150),
+  ('c7000000-0000-4000-8000-000000000000'::uuid, 25, '18:00', 150),
+  ('c8000000-0000-4000-8000-000000000000'::uuid, 6, '10:00', 120),
+  ('c8000000-0000-4000-8000-000000000000'::uuid, 13, '10:00', 120)
+)
+insert into public.event_occurrences (event_id, starts_at, ends_at)
+select o.event_id,
+  ((current_date + o.day_offset)::text || ' ' || o.start_time)::timestamp at time zone 'Europe/Ljubljana',
+  ((current_date + o.day_offset)::text || ' ' || o.start_time)::timestamp at time zone 'Europe/Ljubljana'
+    + make_interval(mins => o.minutes)
+from occ o
+where not exists (select 1 from public.event_occurrences x where x.event_id = o.event_id);
+
+-- M3b: one TEST event with manual payment to the organizer (no real payment details).
+insert into public.events (id, space_id, created_by, slug, title, summary, description, interest_id, schedule,
+  booking_scope, is_online, registration_mode, city, address, capacity, max_per_booking, materials,
+  cancellation_policy, cover, status, is_demo, published_at, payment_mode, price_cents, payment_instructions)
+select 'c9000000-0000-4000-8000-000000000000', s.id, s.created_by, 'tkanje-na-statvah',
+  'Tkanje na statvah', 'Stkaj svoj podstavek na mizicah statvah.',
+  'Dvourna delavnica za začetnike. Vse statve in preja so na voljo v studiu.',
+  (select id from public.interests where slug = 'rocna-dela'), 'one_off', 'occurrence', false, 'native',
+  'Ljubljana', 'Trubarjeva cesta 12, 1000 Ljubljana', 6, 2, 'Nič – vse je pripravljeno', 'moderate', 'sun',
+  'published', true, now(), 'manual', 2500,
+  E'TESTNI PODATKI – ne nakazuj denarja.\nGotovina na kraju ali nakazilo po dogovoru z organizatorjem.'
+from public.spaces s where s.id = 'b1000000-0000-4000-8000-000000000000'
+on conflict (id) do nothing;
+
+insert into public.event_occurrences (event_id, starts_at, ends_at)
+select 'c9000000-0000-4000-8000-000000000000',
+  ((current_date + d)::text || ' 17:00')::timestamp at time zone 'Europe/Ljubljana',
+  ((current_date + d)::text || ' 19:00')::timestamp at time zone 'Europe/Ljubljana'
+from (values (8), (22)) v(d)
+where not exists (select 1 from public.event_occurrences x where x.event_id = 'c9000000-0000-4000-8000-000000000000');
+
+-- M3d: TEST legal status of demo organizers (fictional details, clearly marked).
+update public.spaces set legal_form = case id
+    when 'b1000000-0000-4000-8000-000000000000' then 'sole_trader'
+    when 'b2000000-0000-4000-8000-000000000000' then 'association'
+    when 'b3000000-0000-4000-8000-000000000000' then 'odd'
+    else 'association' end,
+  legal_ack_at = now()
+where is_demo and legal_form is null;
+
+insert into public.space_legal_info (space_id, legal_name, address, registration_number, contact_email)
+values
+  ('b1000000-0000-4000-8000-000000000000', 'Glinena hiša, TESTNI s.p.', 'Trubarjeva cesta 12, 1000 Ljubljana (testni naslov)', '0000000 (test)', 'glinena.hisa@demo.mekko.invalid'),
+  ('b2000000-0000-4000-8000-000000000000', 'Krožek Nitka, TESTNO društvo', 'Muzejski trg 1a, 3000 Celje (testni naslov)', null, 'krozek.nitka@demo.mekko.invalid'),
+  ('b3000000-0000-4000-8000-000000000000', 'Ana Riše (TESTNI ODD)', 'Poštna ulica 3, 2000 Maribor (testni naslov)', null, 'ana.rise@demo.mekko.invalid'),
+  ('b4000000-0000-4000-8000-000000000000', 'Društvo Ustvarjalni Kras (TESTNO)', 'Partizanska cesta 1, 6210 Sežana (testni naslov)', null, 'ustvarjalni.kras@demo.mekko.invalid')
+on conflict (space_id) do nothing;
+
+-- Quick-filter attributes on TEST events (also set by the categories migration on hosted dev).
+update public.events set beginner_friendly = true
+where is_demo and slug in ('keramika-za-zacetnike', 'vecer-akvarela-ob-caju', 'tecaj-pletenja-4-srecanja',
+  'online-osnove-kaligrafije', 'kvackanje-ob-kavi', 'tkanje-na-statvah', 'svece-iz-sojinega-voska');
+update public.events set family_friendly = true
+where is_demo and slug in ('jutranja-joga-na-krasu', 'svece-iz-sojinega-voska', 'kvackanje-ob-kavi');
+
+-- M4: TEST ideas by demo creators (flagged is_demo, shown with a "Testna ideja" badge).
+insert into public.ideas (id, author_id, slug, title, summary, body, materials, time_needed, interest_id, cover,
+  beginner_friendly, family_friendly, is_demo)
+values
+  ('d1000000-0000-4000-8000-000000000000', 'a3000000-0000-4000-8000-000000000000', 'akvarelne-voscilnice',
+   'Akvarelne voščilnice v 30 minutah', 'Mehki prelivi in preprost napis za praznike.',
+   E'1. List akvarelnega papirja prepogni na pol.\n2. Z mokrim čopičem namoči spodnjo tretjino.\n3. Kani dve barvi in pusti, da se prelijeta.\n4. Ko se posuši, s tankim flomastrom dodaj napis.',
+   E'Akvarelni papir A5\nAkvarelne barve\nČopič št. 8\nTanek flomaster', '30 minut',
+   (select id from public.interests where slug = 'umetnost'), 'sky', true, true, true),
+  ('d2000000-0000-4000-8000-000000000000', 'a2000000-0000-4000-8000-000000000000', 'kvackan-podstavek-za-kozarec',
+   'Kvačkan podstavek za kozarec', 'Prvi krog, drugi krog – in imaš darilo.',
+   E'1. Naredi čarobni obroček in vanj 12 šibic.\n2. V drugem krogu podvoji vsako šibico (24).\n3. V tretjem krogu podvoji vsako drugo (36).\n4. Zaključi z verižnim vbodom in skrij konec.',
+   E'Bombažna preja\nKvačka št. 4\nŠkarje', '1 ura',
+   (select id from public.interests where slug = 'rocna-dela'), 'lilac', true, false, true),
+  ('d3000000-0000-4000-8000-000000000000', 'a1000000-0000-4000-8000-000000000000', 'skodelica-iz-samosuse-gline',
+   'Skodelica iz samosušeče gline', 'Brez peči: oblikuj, posuši in zaščiti z lakom.',
+   E'1. Glino pregneti, da je mehka.\n2. Oblikuj kroglo in s palcem naredi jamico.\n3. Stene enakomerno stanjšaj s prsti.\n4. Suši 48 ur, nato pobarvaj in zaščiti z lakom (ni za hrano).',
+   E'Samosušeča glina 500 g\nPosoda z vodo\nAkrilne barve in lak', '2 uri + sušenje',
+   (select id from public.interests where slug = 'keramika'), 'clay', true, true, true),
+  ('d4000000-0000-4000-8000-000000000000', 'a4000000-0000-4000-8000-000000000000', 'jutranje-raztezanje-10-minut',
+   'Jutranje raztezanje v 10 minutah', 'Kratka rutina za hrbet in ramena.',
+   E'1. Mačka–krava: 8 ponovitev.\n2. Otroški položaj: 5 globokih vdihov.\n3. Kroženje z rameni naprej in nazaj.\n4. Predklon stoje s pokrčenimi koleni.',
+   'Podloga', '10 minut',
+   (select id from public.interests where slug = 'gibanje'), 'sage', true, true, true)
+on conflict (id) do nothing;

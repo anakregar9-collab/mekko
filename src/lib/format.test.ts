@@ -1,0 +1,141 @@
+import { describe, expect, it } from "vitest";
+import {
+  deadlineLabel,
+  monthRange,
+  formatPrice,
+  priceToCents,
+  formatPriceRange,
+  formatSlot,
+  ljubljanaToISO,
+  localDateKey,
+  pluralSl,
+  spotsLeftLabel,
+  weekendDateKeys,
+} from "./format";
+
+const nbsp = (s: string) => s.replace(/ /g, " ");
+
+describe("formatPrice", () => {
+  it("formats euro cents in Slovene style", () => {
+    expect(nbsp(formatPrice(4500))).toBe("45,00 €");
+    // Slovene CLDR groups only from 5 digits: 1234,56 € but 12.345,67 €.
+    expect(nbsp(formatPrice(123456))).toBe("1234,56 €");
+    expect(nbsp(formatPrice(1234567))).toBe("12.345,67 €");
+  });
+  it("labels zero as free", () => {
+    expect(formatPrice(0)).toBe("Brezplačno");
+  });
+  it("rejects invalid amounts", () => {
+    expect(() => formatPrice(-1)).toThrow(RangeError);
+    expect(() => formatPrice(1.5)).toThrow(RangeError);
+  });
+});
+
+describe("formatPriceRange", () => {
+  it("handles free, single and mixed prices", () => {
+    expect(formatPriceRange([])).toBe("Brezplačno");
+    expect(formatPriceRange([0, 0])).toBe("Brezplačno");
+    expect(nbsp(formatPriceRange([2800]))).toBe("28,00 €");
+    expect(nbsp(formatPriceRange([8000, 4500]))).toBe("od 45,00 €");
+    expect(nbsp(formatPriceRange([0, 1500]))).toBe("od 15,00 €");
+  });
+});
+
+describe("dates in Europe/Ljubljana", () => {
+  it("renders local time regardless of process TZ", () => {
+    expect(formatSlot("2026-11-21T09:00:00Z", "2026-11-21T12:00:00Z")).toContain("10:00–13:00");
+  });
+  it("computes the local calendar day across midnight UTC", () => {
+    expect(localDateKey("2026-11-21T23:30:00Z")).toBe("2026-11-22");
+  });
+});
+
+describe("Slovene plurals", () => {
+  it.each([
+    [1, "prosto mesto"],
+    [2, "prosti mesti"],
+    [3, "prosta mesta"],
+    [4, "prosta mesta"],
+    [5, "prostih mest"],
+    [101, "prosto mesto"],
+    [102, "prosti mesti"],
+  ])("%i → %s", (n, expected) => {
+    expect(pluralSl(n, ["prosto mesto", "prosti mesti", "prosta mesta", "prostih mest"])).toBe(expected);
+  });
+
+  it("builds spots-left labels", () => {
+    expect(spotsLeftLabel(null, 3)).toBe("Brez omejitve mest");
+    expect(spotsLeftLabel(8, 8)).toBe("Razprodano");
+    expect(spotsLeftLabel(8, 6)).toBe("Še 2 prosti mesti");
+  });
+});
+
+describe("ljubljanaToISO", () => {
+  it("handles winter (CET, UTC+1) and summer (CEST, UTC+2) time", () => {
+    expect(ljubljanaToISO("2026-12-05", "17:30")).toBe("2026-12-05T16:30:00.000Z");
+    expect(ljubljanaToISO("2026-07-01", "09:00")).toBe("2026-07-01T07:00:00.000Z");
+  });
+  it("rejects malformed input", () => {
+    expect(() => ljubljanaToISO("5.12.2026", "17:30")).toThrow(RangeError);
+  });
+});
+
+describe("priceToCents", () => {
+  it("parses whole and decimal euro amounts", () => {
+    expect(priceToCents("25")).toBe(2500);
+    expect(priceToCents("25,5")).toBe(2550);
+    expect(priceToCents("25.50")).toBe(2550);
+    expect(priceToCents(" 12 € ")).toBe(1200);
+  });
+  it("rejects garbage, negatives and too many decimals", () => {
+    expect(priceToCents("")).toBeNull();
+    expect(priceToCents("-5")).toBeNull();
+    expect(priceToCents("abc")).toBeNull();
+    expect(priceToCents("1,234")).toBeNull();
+    expect(priceToCents("99999")).toBeNull();
+  });
+});
+
+describe("deadlineLabel", () => {
+  it("uses Slovene dual/plural forms", () => {
+    expect(deadlineLabel(24)).toBe("1 dan");
+    expect(deadlineLabel(48)).toBe("2 dneva");
+    expect(deadlineLabel(72)).toBe("3 dnevi");
+    expect(deadlineLabel(168)).toBe("7 dni");
+  });
+});
+
+describe("weekendDateKeys", () => {
+  it("returns the coming Saturday and Sunday on a weekday (Ljubljana time)", () => {
+    // Wednesday 18 Nov 2026, 10:00 CET
+    expect(weekendDateKeys(Date.parse("2026-11-18T09:00:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
+  });
+  it("keeps the current weekend on Saturday and only Sunday on Sunday", () => {
+    expect(weekendDateKeys(Date.parse("2026-11-21T12:00:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
+    expect(weekendDateKeys(Date.parse("2026-11-22T12:00:00Z"))).toEqual(["2026-11-22"]);
+  });
+  it("uses Ljubljana, not UTC, around midnight", () => {
+    // Friday 20 Nov 23:30 UTC is already Saturday 00:30 in Ljubljana
+    expect(weekendDateKeys(Date.parse("2026-11-20T23:30:00Z"))).toEqual(["2026-11-21", "2026-11-22"]);
+  });
+});
+
+describe("monthRange", () => {
+  it("uses Ljubljana midnight bounds and neighbours", () => {
+    const r = monthRange("2026-11", "2026-11-19T10:00:00Z");
+    expect(r.startIso).toBe("2026-10-31T23:00:00.000Z");
+    expect(r.endIso).toBe("2026-11-30T23:00:00.000Z");
+    expect(r.prev).toBe("2026-10");
+    expect(r.next).toBe("2026-12");
+    expect(r.label).toMatch(/november 2026/);
+  });
+  it("wraps the year and handles summer time", () => {
+    const r = monthRange("2027-01", "2026-11-19T10:00:00Z");
+    expect(r.prev).toBe("2026-12");
+    expect(monthRange("2026-07", "x").startIso).toBe("2026-06-30T22:00:00.000Z");
+  });
+  it("falls back to the current month for bad input", () => {
+    expect(monthRange("2026-13", "2026-11-19T10:00:00Z").key).toBe("2026-11");
+    expect(monthRange(undefined, "2026-03-31T23:30:00Z").key).toBe("2026-04");
+  });
+});
