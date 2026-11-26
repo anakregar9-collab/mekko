@@ -51,7 +51,7 @@ select is((select count(*)::int from public.notifications where title like '%spr
 
 -- Search
 select is((select count(*)::int from public.search_people('soc_')), 3, 'search by handle');
-select is((select count(*)::int from public.search_people('Zala') where handle = 'soc_zas'), 1, 'search by name finds private profiles too (follow needs approval)');
+select is((select count(*)::int from public.search_people('Zala Zasebna') where handle = 'soc_zas'), 1, 'search by name finds private profiles too (follow needs approval)');
 select is((select count(*)::int from public.search_people('a')), 0, 'at least 2 characters');
 select pg_temp.act_as('ana');
 select public.block_user(pg_temp.id('bor'));
