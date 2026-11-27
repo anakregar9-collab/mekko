@@ -57,6 +57,6 @@ test("account deletion: owners must hand over spaces; members delete, are hidden
   await expect(ana.getByTestId("deletion-pending")).toContainText("Račun je v izbrisu");
   await checkPage(ana);
   await ana.getByRole("button", { name: "Prekliči izbris in obnovi račun" }).click();
-  await expect(ana).toHaveURL(/\/moj-mekko$/);
+  await expect(ana).toHaveURL(/\/moj-mekko\?obnovljen=1$/);
   await expect(ana.getByTestId("my-profile")).toContainText("Ana Odhajam");
 });

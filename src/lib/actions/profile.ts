@@ -211,13 +211,10 @@ export async function deleteMyAccount(_prev: FormState, formData: FormData): Pro
   redirect("/prijava?izbris=1");
 }
 
-/** Change of mind within 30 days. */
-export async function cancelMyAccountDeletion(): Promise<void> {
-  // Not getMyProfile(): it is cached for this request, and the redirect below renders /moj-mekko in the same
-  // request — it must read the restored status, not the cached "deleted" one.
-  if (!(await getAuthUserId())) redirect("/prijava");
+/** Change of mind within 30 days. The page then reloads (see CancelDeletionButton) so nothing cached survives. */
+export async function cancelMyAccountDeletion(): Promise<{ ok: boolean }> {
+  if (!(await getAuthUserId())) return { ok: false };
   const supabase = await createClient();
-  await supabase.rpc("cancel_account_deletion");
-  revalidatePath("/", "layout");
-  redirect("/moj-mekko");
+  const { error } = await supabase.rpc("cancel_account_deletion");
+  return { ok: !error };
 }

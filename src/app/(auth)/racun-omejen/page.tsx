@@ -3,8 +3,7 @@ import { Suspense } from "react";
 import { SignOutButton } from "@/components/sign-out-button";
 import { getMyProfile } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
-import { cancelMyAccountDeletion } from "@/lib/actions/profile";
-import { buttonClasses } from "@/components/ui/button";
+import { CancelDeletionButton } from "./cancel-deletion-button";
 
 export const metadata: Metadata = { title: "Račun" };
 
@@ -27,11 +26,7 @@ async function Content() {
           Tvoj račun bo dokončno izbrisan {formatDate(until)}. Do takrat ga lahko obnoviš – profil in vsebine
           bodo spet vidni (odjavljene prijave na dogodke ostanejo odjavljene).
         </p>
-        <form action={cancelMyAccountDeletion}>
-          <button type="submit" className={buttonClasses("primary", "md")}>
-            Prekliči izbris in obnovi račun
-          </button>
-        </form>
+        <CancelDeletionButton />
         <SignOutButton />
       </div>
     );
