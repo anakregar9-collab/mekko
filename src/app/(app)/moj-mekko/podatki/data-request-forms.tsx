@@ -1,19 +1,19 @@
 "use client";
 
 import { useActionState } from "react";
-import { FormMessage, SubmitButton, type FormState } from "@/components/forms";
-import { requestData } from "@/lib/actions/profile";
+import { Field, FormMessage, inputCls, SubmitButton, type FormState } from "@/components/forms";
+import { deleteMyAccount, requestData } from "@/lib/actions/profile";
 import { buttonClasses } from "@/components/ui/button";
 
 export function DataRequestForms({
   exportOpen,
-  deletionOpen,
+  ownedSpaces,
 }: {
   exportOpen: boolean;
-  deletionOpen: boolean;
+  ownedSpaces: string[];
 }) {
   const [exportState, exportAction] = useActionState<FormState, FormData>(requestData, {});
-  const [deleteState, deleteAction] = useActionState<FormState, FormData>(requestData, {});
+  const [deleteState, deleteAction] = useActionState<FormState, FormData>(deleteMyAccount, {});
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -51,28 +51,34 @@ export function DataRequestForms({
       <form
         action={deleteAction}
         className="space-y-3 rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)] sm:p-5"
+        data-testid="delete-account-form"
       >
         <h2 className="font-display text-lg font-bold">Izbris računa</h2>
-        <p className="text-sm text-ink-muted">
-          Izbrišemo profil in osebne podatke. Prostori, ki jih imaš v lasti, morajo pred tem dobiti novega
-          lastnika ali biti zaprti.
-        </p>
-        <FormMessage state={deleteState} />
-        <input type="hidden" name="kind" value="deletion" />
-        {deletionOpen ? (
-          <p className="text-sm font-semibold">Zahteva za izbris je že oddana.</p>
+        {ownedSpaces.length > 0 ? (
+          <p className="text-sm">
+            Imaš v lasti prostore: <strong>{ownedSpaces.join(", ")}</strong>. Pred izbrisom računa jih predaj
+            drugemu članu ekipe ali zapri (Organizator → Ekipa).
+          </p>
         ) : (
           <>
-            <label className="flex min-h-11 cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                name="confirm"
-                className="mt-1 size-5 shrink-0 accent-[var(--color-brand)]"
-              />
-              <span className="text-sm">Razumem, da izbrisa ni mogoče razveljaviti.</span>
-            </label>
-            <SubmitButton variant="secondary" pendingText="Oddajam …">
-              Zahtevaj izbris
+            <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
+              <li>Račun se takoj skrije, prihodnje prijave na dogodke se odjavijo.</li>
+              <li>30 dni se lahko še prijaviš in izbris prekličeš.</li>
+              <li>
+                Po 30 dneh izbrišemo profil, ideje, objave, komentarje in sporočila. Prijave in plačila
+                ostanejo organizatorjem kot »Izbrisan uporabnik« (brez imena).
+              </li>
+            </ul>
+            <FormMessage state={deleteState} />
+            <Field
+              label="Za potrditev vpiši IZBRIŠI"
+              htmlFor="confirm_text"
+              error={deleteState.errors?.confirm_text}
+            >
+              <input id="confirm_text" name="confirm_text" autoComplete="off" className={inputCls} />
+            </Field>
+            <SubmitButton variant="secondary" pendingText="Brišem …">
+              Izbriši moj račun
             </SubmitButton>
           </>
         )}

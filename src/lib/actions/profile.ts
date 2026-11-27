@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { TERMS_VERSION } from "@/lib/legal";
-import { requireUser } from "@/lib/auth/dal";
+import { getAuthUserId, requireUser } from "@/lib/auth/dal";
 import { friendlyDbError } from "@/lib/db/errors";
 import { fieldErrors, onboardingSchema, profileSchema, safeNext } from "@/lib/validation";
 import type { FormState } from "@/components/forms";
@@ -185,4 +185,39 @@ export async function acceptTerms(formData: FormData): Promise<void> {
     .update({ terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() })
     .eq("id", profile.id);
   redirect(safeNext(naprej, "/moj-mekko"));
+}
+
+/** Self-service account deletion: hidden at once, removed after 30 days (purge job). */
+export async function deleteMyAccount(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireUser();
+  if (
+    String(formData.get("confirm_text") ?? "")
+      .trim()
+      .toUpperCase() !== "IZBRIŠI"
+  ) {
+    return { errors: { confirm_text: "Za potrditev vpiši IZBRIŠI." } };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("request_account_deletion");
+  if (error) {
+    return {
+      message:
+        error.message === "owns_spaces"
+          ? "Najprej predaj ali zapri prostore, ki jih imaš v lasti (Organizator → Ekipa)."
+          : friendlyDbError(error),
+    };
+  }
+  await supabase.auth.signOut();
+  redirect("/prijava?izbris=1");
+}
+
+/** Change of mind within 30 days. */
+export async function cancelMyAccountDeletion(): Promise<void> {
+  // Not getMyProfile(): it is cached for this request, and the redirect below renders /moj-mekko in the same
+  // request — it must read the restored status, not the cached "deleted" one.
+  if (!(await getAuthUserId())) redirect("/prijava");
+  const supabase = await createClient();
+  await supabase.rpc("cancel_account_deletion");
+  revalidatePath("/", "layout");
+  redirect("/moj-mekko");
 }
