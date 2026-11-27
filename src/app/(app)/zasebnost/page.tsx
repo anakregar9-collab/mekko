@@ -153,7 +153,7 @@ export default function Page() {
                 pravico, da prekličeš privolitev. Kopijo podatkov takoj preneseš, račun pa izbrišeš sam/-a v{" "}
                 <Link href="/moj-mekko/podatki" className="font-semibold text-brand-strong underline">
                   Moj Mekko → Moji podatki
-                </Link>{" "}
+                </Link>
                 . Za drugo nam piši na {OPERATOR.email}; odgovorimo v 30 dneh.
               </p>
               <p>
