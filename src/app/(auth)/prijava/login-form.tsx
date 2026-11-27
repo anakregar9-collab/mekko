@@ -10,6 +10,7 @@ export function LoginForm() {
   const params = useSearchParams();
   const next = params.get("naprej") ?? "";
   const signedOut = params.get("odjava") === "1";
+  const deletionRequested = params.get("izbris") === "1";
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loginState, loginAction] = useActionState<AuthState, FormData>(signIn, { mode: "login" });
   const [registerState, registerAction] = useActionState<AuthState, FormData>(register, { mode: "register" });
@@ -44,6 +45,15 @@ export function LoginForm() {
         ))}
       </div>
 
+      {deletionRequested && !state.message && (
+        <p
+          role="status"
+          className="rounded-2xl bg-sage-soft p-3 text-sm text-sage-ink"
+          data-testid="deletion-requested"
+        >
+          Račun bo izbrisan čez 30 dni. Do takrat se lahko prijaviš in izbris prekličeš.
+        </p>
+      )}
       {signedOut && mode === "login" && !state.message && (
         <p role="status" className="rounded-2xl bg-sage-soft p-3 text-sm text-sage-ink">
           Odjava je uspela.

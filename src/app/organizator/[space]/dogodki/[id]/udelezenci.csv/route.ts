@@ -42,7 +42,7 @@ export async function GET(
     supabase
       .from("bookings")
       .select(
-        "id, occurrence_id, quantity, note, payment_state, amount_cents, pass_id, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
+        "id, booker_id, occurrence_id, quantity, note, payment_state, amount_cents, pass_id, created_at, booker:profiles!bookings_booker_id_fkey(display_name, handle)",
       )
       .eq("event_id", id)
       .eq("status", "confirmed")
@@ -64,6 +64,7 @@ export async function GET(
   ];
   for (const b of (bookings ?? []) as unknown as {
     id: string;
+    booker_id: string | null;
     occurrence_id: string | null;
     quantity: number;
     note: string | null;
@@ -74,7 +75,7 @@ export async function GET(
   }[]) {
     rows.push([
       label(b.occurrence_id),
-      b.booker?.display_name ?? "Uporabnik",
+      b.booker_id ? (b.booker?.display_name ?? "Uporabnik") : "Izbrisan uporabnik",
       b.booker ? `@${b.booker.handle}` : "",
       b.quantity,
       b.note,

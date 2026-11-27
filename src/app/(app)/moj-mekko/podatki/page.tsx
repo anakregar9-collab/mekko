@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { requireUser } from "@/lib/auth/dal";
+import { getMySpaces, requireUser } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { BackLink } from "@/components/back-link";
@@ -38,6 +38,7 @@ async function Content() {
     .select("id, kind, status, created_at")
     .eq("profile_id", profile.id)
     .order("created_at", { ascending: false });
+  const spaces = await getMySpaces();
   const open = new Set(
     (requests ?? []).filter((r) => r.status === "open" || r.status === "in_progress").map((r) => r.kind),
   );
@@ -48,7 +49,12 @@ async function Content() {
         Po GDPR lahko kadarkoli preneseš kopijo svojih podatkov ali zahtevaš izbris računa. Zahtevo za izbris
         obdela ekipa Mekka v največ 30 dneh.
       </p>
-      <DataRequestForms exportOpen={open.has("export")} deletionOpen={open.has("deletion")} />
+      <DataRequestForms
+        exportOpen={open.has("export")}
+        ownedSpaces={spaces
+          .filter((m) => m.role === "owner" && m.status === "active")
+          .map((m) => m.space.name)}
+      />
       {requests && requests.length > 0 && (
         <section className="space-y-2">
           <h2 className="font-display text-lg font-bold">Moje zahteve</h2>

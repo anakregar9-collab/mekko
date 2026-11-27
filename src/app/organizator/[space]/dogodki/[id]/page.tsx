@@ -37,7 +37,7 @@ interface AttendeeRow {
   note: string | null;
   status: string;
   created_at: string;
-  booker_id: string;
+  booker_id: string | null;
   payment_state: "none" | "awaiting" | "organizer_confirmed";
   amount_cents: number | null;
   payment_due_at: string | null;
@@ -179,20 +179,25 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
                           <li key={b.id} className="py-2">
                             <p className="flex justify-between gap-2">
                               <span className="font-medium">
-                                {b.booker?.display_name ?? "Uporabnik"}{" "}
+                                {b.booker_id ? (b.booker?.display_name ?? "Uporabnik") : "Izbrisan uporabnik"}{" "}
                                 <span className="text-sm text-ink-muted">@{b.booker?.handle}</span>
                               </span>
                               <span className="flex shrink-0 items-center gap-3">
-                                <Link
-                                  href={`/sporocila/nov?komu=${b.booker_id}`}
-                                  className="text-sm font-semibold text-brand-strong underline"
-                                >
-                                  Piši
-                                  <span className="sr-only">
-                                    {" "}
-                                    osebi {b.booker?.display_name ?? "Uporabnik"}
-                                  </span>
-                                </Link>
+                                {b.booker_id && (
+                                  <Link
+                                    href={`/sporocila/nov?komu=${b.booker_id}`}
+                                    className="text-sm font-semibold text-brand-strong underline"
+                                  >
+                                    Piši
+                                    <span className="sr-only">
+                                      {" "}
+                                      osebi{" "}
+                                      {b.booker_id
+                                        ? (b.booker?.display_name ?? "Uporabnik")
+                                        : "Izbrisan uporabnik"}
+                                    </span>
+                                  </Link>
+                                )}
                                 <span className="tabular-nums">× {b.quantity}</span>
                               </span>
                             </p>
@@ -219,7 +224,11 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]/dog
                                     spaceSlug={slug}
                                     eventId={event.id}
                                     bookingId={b.id}
-                                    name={b.booker?.display_name ?? "Uporabnik"}
+                                    name={
+                                      b.booker_id
+                                        ? (b.booker?.display_name ?? "Uporabnik")
+                                        : "Izbrisan uporabnik"
+                                    }
                                   />
                                 )}
                               </>

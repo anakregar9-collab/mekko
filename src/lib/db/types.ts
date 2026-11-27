@@ -152,7 +152,7 @@ export type Database = {
       bookings: {
         Row: {
           amount_cents: number | null;
-          booker_id: string;
+          booker_id: string | null;
           cancelled_at: string | null;
           created_at: string;
           event_id: string;
@@ -170,7 +170,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           amount_cents?: number | null;
-          booker_id: string;
+          booker_id?: string | null;
           cancelled_at?: string | null;
           created_at?: string;
           event_id: string;
@@ -187,7 +187,7 @@ export type Database = {
         };
         Update: {
           amount_cents?: number | null;
-          booker_id?: string;
+          booker_id?: string | null;
           cancelled_at?: string | null;
           created_at?: string;
           event_id?: string;
@@ -315,7 +315,7 @@ export type Database = {
           created_at: string;
           id: string;
           price_cents: number | null;
-          profile_id: string;
+          profile_id: string | null;
           status: string;
         };
         ComputedFields: never;
@@ -327,7 +327,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           price_cents?: number | null;
-          profile_id: string;
+          profile_id?: string | null;
           status: string;
         };
         Update: {
@@ -338,7 +338,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           price_cents?: number | null;
-          profile_id?: string;
+          profile_id?: string | null;
           status?: string;
         };
         Relationships: [
@@ -641,7 +641,7 @@ export type Database = {
           cover: string;
           cover_image_path: string | null;
           created_at: string;
-          created_by: string;
+          created_by: string | null;
           description: string | null;
           external_url: string | null;
           family_friendly: boolean;
@@ -681,7 +681,7 @@ export type Database = {
           cover?: string;
           cover_image_path?: string | null;
           created_at?: string;
-          created_by: string;
+          created_by?: string | null;
           description?: string | null;
           external_url?: string | null;
           family_friendly?: boolean;
@@ -720,7 +720,7 @@ export type Database = {
           cover?: string;
           cover_image_path?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           description?: string | null;
           external_url?: string | null;
           family_friendly?: boolean;
@@ -1253,7 +1253,7 @@ export type Database = {
           confirmed_at: string | null;
           confirmed_by: string | null;
           created_at: string;
-          holder_id: string;
+          holder_id: string | null;
           id: string;
           name: string;
           pass_type_id: string;
@@ -1271,7 +1271,7 @@ export type Database = {
           confirmed_at?: string | null;
           confirmed_by?: string | null;
           created_at?: string;
-          holder_id: string;
+          holder_id?: string | null;
           id?: string;
           name: string;
           pass_type_id: string;
@@ -1288,7 +1288,7 @@ export type Database = {
           confirmed_at?: string | null;
           confirmed_by?: string | null;
           created_at?: string;
-          holder_id?: string;
+          holder_id?: string | null;
           id?: string;
           name?: string;
           pass_type_id?: string;
@@ -1570,6 +1570,7 @@ export type Database = {
           approx_city: string | null;
           bio: string | null;
           created_at: string;
+          deletion_requested_at: string | null;
           display_name: string;
           handle: string;
           id: string;
@@ -1586,6 +1587,7 @@ export type Database = {
           approx_city?: string | null;
           bio?: string | null;
           created_at?: string;
+          deletion_requested_at?: string | null;
           display_name: string;
           handle: string;
           id: string;
@@ -1601,6 +1603,7 @@ export type Database = {
           approx_city?: string | null;
           bio?: string | null;
           created_at?: string;
+          deletion_requested_at?: string | null;
           display_name?: string;
           handle?: string;
           id?: string;
@@ -1888,7 +1891,7 @@ export type Database = {
           capabilities: NonNullable<Json>;
           city: string | null;
           created_at: string;
-          created_by: string;
+          created_by: string | null;
           deleted_at: string | null;
           id: string;
           is_demo: boolean;
@@ -1913,7 +1916,7 @@ export type Database = {
           capabilities?: NonNullable<Json>;
           city?: string | null;
           created_at?: string;
-          created_by: string;
+          created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
           is_demo?: boolean;
@@ -1937,7 +1940,7 @@ export type Database = {
           capabilities?: NonNullable<Json>;
           city?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
           is_demo?: boolean;
@@ -1972,6 +1975,31 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      storage_cleanup: {
+        Row: {
+          bucket: string;
+          created_at: string;
+          done_at: string | null;
+          id: number;
+          path: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          bucket: string;
+          created_at?: string;
+          done_at?: string | null;
+          id?: never;
+          path: string;
+        };
+        Update: {
+          bucket?: string;
+          created_at?: string;
+          done_at?: string | null;
+          id?: never;
+          path?: string;
+        };
+        Relationships: [];
       };
       user_blocks: {
         Row: {
@@ -2134,6 +2162,7 @@ export type Database = {
       can_view_post: { Args: { p_post: string }; Returns: boolean };
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
       can_watch_course_video: { Args: { p_name: string }; Returns: boolean };
+      cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: undefined };
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
       cancel_enrollment: { Args: { p_enrollment: string; p_reason: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
@@ -2270,6 +2299,7 @@ export type Database = {
       is_following: { Args: { p_followee: string }; Returns: boolean };
       is_moderator: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_platform_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_profile_shown: { Args: { p_profile: string }; Returns: boolean };
       is_space_live: { Args: { p_space: string }; Returns: boolean };
       is_space_role: {
         Args: { min_role: Database["public"]["Enums"]["space_role"]; p_space: string };
@@ -2306,6 +2336,7 @@ export type Database = {
         }[];
       };
       publish_event: { Args: { p_event: string }; Returns: undefined };
+      purge_deleted_accounts: { Args: Record<PropertyKey, never>; Returns: number };
       rate_idea: { Args: { p_idea: string; p_stars: number }; Returns: undefined };
       release_overdue_reservations: { Args: { p_event?: string }; Returns: number };
       release_unpaid_booking: { Args: { p_booking: string; p_reason: string }; Returns: undefined };
@@ -2324,6 +2355,7 @@ export type Database = {
         };
         Returns: string;
       };
+      request_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       request_pass: { Args: { p_type: string }; Returns: string };
       request_space_verification: { Args: { p_space: string }; Returns: undefined };
       reschedule_occurrence: { Args: { p_ends: string; p_occ: string; p_starts: string }; Returns: number };

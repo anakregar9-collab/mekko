@@ -123,8 +123,10 @@ export default function Page() {
             <ul>
               <li>Podatke računa in profila, dokler imaš račun.</li>
               <li>
-                Po izbrisu računa izbrišemo ali anonimiziramo podatke v roku 30 dni, razen kjer zakon zahteva
-                daljšo hrambo.
+                Ko izbrišeš račun, ga takoj skrijemo; v 30 dneh lahko izbris prekličeš. Nato izbrišemo profil,
+                ideje, objave, komentarje in sporočila. Prijave na dogodke, nakupi kart in tečajev ostanejo
+                organizatorjem anonimno (brez imena), ker jih potrebujejo za svojo evidenco; daljša hramba
+                velja tudi, kjer jo zahteva zakon.
               </li>
               <li>Zapise posegov moderatorjev hranimo do 2 leti zaradi varnosti in morebitnih sporov.</li>
             </ul>
@@ -148,11 +150,11 @@ export default function Page() {
             <>
               <p>
                 Imaš pravico do dostopa, popravka, izbrisa, omejitve obdelave, prenosljivosti in ugovora ter
-                pravico, da prekličeš privolitev. Izvoz ali izbris podatkov zahtevaš v{" "}
+                pravico, da prekličeš privolitev. Kopijo podatkov takoj preneseš, račun pa izbrišeš sam/-a v{" "}
                 <Link href="/moj-mekko/podatki" className="font-semibold text-brand-strong underline">
                   Moj Mekko → Moji podatki
-                </Link>{" "}
-                ali na {OPERATOR.email}. Odgovorimo v 30 dneh.
+                </Link>
+                . Za drugo nam piši na {OPERATOR.email}; odgovorimo v 30 dneh.
               </p>
               <p>
                 Pritožbo lahko vložiš pri Informacijskem pooblaščencu RS (Dunajska cesta 22, 1000 Ljubljana,

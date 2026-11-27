@@ -19,18 +19,17 @@ test("admin area: hidden from users; admin suspends with reason, audited; suspen
   await expect(admin.getByRole("heading", { name: "Administracija" })).toBeVisible();
   await checkPage(admin);
 
-  // User files a deletion request; admin sees it.
+  // User files a data request to the team; admin sees it.
   await user.goto("/moj-mekko/podatki");
-  await user.getByRole("checkbox", { name: "Razumem, da izbrisa ni mogoče razveljaviti." }).check();
-  await user.getByRole("button", { name: "Zahtevaj izbris" }).click();
-  await expect(user.getByText("Zahteva za izbris je oddana.")).toBeVisible();
+  await user.getByRole("button", { name: "Oddaj zahtevo ekipi" }).click();
+  await expect(user.getByText("Zahteva za izvoz je oddana.")).toBeVisible();
 
   await admin.getByTestId("workspace-nav").getByRole("link", { name: "Zahteve GDPR" }).click();
   const req = admin
     .getByTestId("admin-requests")
     .getByRole("listitem")
     .filter({ hasText: `@${userHandle}` });
-  await expect(req).toContainText("Izbris");
+  await expect(req).toContainText("Izvoz");
   await checkPage(admin);
   await req.getByLabel("Opomba").fill("Preverjeno, v obdelavi");
   await req.getByRole("button", { name: "V obdelavo" }).click();
