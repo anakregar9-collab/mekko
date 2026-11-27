@@ -40,3 +40,20 @@ export async function resolveDataRequest(_prev: FormState, formData: FormData): 
   revalidatePath("/admin", "layout");
   return { ok: true, message: "Zahteva je posodobljena." };
 }
+
+export async function setSpaceSuspension(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requirePlatformRole(["super_admin", "admin"]);
+  const suspend = formData.get("suspend") === "1";
+  const reason = reasonSchema.safeParse(formData.get("reason"));
+  if (!reason.success) return { errors: { reason: reason.error.issues[0].message } };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_set_space_suspension", {
+    p_space: String(formData.get("space_id")),
+    p_suspend: suspend,
+    p_reason: reason.data,
+  });
+  if (error) return { message: friendlyDbError(error) };
+  revalidatePath("/admin", "layout");
+  revalidatePath("/odkrivanje");
+  return { ok: true, message: suspend ? "Prostor je blokiran." : "Prostor je spet aktiven." };
+}

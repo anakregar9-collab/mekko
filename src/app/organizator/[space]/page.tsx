@@ -68,6 +68,17 @@ async function Content({ params }: { params: PageProps<"/organizator/[space]">["
         {space.tagline && <p className="text-ink-muted">{space.tagline}</p>}
       </div>
 
+      {space.suspended_at && (
+        <p
+          role="alert"
+          className="rounded-2xl bg-brand-soft p-4 text-brand-strong"
+          data-testid="space-suspended-notice"
+        >
+          <strong>Prostor je blokiran.</strong> Prostor in njegova vsebina niso vidni javnosti, novih prijav
+          ni. Razlog: {space.suspended_reason}. Za pojasnila piši ekipi Mekka.
+        </p>
+      )}
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Ekipa" value={String(teamCount ?? 1)} />
         <StatTile

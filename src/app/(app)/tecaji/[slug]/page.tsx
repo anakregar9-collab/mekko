@@ -64,7 +64,7 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
     supabase.rpc("course_outline", { p_course: course.id }),
     supabase
       .from("course_lessons")
-      .select("id, title, youtube_id, notes, is_preview")
+      .select("id, title, youtube_id, video_path, notes, is_preview")
       .eq("course_id", course.id),
     profile
       ? supabase
@@ -95,7 +95,7 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
   const requested = typeof sp.lekcija === "string" ? sp.lekcija : undefined;
   const currentId =
     (requested && playable.has(requested) ? requested : undefined) ??
-    lessons.find((l) => playable.get(l.id)?.youtube_id)?.id;
+    lessons.find((l) => playable.get(l.id)?.youtube_id || playable.get(l.id)?.video_path)?.id;
   const current = currentId ? playable.get(currentId) : undefined;
   const currentIndex = lessons.findIndex((l) => l.id === currentId);
   const next = lessons.slice(currentIndex + 1).find((l) => playable.has(l.id));
@@ -104,6 +104,10 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
   const isTeam =
     !!profile && !enrolled && !!(await supabase.rpc("has_course_access", { p_course: course.id })).data;
   const markDone = setLessonDone.bind(null, course.slug);
+  // Uploaded video: a temporary signed link, created only when storage policies allow this viewer.
+  const videoUrl = current?.video_path
+    ? (await supabase.storage.from("course-videos").createSignedUrl(current.video_path, 7200)).data?.signedUrl
+    : undefined;
 
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_20rem] md:grid-rows-[auto_1fr]">
@@ -120,18 +124,30 @@ async function Content({ params, searchParams }: PageProps<"/tecaji/[slug]">) {
         <h1 className="font-display text-3xl leading-tight font-extrabold tracking-tight break-words">
           {course.title}
         </h1>
-        {current?.youtube_id ? (
+        {current && (current.youtube_id || videoUrl) ? (
           <div className="space-y-3" data-testid="lesson-player">
             <div className="aspect-video overflow-hidden rounded-[var(--radius-card)] bg-ink">
-              <iframe
-                src={youTubeEmbedUrl(current.youtube_id)}
-                title={`Video: ${current.title}`}
-                className="size-full"
-                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-                loading="lazy"
-              />
+              {videoUrl ? (
+                <video
+                  src={videoUrl}
+                  controls
+                  controlsList="nodownload"
+                  preload="metadata"
+                  className="size-full"
+                  aria-label={`Video: ${current.title}`}
+                  data-testid="uploaded-video"
+                />
+              ) : (
+                <iframe
+                  src={youTubeEmbedUrl(current.youtube_id!)}
+                  title={`Video: ${current.title}`}
+                  className="size-full"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              )}
             </div>
             <h2 className="font-display text-xl font-bold break-words">
               {currentIndex + 1}. {current.title}

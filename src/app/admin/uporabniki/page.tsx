@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { requirePlatformRole } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
@@ -70,7 +71,12 @@ async function Content({ searchParams }: { searchParams: PageProps<"/admin/upora
         {(users ?? []).map((u) => (
           <li key={u.id} className="flex flex-col gap-3 p-4 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">
-              <p className="font-semibold break-words">{u.display_name}</p>
+              <Link
+                href={`/admin/uporabniki/${u.id}`}
+                className="font-semibold break-words underline-offset-2 hover:underline"
+              >
+                {u.display_name}
+              </Link>
               <p className="text-sm text-ink-muted">
                 @{u.handle} · od {formatDate(u.created_at)}
               </p>

@@ -8,6 +8,7 @@ import { requireSpaceRole, requireUser } from "@/lib/auth/dal";
 import { priceToCents } from "@/lib/format";
 import { slugify } from "@/lib/slug";
 import { parseYouTubeId } from "@/lib/youtube";
+import { isVideoPathForCourse } from "@/lib/video";
 import type { FormState } from "@/components/forms";
 
 const errors: Record<string, string> = {
@@ -21,6 +22,7 @@ const errors: Record<string, string> = {
   invalid_status: "Tega trenutno ni mogoče spremeniti.",
   reason_required: "Vpiši razlog.",
   too_many_lessons: "Tečaj ima lahko največ 100 lekcij.",
+  invalid_video: "Neveljaven video.",
   hidden_by_moderator: "Tečaj so skrili moderatorji Mekka. Za ponovno objavo jim piši.",
   not_allowed: "Za to nimaš dovoljenja.",
 };
@@ -158,13 +160,17 @@ export async function addLesson(
 ): Promise<FormState> {
   await requireSpaceRole(spaceSlug, "admin");
   const title = String(fd.get("title") ?? "").trim();
-  const video = String(fd.get("video") ?? "").trim();
+  const source = fd.get("source") === "upload" ? "upload" : "youtube";
+  const video = source === "youtube" ? String(fd.get("video") ?? "").trim() : "";
+  const videoPath = source === "upload" ? String(fd.get("video_path") ?? "").trim() : "";
   const notes = String(fd.get("notes") ?? "").trim();
   const values = { title, video, notes, nonce: Math.random().toString(36).slice(2) };
   const errs: Record<string, string> = {};
   if (title.length < 2 || title.length > 120) errs.title = "Naslov lekcije: 2–120 znakov.";
   const id = video ? parseYouTubeId(video) : null;
   if (video && !id) errs.video = "Prilepi povezavo do YouTube videa (npr. https://youtu.be/…).";
+  if (source === "upload" && !videoPath) errs.video = "Najprej naloži video in počakaj, da se naloži.";
+  if (videoPath && !isVideoPathForCourse(videoPath, courseId)) errs.video = "Neveljaven video.";
   if (notes.length > 5000) errs.notes = "Največ 5000 znakov.";
   if (Object.keys(errs).length) return { errors: errs, values };
   const supabase = await createClient();
@@ -174,10 +180,11 @@ export async function addLesson(
     p_youtube_id: id ?? "",
     p_notes: notes,
     p_preview: fd.get("is_preview") === "on",
+    p_video_path: videoPath,
   });
   if (error) return { message: friendly(error.message), values };
   revalidatePath(`/organizator/${spaceSlug}/tecaji/${courseId}`);
-  return { ok: true, message: "Lekcija je dodana." };
+  return { ok: true, message: "Lekcija je dodana.", values: { nonce: values.nonce } };
 }
 
 export async function updateLesson(
@@ -202,7 +209,13 @@ export async function updateLesson(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("course_lessons")
-    .update({ title, youtube_id: id, notes: notes || null, is_preview: fd.get("is_preview") === "on" })
+    .update({
+      title,
+      notes: notes || null,
+      is_preview: fd.get("is_preview") === "on",
+      // Lessons with an uploaded video keep it; only YouTube lessons change their link here.
+      ...(fd.get("has_video_field") === "1" ? { youtube_id: id } : {}),
+    })
     .eq("id", lessonId)
     .eq("course_id", courseId)
     .select("id");

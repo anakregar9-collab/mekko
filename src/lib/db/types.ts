@@ -375,6 +375,7 @@ export type Database = {
           position: number;
           removed_at: string | null;
           title: string;
+          video_path: string | null;
           youtube_id: string | null;
         };
         ComputedFields: never;
@@ -387,6 +388,7 @@ export type Database = {
           position: number;
           removed_at?: string | null;
           title: string;
+          video_path?: string | null;
           youtube_id?: string | null;
         };
         Update: {
@@ -398,6 +400,7 @@ export type Database = {
           position?: number;
           removed_at?: string | null;
           title?: string;
+          video_path?: string | null;
           youtube_id?: string | null;
         };
         Relationships: [
@@ -1898,6 +1901,8 @@ export type Database = {
           name: string;
           slug: string;
           social_links: NonNullable<Json>;
+          suspended_at: string | null;
+          suspended_reason: string | null;
           tagline: string | null;
           updated_at: string;
           verification_status: Database["public"]["Enums"]["verification_status"];
@@ -1921,6 +1926,8 @@ export type Database = {
           name: string;
           slug: string;
           social_links?: NonNullable<Json>;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           tagline?: string | null;
           updated_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
@@ -1943,6 +1950,8 @@ export type Database = {
           name?: string;
           slug?: string;
           social_links?: NonNullable<Json>;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           tagline?: string | null;
           updated_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
@@ -2041,16 +2050,28 @@ export type Database = {
     Functions: {
       add_comment: { Args: { p_body: string; p_post: string }; Returns: number };
       add_idea_comment: { Args: { p_body: string; p_idea: string }; Returns: number };
-      add_lesson: {
-        Args: {
-          p_course: string;
-          p_notes: string;
-          p_preview: boolean;
-          p_title: string;
-          p_youtube_id: string;
-        };
-        Returns: string;
-      };
+      add_lesson:
+        | {
+            Args: {
+              p_course: string;
+              p_notes: string;
+              p_preview: boolean;
+              p_title: string;
+              p_youtube_id: string;
+            };
+            Returns: string;
+          }
+        | {
+            Args: {
+              p_course: string;
+              p_notes: string;
+              p_preview: boolean;
+              p_title: string;
+              p_video_path: string;
+              p_youtube_id: string;
+            };
+            Returns: string;
+          };
       admin_remove_message: { Args: { p_message: number; p_reason: string }; Returns: undefined };
       admin_resolve_data_request: {
         Args: {
@@ -2084,6 +2105,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_set_space_suspension: {
+        Args: { p_reason: string; p_space: string; p_suspend: boolean };
+        Returns: undefined;
+      };
       admin_set_space_verification: {
         Args: {
           p_reason: string;
@@ -2092,6 +2117,8 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_space_overview: { Args: { p_space: string }; Returns: Json };
+      admin_user_overview: { Args: { p_profile: string }; Returns: Json };
       assert_message_rate: { Args: Record<PropertyKey, never>; Returns: undefined };
       block_user: { Args: { p_profile: string }; Returns: undefined };
       book_event: {
@@ -2106,6 +2133,7 @@ export type Database = {
       can_message: { Args: { p_to: string }; Returns: boolean };
       can_view_post: { Args: { p_post: string }; Returns: boolean };
       can_view_profile: { Args: { p_profile: string }; Returns: boolean };
+      can_watch_course_video: { Args: { p_name: string }; Returns: boolean };
       cancel_booking: { Args: { p_booking: string }; Returns: undefined };
       cancel_enrollment: { Args: { p_enrollment: string; p_reason: string }; Returns: undefined };
       cancel_event: { Args: { p_event: string; p_reason: string }; Returns: undefined };
@@ -2126,6 +2154,7 @@ export type Database = {
         }[];
       };
       course_space: { Args: { p_course: string }; Returns: string };
+      course_video_course: { Args: { p_name: string }; Returns: string };
       create_post: {
         Args: {
           p_caption: string;
@@ -2241,6 +2270,7 @@ export type Database = {
       is_following: { Args: { p_followee: string }; Returns: boolean };
       is_moderator: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_platform_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_space_live: { Args: { p_space: string }; Returns: boolean };
       is_space_role: {
         Args: { min_role: Database["public"]["Enums"]["space_role"]; p_space: string };
         Returns: boolean;
